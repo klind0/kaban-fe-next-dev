@@ -6,7 +6,7 @@ import { QUERY_KEY } from "@/enum/queryKeys";
 import { ITokens, SuccessResponse } from "@/types/responseTypes";
 
 export const axiosInstance = axios.create({
-  baseURL: "/api",
+  baseURL: process.env.API_URL || "https://kaban-backend.onrender.com", // Fallback to your Render URL,
   headers: {
     "Content-Type": "application/json",
   },
