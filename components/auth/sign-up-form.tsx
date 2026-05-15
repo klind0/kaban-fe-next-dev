@@ -30,23 +30,28 @@ export default function SignUpForm({ onOpenChange }: SignUpFormProps) {
         mode: 'all'
     })
 
-    const { setUser, setRealtor } = useUserStore()
-
     const { mutateAsync: mutateSignUp, isPending: isSignUpPending } = useMutation({
         mutationFn: (variables: ISignUpVariables['input']) =>
             gqlRequest<ISignUpResponse, ISignUpVariables>(SIGNUP_MUTATION, { input: variables }),
         onSuccess: (response: any) => {
-            toast.success("Signed up successfully!");
-            const accessToken = response.signup;
+            const token = response.signup;
             
-            // Set Cookies
-            Cookies.set(QUERY_KEY.ACCESS_TOKEN, accessToken, { expires: 30, secure: true });
-                        
-            reset();
-            onOpenChange();
-            
-            // FIX for Error 1A: Redirect to dashboard after signup
-            router.push('/dashboard'); 
+            if (token && typeof token === 'string') {
+                // Save the token
+                Cookies.set(QUERY_KEY.ACCESS_TOKEN, token, { expires: 30, secure: true });
+                
+                toast.success("Account created! Redirecting...");
+                
+                // Delay the redirect slightly or refresh the page
+                // to ensure the cookie is readable by the layout/middleware
+                setTimeout(() => {
+                    window.location.href = '/dashboard';
+                }, 1000);
+            } else {
+                console.error("Token missing in response:", response);
+                toast.error("Signup succeeded, but session failed. Please sign in manually.");
+                router.push('/'); 
+            }
         },
         onError: (error: any) => {
             console.error("Signup Error:", error);
