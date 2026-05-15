@@ -34,23 +34,28 @@ export default function SignUpForm({ onOpenChange }: SignUpFormProps) {
         mutationFn: (variables: ISignUpVariables['input']) =>
             gqlRequest<ISignUpResponse, ISignUpVariables>(SIGNUP_MUTATION, { input: variables }),
         onSuccess: (response: any) => {
-            const token = response.signup;
+            console.log("Full Signup Response:", response);
+
+            const token = response?.signup;
             
             if (token && typeof token === 'string') {
                 // Save the token
-                Cookies.set(QUERY_KEY.ACCESS_TOKEN, token, { expires: 30, secure: true });
+                Cookies.set(QUERY_KEY.ACCESS_TOKEN, token, { 
+                    expires: 30, 
+                    path: '/',
+                    secure: true,
+                    sameSite: 'lax'
+                });
                 
-                toast.success("Account created! Redirecting...");
+                toast.success("Account created! Signing you in...");
                 
-                // Delay the redirect slightly or refresh the page
-                // to ensure the cookie is readable by the layout/middleware
+                // 4. Force a reload to the dashboard to refresh the auth state                // to ensure the cookie is readable by the layout/middleware
                 setTimeout(() => {
                     window.location.href = '/dashboard';
-                }, 1000);
+                }, 500);
             } else {
-                console.error("Token missing in response:", response);
-                toast.error("Signup succeeded, but session failed. Please sign in manually.");
-                router.push('/'); 
+                console.error("Token extraction failed. Response structure:", response);
+                toast.error("Signup succeeded, but couldn't start session.");
             }
         },
         onError: (error: any) => {
