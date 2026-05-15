@@ -35,17 +35,13 @@ export default function SignUpForm({ onOpenChange }: SignUpFormProps) {
     const { mutateAsync: mutateSignUp, isPending: isSignUpPending } = useMutation({
         mutationFn: (variables: ISignUpVariables['input']) =>
             gqlRequest<ISignUpResponse, ISignUpVariables>(SIGNUP_MUTATION, { input: variables }),
-        onSuccess: (response) => {
+        onSuccess: (response: any) => {
             toast.success("Signed up successfully!");
-            const { accessToken, user, realtor } = response.signup;
+            const accessToken = response.signup;
             
             // Set Cookies
             Cookies.set(QUERY_KEY.ACCESS_TOKEN, accessToken, { expires: 30, secure: true });
-            
-            // Update Store
-            setUser(user);
-            setRealtor(realtor);
-            
+                        
             reset();
             onOpenChange();
             

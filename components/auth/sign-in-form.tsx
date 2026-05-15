@@ -31,7 +31,7 @@ export default function SignInForm({ onOpenChange }: SignInFormProps) {
         mutationFn: (variables: ILoginVariables) =>
             gqlRequest<ILoginResponse, ILoginVariables>(LOGIN_MUTATION, variables),
         onSuccess: (response) => {
-            toast.success("Logged in successfully!");
+            toast.success("Sign in successful!");
             const { accessToken, user, realtor } = response.login;
             Cookies.set(QUERY_KEY.ACCESS_TOKEN, accessToken, { expires: 30, secure: true });
             // Cookies.set(QUERY_KEY.REFRESH_TOKEN, refreshToken, { expires: 365, secure: true });

@@ -180,9 +180,10 @@ const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function B
                         render={({ field }) => (
                             <FormControl
                                 as='input'
-                                type="number"
                                 labelText='Sale/Rent Price (₦)'
-                                placeholder='Enter price'
+                                placeholder='0'
+                                type="number"
+                                min={0}
                                 containerClass="w-full"
                                 {...field}
                                 error={getErrorMessage(errors.price?.amount)}
