@@ -6,7 +6,19 @@ export const LOGIN_MUTATION = `
 
 export const SIGNUP_MUTATION = `
   mutation SignUp($input: SignupDto!) {
-    signup(input: $input)
+    signup(input: $input) {
+      accessToken
+      user {
+        id
+        email
+        fullName
+        role
+      }
+      realtor {
+        id
+        verification_status
+      }
+    }
   }
 `;
 

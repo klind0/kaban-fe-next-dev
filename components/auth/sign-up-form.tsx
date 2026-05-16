@@ -30,37 +30,47 @@ export default function SignUpForm({ onOpenChange }: SignUpFormProps) {
         mode: 'all'
     })
 
+    const { setUser, setRealtor } = useUserStore()
+
     const { mutateAsync: mutateSignUp, isPending: isSignUpPending } = useMutation({
         mutationFn: (variables: ISignUpVariables['input']) =>
             gqlRequest<ISignUpResponse, ISignUpVariables>(SIGNUP_MUTATION, { input: variables }),
         onSuccess: (response: any) => {
-            console.log("Full Signup Response:", response);
+            console.log("Extraction Success Block Data:", response);
 
-            const token = response?.signup;
+            // Target the object variables returned from the backend data payload
+            const signupData = response?.signup;
+            const token = signupData?.accessToken;
             
-            if (token && typeof token === 'string') {
-                // Save the token
+            if (token) {
+                // 1. Set Auth Token Cookie
                 Cookies.set(QUERY_KEY.ACCESS_TOKEN, token, { 
                     expires: 30, 
                     path: '/',
                     secure: true,
                     sameSite: 'lax'
                 });
+
+                // 2. Hydrate Global App Stores
+                if (signupData.user) setUser(signupData.user);
+                if (signupData.realtor) setRealtor(signupData.realtor);
                 
                 toast.success("Account created! Signing you in...");
-                
-                // 4. Force a reload to the dashboard to refresh the auth state                // to ensure the cookie is readable by the layout/middleware
+                reset();
+                onOpenChange();
+
+                // 3. Force a reload to the dashboard to refresh the auth state                // to ensure the cookie is readable by the layout/middleware
                 setTimeout(() => {
                     window.location.href = '/dashboard';
-                }, 500);
+                }, 800);
             } else {
                 console.error("Token extraction failed. Response structure:", response);
-                toast.error("Signup succeeded, but couldn't start session.");
+                toast.error("Account created, but authentication token was dropped.");
             }
         },
         onError: (error: any) => {
-            console.error("Signup Error:", error);
-            toast.error(error.message || "Signup failed. Check your connection.");
+            console.error("Signup Mutation Error Context:", error);
+            toast.error(error.message || "Something went wrong. Please try again.");
         }
     })
 
