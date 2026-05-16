@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from '../ui/button'
 import Link from 'next/link'
 import FormControl from '../universal/form-control'
@@ -12,11 +14,15 @@ import Cookies from 'js-cookie'
 import { gqlRequest } from '@/network/graphql-client'
 import { useUserStore } from '@/app/stores/user-store'
 import { Checkbox } from '../ui/checkbox'
+import { useRouter } from 'next/navigation'
 
 interface SignInFormProps {
     onOpenChange: () => void;
 }
+
 export default function SignInForm({ onOpenChange }: SignInFormProps) {
+    const router = useRouter()
+    
     const { control, handleSubmit, reset, formState: { errors } } = useForm<ILoginVariables>({
         defaultValues: {
             email: '',
@@ -31,18 +37,22 @@ export default function SignInForm({ onOpenChange }: SignInFormProps) {
         mutationFn: (variables: ILoginVariables) =>
             gqlRequest<ILoginResponse, ILoginVariables>(LOGIN_MUTATION, variables),
         onSuccess: (response) => {
-            toast.success("Sign in successful!");
+            toast.success("Welcome back! Sign in successful.");
             const { accessToken, user, realtor } = response.login;
+            
             Cookies.set(QUERY_KEY.ACCESS_TOKEN, accessToken, { expires: 30, secure: true });
-            // Cookies.set(QUERY_KEY.REFRESH_TOKEN, refreshToken, { expires: 365, secure: true });
             setUser(user);
             setRealtor(realtor);
             reset();
             onOpenChange();
+            
+            // 🚀 Smoothly route the authenticated realtor right to the dashboard
+            router.push('/dashboard');
+            router.refresh();
         },
-        onError: (error) => (
+        onError: (error) => {
             toast.error(error.message || "Something went wrong. Please try again.")
-        )
+        }
     })
 
     const onSubmit = async (data: ILoginVariables) => {
@@ -97,7 +107,12 @@ export default function SignInForm({ onOpenChange }: SignInFormProps) {
                         )}
                     />
                     <div className='flex items-center justify-between mt-4'>
-                        <div className='flex gap-2 items-center'><Checkbox /> <span className='font-medium'>Keep me logged in</span></div>
+                        <div className='flex gap-2 items-center'>
+                            <Checkbox id="keep-logged-in" /> 
+                            <label htmlFor="keep-logged-in" className='font-medium text-sm select-none cursor-pointer'>
+                                Keep me logged in
+                            </label>
+                        </div>
                         <Link href='#' className='text-sm text-primary font-semibold hover:underline'>Forgot password?</Link>
                     </div>
                 </div>
