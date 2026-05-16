@@ -111,19 +111,49 @@ export default function CreateListingScreen() {
         goToTab(TAB_ORDER[idx + 1])
     }
 
-    const handleLocationSubmit = async (data: LocationListingData, submit: boolean) => {
+   const handleLocationSubmit = async (data: LocationListingData, submit: boolean) => {
         const { basic, media } = draftRef.current
-        if (!basic || !media) {
-            toast.error('Please fill in the previous steps first.')
-            return
+        
+        // If they are just saving a draft, bypass complete validation checks
+        if (!submit) {
+            setIsPending(true)
+            try {
+                const mediaData: MediaListingData = media ?? { images: [], cover_index: 0, video_url: '' }
+                await createListing(basic ?? {}, mediaData, data, false)
+                toast.success('Draft saved successfully!')
+                router.push('/dashboard')
+                return
+            } catch (err) {
+                toast.error('Failed to save draft.')
+                return
+            } finally {
+                setIsPending(false)
+            }
         }
+
+        // Processing structured Submission Validation
         setIsPending(true)
         try {
-            await createListing(basic, media, data, submit)
-            toast.success(submit ? 'Listing submitted for review!' : 'Draft saved successfully!')
+            await createListing(basic, media, data, true)
+            toast.success('Listing submitted for review!')
             router.push('/dashboard')
-        } catch (err) {
-            toast.error(err instanceof Error ? err.message : 'Failed to save listing. Please try again.')
+        } catch (err: any) {
+            // Check if the backend sent our structured tab error object
+            const backendErrors = err?.response?.data?.errors;
+            
+            if (Array.isArray(backendErrors) && backendErrors.length > 0) {
+                // 1. Focus on the first error to guide the user back chronologically
+                const firstError = backendErrors[0];
+                
+                // 2. Display the field-specific missing error message
+                toast.error(firstError.message)
+                
+                // 3. Programmatically force the wizard layout back to the target tab
+                goToTab(firstError.tab);
+            } else {
+                // Generic error fallback
+                toast.error(err instanceof Error ? err.message : 'Failed to submit listing. Please verify all entries.')
+            }
         } finally {
             setIsPending(false)
         }
