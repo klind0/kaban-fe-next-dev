@@ -17,6 +17,20 @@ export type BasicFormHandle = {
     getValues: () => BasicListingData;
 };
 
+const formatNumberWithCommas = (value: string | number) => {
+  if (!value) return "";
+  // Strip all non-digits to clean up input
+  const cleanValue = value.toString().replace(/\D/g, "");
+  // Add commas every 3 digits
+  return cleanValue.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+};
+
+const parseCommasToNumber = (value: string) => {
+  // Strip commas and convert back to a pure number for your backend DTO
+  const cleanValue = value.replace(/,/g, "");
+  return cleanValue ? Number(cleanValue) : 0;
+};
+
 const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function BasicInformationForm({ onNext }, ref) {
     const { handleSubmit, control, formState: { errors }, setValue, getValues } = useForm<IListing>({
         defaultValues: {
@@ -177,15 +191,22 @@ const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function B
                     <Controller
                         name="price.amount"
                         control={control}
-                        render={({ field }) => (
+                        render={({ field: { onChange, value, ...restField } }) => (
                             <FormControl
                                 as='input'
                                 labelText='Sale/Rent Price (₦)'
                                 placeholder='0'
-                                type="number"
+                                type="text"
+                                inputMode="numeric"
+                                value={formatNumberWithCommas(value)}
                                 min={0}
                                 containerClass="w-full"
-                                {...field}
+                                onChange={(e) => {
+                                    const rawValue = e.target.value;
+                                    const numericValue = parseCommasToNumber(rawValue);
+                                    onChange(numericValue);
+                                }}
+                                {...restField}
                                 error={getErrorMessage(errors.price?.amount)}
                             />
                         )}

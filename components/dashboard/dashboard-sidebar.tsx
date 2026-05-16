@@ -26,6 +26,7 @@ import { QUERY_KEY } from "@/enum/queryKeys"
 import { toast } from "sonner"
 import Cookies from "js-cookie"
 import X from "../icons/x"
+import { Menu } from "lucide-react" // Added standard menu icon for the toggle
 import { Button } from "../ui/button"
 
 export const menuItems = [
@@ -39,7 +40,8 @@ export const menuItems = [
 
 export function DashboardSidebar() {
     const pathName = usePathname()
-    const { setOpenMobile } = useSidebar()
+    // FIX: Pull openMobile along with setOpenMobile
+    const { setOpenMobile, openMobile } = useSidebar()
 
     const router = useRouter()
 
@@ -63,7 +65,10 @@ export function DashboardSidebar() {
                     <Link href={'/'}>
                         <Logo className="text-primary" />
                     </Link>
-                    <SidebarTrigger className="md:hidden"><X /></SidebarTrigger>
+                    {/* FIX: Conditional rendering based on sidebar open state */}
+                    <SidebarTrigger className="md:hidden">
+                        {openMobile ? <X className="size-5" /> : <Menu className="size-5" />}
+                    </SidebarTrigger>
                 </SidebarGroupLabel>
             </SidebarHeader>
             <SidebarContent>
@@ -82,7 +87,7 @@ export function DashboardSidebar() {
                                 menuItems.map((item) => {
                                     return (
                                         <SidebarMenuItem key={item.title} className={`${isActive(item.url) ? 'bg-[#F3F9FE] border-l-[3px] border-primary text-primary' : ''} flex items-center justify-between gap-1 py-3`}>
-                                            <Link href={item.url} onClick={() => setOpenMobile(false)} className={`flex gap-2 items-center w-full pl-6 font-semibold`}><item.icon /> {item.title}</Link>
+                                        	<Link href={item.url} onClick={() => setOpenMobile(false)} className={`flex gap-2 items-center w-full pl-6 font-semibold`}><item.icon /> {item.title}</Link>
                                         </SidebarMenuItem>
                                     )
                                 })
