@@ -34,45 +34,57 @@ export default function SignUpForm({ onOpenChange }: SignUpFormProps) {
 
     const { mutateAsync: mutateSignUp, isPending: isSignUpPending } = useMutation({
         mutationFn: (variables: ISignUpVariables['input']) =>
-            gqlRequest<ISignUpResponse, ISignUpVariables>(SIGNUP_MUTATION, { input: variables }),
-        onSuccess: (response: any) => {
-            console.log("Extraction Success Block Data:", response);
-
-            // Target the object variables returned from the backend data payload
-            const signupData = response?.signup;
-            const token = signupData?.accessToken;
+            gqlRequest<any, ISignUpVariables>(SIGNUP_MUTATION, { input: variables }),
+        onSuccess: (response) => {
+            console.log("Raw Signup Response Data:", response);
+            
+            // Unpack the GraphQLJSONObject structure
+            const signupPayload = response?.signup;
+            const token = signupPayload?.accessToken;
             
             if (token) {
-                // 1. Set Auth Token Cookie
+                // 1. Store auth token cookie
                 Cookies.set(QUERY_KEY.ACCESS_TOKEN, token, { 
                     expires: 30, 
-                    path: '/',
+                    path: '/', 
                     secure: true,
                     sameSite: 'lax'
                 });
 
-                // 2. Hydrate Global App Stores
-                if (signupData.user) setUser(signupData.user);
-                if (signupData.realtor) setRealtor(signupData.realtor);
+                // 2. Safe normalization of properties for global app state management
+                if (signupPayload.user) {
+                    const rawUser = signupPayload.user;
+                    setUser({
+                        id: rawUser.id,
+                        email: rawUser.email,
+                        // Account for both camelCase and snake_case variations gracefully
+                        fullName: rawUser.fullName || rawUser.full_name, 
+                        role: rawUser.role
+                    });
+                }
                 
-                toast.success("Account created! Signing you in...");
+                if (signupPayload.realtor) {
+                    setRealtor(signupPayload.realtor);
+                }
+
+                toast.success("Signed up successfully! Loading dashboard...");
                 reset();
                 onOpenChange();
 
-                // 3. Force a reload to the dashboard to refresh the auth state                // to ensure the cookie is readable by the layout/middleware
+                // 3. Clear window location transition to register cookie data
                 setTimeout(() => {
                     window.location.href = '/dashboard';
-                }, 800);
+                }, 500);
             } else {
-                console.error("Token extraction failed. Response structure:", response);
-                toast.error("Account created, but authentication token was dropped.");
+                console.error("Payload validation failed. Check keys:", response);
+                toast.error("Account created, but active session credentials were not found.");
             }
         },
         onError: (error: any) => {
-            console.error("Signup Mutation Error Context:", error);
-            toast.error(error.message || "Something went wrong. Please try again.");
+            console.error("Signup Mutation Exception Context:", error);
+            toast.error(error.message || "An unexpected error occurred. Please try again.");
         }
-    })
+    });
 
     const onSubmit = async (data: ISignUpVariables['input']) => {
         await mutateSignUp(data)
