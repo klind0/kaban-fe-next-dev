@@ -27,6 +27,8 @@ export type MediaFormHandle = {
 };
 
 const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm({ onNext, onBack }, ref) {
+    const MAX_IMAGES = 10;
+
     const {
         handleSubmit,
         control,
@@ -35,9 +37,10 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm({ 
         clearErrors,
         setError,
         getValues,
+        register,
     } = useForm<MediaFormValues>({
         defaultValues: { images: [], cover_index: 0, video_url: "" },
-        mode: "all",
+        mode: "onChange", // Validates dynamically as modifications happen
     });
 
     const [files, setFiles] = React.useState<File[]>([]);
@@ -47,6 +50,17 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm({ 
     const inputRef = React.useRef<HTMLInputElement>(null);
     const scrollRef = React.useRef<HTMLDivElement>(null);
 
+    // Explicitly register images field with rules
+    React.useEffect(() => {
+        register("images", {
+            required: "At least one property image is required",
+            validate: {
+                maxFiles: (value) => value.length <= MAX_IMAGES || `You can upload a maximum of ${MAX_IMAGES} images.`,
+                minFiles: (value) => value.length >= 1 || "At least one property image is required",
+            }
+        });
+    }, [register]);
+
     React.useImperativeHandle(ref, () => ({
         getValues: () => ({
             images: files,
@@ -55,38 +69,49 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm({ 
         }),
     }), [files, coverIndex, getValues]);
 
-    const MAX_IMAGES = 10;
-
     const handleFiles = React.useCallback(
         (incoming: FileList | null) => {
             if (!incoming || incoming.length === 0) return;
+            
             setFiles((prev) => {
-                const slots = MAX_IMAGES - prev.length;
-                if (slots <= 0) {
-                    toast.error(`You can upload a maximum of ${MAX_IMAGES} images.`);
-                    return prev;
-                }
-                const newFiles = Array.from(incoming).slice(0, slots);
-                if (newFiles.length < incoming.length) {
-                    toast.error(`You can upload a maximum of ${MAX_IMAGES} images. Only ${newFiles.length} image(s) were added.`);
-                }
+                const totalTargetCount = prev.length + incoming.length;
+                const newFiles = Array.from(incoming);
                 const merged = [...prev, ...newFiles];
-                setValue("images", merged);
+
+                // If total exceeds max, attach the hook form validation error explicitly
+                if (totalTargetCount > MAX_IMAGES) {
+                    setError("images", { 
+                        type: "manual", 
+                        message: `Limit exceeded. Maximum allowed images is ${MAX_IMAGES}. You tried uploading ${totalTargetCount}.` 
+                    });
+                    toast.error(`Cannot add files. Maximum image limit is ${MAX_IMAGES}.`);
+                    return prev; 
+                }
+
+                setValue("images", merged, { shouldValidate: true });
                 clearErrors("images");
                 setPreviews((p) => [...p, ...newFiles.map((f) => URL.createObjectURL(f))]);
                 return merged;
             });
         },
-        [setValue, clearErrors]
+        [setValue, clearErrors, setError]
     );
 
     const removeImage = (index: number) => {
         URL.revokeObjectURL(previews[index]);
         const nextFiles = files.filter((_, i) => i !== index);
         const nextPreviews = previews.filter((_, i) => i !== index);
+        
         setFiles(nextFiles);
         setPreviews(nextPreviews);
-        setValue("images", nextFiles);
+        setValue("images", nextFiles, { shouldValidate: true });
+        
+        if (nextFiles.length === 0) {
+            setError("images", { type: "manual", message: "At least one property image is required" });
+        } else {
+            clearErrors("images");
+        }
+
         if (coverIndex === index) {
             setCoverIndex(0);
             setValue("cover_index", 0);
@@ -106,8 +131,12 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm({ 
     };
 
     const onSubmit = (data: MediaFormValues) => {
-        if (!data.images.length) {
-            setError("images", { message: "This field is required" });
+        if (!files.length) {
+            setError("images", { message: "At least one property image is required" });
+            return;
+        }
+        if (files.length > MAX_IMAGES) {
+            setError("images", { message: `Maximum allowed images is ${MAX_IMAGES}.` });
             return;
         }
         onNext({ images: files, cover_index: coverIndex, video_url: data.video_url });
@@ -119,11 +148,11 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm({ 
                 <div className="space-y-4">
                     <div className="flex items-center justify-between">
                         <label className="text-foreground text-sm font-medium">
-                            Upload high-quality images *
+                            Upload high-quality images * (Max {MAX_IMAGES})
                         </label>
                         {errors.images && (
-                            <span className="text-[#B02817] text-xs sm:text-sm whitespace-nowrap">
-                                This field is required
+                            <span className="text-[#B02817] text-xs sm:text-sm font-medium bg-red-50 px-2 py-1 rounded">
+                                {errors.images.message || "This field contains errors"}
                             </span>
                         )}
                     </div>
@@ -132,7 +161,7 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm({ 
                     {previews.length > 0 && (
                         <div className="space-y-2">
                             <p className="text-sm font-medium text-foreground">
-                                Uploaded Images ({previews.length})
+                                Uploaded Images ({previews.length} / {MAX_IMAGES})
                             </p>
                             <div className="relative">
                                 <div
@@ -142,7 +171,9 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm({ 
                                     {previews.map((src, i) => (
                                         <div
                                             key={i}
-                                            className="relative shrink-0 w-60 h-42.5 rounded-lg overflow-hidden"
+                                            className={`relative shrink-0 w-60 h-42.5 rounded-lg overflow-hidden border-2 ${
+                                                i === coverIndex ? "border-primary" : "border-transparent"
+                                            }`}
                                         >
                                             <Image
                                                 src={src}
@@ -184,7 +215,7 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm({ 
                                     >
                                         <ChevronRight size={16} />
                                     </button>
-                                )}
+                                Dad)}
                             </div>
                         </div>
                     )}
@@ -195,7 +226,9 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm({ 
                         onDragLeave={() => setIsDragging(false)}
                         onDrop={(e) => { e.preventDefault(); setIsDragging(false); handleFiles(e.dataTransfer.files); }}
                         onClick={() => inputRef.current?.click()}
-                        className={`border border-dashed rounded-2xl cursor-pointer py-10 flex flex-col items-center justify-center gap-3 transition-colors ${isDragging ? "border-primary bg-primary/5" : "border-primary"}`}
+                        className={`border border-dashed rounded-2xl cursor-pointer py-10 flex flex-col items-center justify-center gap-3 transition-colors ${
+                            isDragging ? "border-primary bg-primary/5" : errors.images ? "border-red-500 bg-red-50/10" : "border-primary"
+                        }`}
                     >
                         <div className="w-12 h-12 rounded-full flex items-center justify-center">
                             <ImageIcon />
@@ -204,7 +237,7 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm({ 
                             <p className="text-sm text-center">
                                 <span className="font-semibold text-foreground underline">Click here to upload</span> or drag and drop
                             </p>
-                            <p className="text-xs! font-medium">PNG, JPG (max. 1440×900px)</p>
+                            <p className="text-xs! font-medium">PNG, JPG (max 10 pictures total)</p>
                         </div>
                         <input
                             ref={inputRef}
@@ -216,7 +249,7 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm({ 
                         />
                     </div>
                 </div>
-                <div className="space-y-1.5">
+                <div className="space-y-1.5 mt-4">
                     <Controller
                         name="video_url"
                         control={control}
@@ -230,11 +263,11 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm({ 
                             />
                         )}
                     />
-                    <p>
+                    <p className="text-xs text-neutral-500">
                         Example: https://www.youtube.com/watch?v=8T7SnBQDiuM
                     </p>
                 </div>
-                <div className="flex justify-end gap-3">
+                <div className="flex justify-end gap-3 mt-6">
                     <Button variant="outline" type="button" className="md:min-w-30" onClick={onBack}>Previous</Button>
                     <Button type="submit" className="md:min-w-30">Next</Button>
                 </div>
@@ -244,4 +277,3 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm({ 
 });
 
 export default MediaForm;
-

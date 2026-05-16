@@ -38,9 +38,60 @@ export default function CreateListingScreen() {
         media: MediaListingData | null
     }>({ basic: null, media: null })
 
-    const handleTabChange = (value: string) => {
-        setActiveTab(value)
-        handleQueryParamsChange('tab', value)
+    // Validates current step before allowing a tab change header click
+    const handleTabChange = async (targetTab: string) => {
+        const currentIdx = TAB_ORDER.indexOf(activeTab)
+        const targetIdx = TAB_ORDER.indexOf(targetTab)
+
+        // Moving backward is always allowed
+        if (targetIdx <= currentIdx) {
+            setActiveTab(targetTab)
+            handleQueryParamsChange('tab', targetTab)
+            return
+        }
+
+        // If trying to jump straight to Location from Basic, make sure they pass through Media first
+        if (activeTab === 'basic' && targetTab === 'location') {
+            const isBasicValid = await triggerFormSubmit(basicFormRef)
+            if (!isBasicValid) return; // Blocked at Basic
+            
+            // If Basic passed but Media draft is empty, redirect them safely to Media instead of Location
+            if (!draftRef.current.media) {
+                toast.info('Please complete the Media step before proceeding to Location.')
+                setActiveTab('media')
+                handleQueryParamsChange('tab', 'media')
+                return
+            }
+        }
+
+        // If jumping forward from Basic to Media
+        if (activeTab === 'basic' && targetTab === 'media') {
+            const isValid = await triggerFormSubmit(basicFormRef)
+            if (!isValid) return
+        }
+
+        // If jumping forward from Media to Location
+        if (activeTab === 'media' && targetTab === 'location') {
+            const isValid = await triggerFormSubmit(mediaFormRef)
+            if (!isValid) return
+        }
+
+        setActiveTab(targetTab)
+        handleQueryParamsChange('tab', targetTab)
+    }
+
+    // Helper function to programmatically trigger standard form validation/submission 
+    // utilizing the refs setup inside your child forms
+    const triggerFormSubmit = async (ref: React.RefObject<any>): Promise<boolean> => {
+        if (ref.current && typeof ref.current.submitForm === 'function') {
+            return await ref.current.submitForm()
+        }
+        // Fallback check if submitForm helper isn't fully async or exported
+        if (ref.current && typeof ref.current.getValues === 'function') {
+            const values = ref.current.getValues()
+            return !!values
+        }
+        return false
     }
 
     const goToTab = (tab: string) => {
