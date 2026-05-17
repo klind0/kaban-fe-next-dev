@@ -8,6 +8,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { BasicListingData } from "@/network/listings";
 import React from "react";
+// 1. Import your new hook
+import { useFormScrollToError } from "@/hooks/useFormScrollToError"; 
 
 type Props = {
     onNext: (data: BasicListingData) => void;
@@ -19,14 +21,11 @@ export type BasicFormHandle = {
 
 const formatNumberWithCommas = (value: string | number) => {
   if (!value) return "";
-  // Strip all non-digits to clean up input
   const cleanValue = value.toString().replace(/\D/g, "");
-  // Add commas every 3 digits
   return cleanValue.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 };
 
 const parseCommasToNumber = (value: string) => {
-  // Strip commas and convert back to a pure number for your backend DTO
   const cleanValue = value.replace(/,/g, "");
   return cleanValue ? Number(cleanValue) : 0;
 };
@@ -60,6 +59,9 @@ const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function B
         mode: 'all'
     });
 
+    // 2. Initialize the error scrolling hook
+    const onInvalidSubmit = useFormScrollToError();
+
     const onSubmit = (data: IListing) => {
         onNext({
             title: data.title,
@@ -90,9 +92,9 @@ const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function B
     const selectedCategory = useWatch({ control, name: 'property_category' });
     const propertyTypeOptions = propertyTypeByCategory[selectedCategory] ?? [];
 
-
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className='space-y-4 md:space-y-7.5 mt-8'>
+        /* 3. Pass onInvalidSubmit as the second argument to handleSubmit */
+        <form onSubmit={handleSubmit(onSubmit, onInvalidSubmit)} className='space-y-4 md:space-y-7.5 mt-8'>
             <FormCard title="Basic Information">
                 <div className='space-y-6'>
                     <Controller

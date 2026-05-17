@@ -1,6 +1,6 @@
 "use client";
 
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { ChevronRight, X } from "lucide-react";
 import FormCard from "./form-card";
@@ -37,73 +37,68 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm({ 
         clearErrors,
         setError,
         getValues,
-        register,
     } = useForm<MediaFormValues>({
         defaultValues: { images: [], cover_index: 0, video_url: "" },
-        mode: "onChange", // Validates dynamically as modifications happen
+        mode: "onChange",
     });
 
-    const [files, setFiles] = React.useState<File[]>([]);
+    // React Hook Form Watchers
+    const watchedImages = useWatch({ control, name: "images" }) || [];
+    const watchedCoverIndex = useWatch({ control, name: "cover_index" }) || 0;
+
     const [previews, setPreviews] = React.useState<string[]>([]);
-    const [coverIndex, setCoverIndex] = React.useState<number>(0);
     const [isDragging, setIsDragging] = React.useState(false);
     const inputRef = React.useRef<HTMLInputElement>(null);
     const scrollRef = React.useRef<HTMLDivElement>(null);
 
-    // Explicitly register images field with rules
+    // Sync object URL previews cleanly with the react-hook-form single-source-of-truth images array
     React.useEffect(() => {
-        register("images", {
-            required: "At least one property image is required",
-            validate: {
-                maxFiles: (value) => value.length <= MAX_IMAGES || `You can upload a maximum of ${MAX_IMAGES} images.`,
-                minFiles: (value) => value.length >= 1 || "At least one property image is required",
-            }
-        });
-    }, [register]);
+        const objectUrls = watchedImages.map((file) => URL.createObjectURL(file));
+        setPreviews(objectUrls);
 
+        // Revoke the memory allocations once the source tracking switches up
+        return () => {
+            objectUrls.forEach((url) => URL.revokeObjectURL(url));
+        };
+    }, [watchedImages]);
+
+    // Handle Imperative Actions from the workflow controller
     React.useImperativeHandle(ref, () => ({
         getValues: () => ({
-            images: files,
-            cover_index: coverIndex,
-            video_url: getValues('video_url'),
+            images: getValues("images"),
+            cover_index: getValues("cover_index"),
+            video_url: getValues("video_url"),
         }),
-    }), [files, coverIndex, getValues]);
+    }), [getValues]);
 
     const handleFiles = React.useCallback(
         (incoming: FileList | null) => {
             if (!incoming || incoming.length === 0) return;
-            
-            setFiles((prev) => {
-                const totalTargetCount = prev.length + incoming.length;
-                const newFiles = Array.from(incoming);
-                const merged = [...prev, ...newFiles];
 
-                // If total exceeds max, attach the hook form validation error explicitly
-                if (totalTargetCount > MAX_IMAGES) {
-                    setError("images", { 
-                        type: "manual", 
-                        message: `Limit exceeded. Maximum allowed images is ${MAX_IMAGES}. You tried uploading ${totalTargetCount}.` 
-                    });
-                    toast.error(`Cannot add files. Maximum image limit is ${MAX_IMAGES}.`);
-                    return prev; 
-                }
+            const currentFiles = getValues("images") || [];
+            const totalTargetCount = currentFiles.length + incoming.length;
+            const newFiles = Array.from(incoming);
+            const merged = [...currentFiles, ...newFiles];
 
-                setValue("images", merged, { shouldValidate: true });
-                clearErrors("images");
-                setPreviews((p) => [...p, ...newFiles.map((f) => URL.createObjectURL(f))]);
-                return merged;
-            });
+            if (totalTargetCount > MAX_IMAGES) {
+                setError("images", { 
+                    type: "manual", 
+                    message: `Limit exceeded. Maximum allowed images is ${MAX_IMAGES}. You tried uploading ${totalTargetCount}.` 
+                });
+                toast.error(`Cannot add files. Maximum image limit is ${MAX_IMAGES}.`);
+                return;
+            }
+
+            setValue("images", merged, { shouldValidate: true });
+            clearErrors("images");
         },
-        [setValue, clearErrors, setError]
+        [setValue, clearErrors, setError, getValues]
     );
 
     const removeImage = (index: number) => {
-        URL.revokeObjectURL(previews[index]);
-        const nextFiles = files.filter((_, i) => i !== index);
-        const nextPreviews = previews.filter((_, i) => i !== index);
+        const currentFiles = getValues("images") || [];
+        const nextFiles = currentFiles.filter((_, i) => i !== index);
         
-        setFiles(nextFiles);
-        setPreviews(nextPreviews);
         setValue("images", nextFiles, { shouldValidate: true });
         
         if (nextFiles.length === 0) {
@@ -112,17 +107,15 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm({ 
             clearErrors("images");
         }
 
-        if (coverIndex === index) {
-            setCoverIndex(0);
+        // Adjust index pointer tracking rules gracefully
+        if (watchedCoverIndex === index) {
             setValue("cover_index", 0);
-        } else if (coverIndex > index) {
-            setCoverIndex((c) => c - 1);
-            setValue("cover_index", coverIndex - 1);
+        } else if (watchedCoverIndex > index) {
+            setValue("cover_index", watchedCoverIndex - 1);
         }
     };
 
     const setCover = (index: number) => {
-        setCoverIndex(index);
         setValue("cover_index", index);
     };
 
@@ -131,15 +124,11 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm({ 
     };
 
     const onSubmit = (data: MediaFormValues) => {
-        if (!files.length) {
-            setError("images", { message: "At least one property image is required" });
-            return;
-        }
-        if (files.length > MAX_IMAGES) {
-            setError("images", { message: `Maximum allowed images is ${MAX_IMAGES}.` });
-            return;
-        }
-        onNext({ images: files, cover_index: coverIndex, video_url: data.video_url });
+        onNext({ 
+            images: data.images, 
+            cover_index: data.cover_index, 
+            video_url: data.video_url 
+        });
     };
 
     return (
@@ -172,7 +161,7 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm({ 
                                         <div
                                             key={i}
                                             className={`relative shrink-0 w-60 h-42.5 rounded-lg overflow-hidden border-2 ${
-                                                i === coverIndex ? "border-primary" : "border-transparent"
+                                                i === watchedCoverIndex ? "border-primary" : "border-transparent"
                                             }`}
                                         >
                                             <Image
@@ -180,6 +169,7 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm({ 
                                                 alt={`upload-${i}`}
                                                 fill
                                                 className="object-cover"
+                                                unoptimized // Speeds up the rendering cycle loop since those blob local schemas don't hit Next image server optimization endpoints
                                             />
                                             {/* Delete button */}
                                             <button
@@ -190,7 +180,7 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm({ 
                                                 <X size={12} className="text-white" />
                                             </button>
                                             {/* Cover badge / Set cover button */}
-                                            {i === coverIndex ? (
+                                            {i === watchedCoverIndex ? (
                                                 <div className="absolute bottom-2 left-2 bg-primary text-white text-xs font-semibold px-3 py-1 rounded z-10">
                                                     Cover
                                                 </div>
@@ -249,6 +239,7 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm({ 
                         />
                     </div>
                 </div>
+
                 <div className="space-y-1.5 mt-4">
                     <Controller
                         name="video_url"
@@ -267,6 +258,7 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm({ 
                         Example: https://www.youtube.com/watch?v=8T7SnBQDiuM
                     </p>
                 </div>
+                
                 <div className="flex justify-end gap-3 mt-6">
                     <Button variant="outline" type="button" className="md:min-w-30" onClick={onBack}>Previous</Button>
                     <Button type="submit" className="md:min-w-30">Next</Button>

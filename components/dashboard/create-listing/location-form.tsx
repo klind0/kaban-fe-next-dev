@@ -145,7 +145,7 @@ export default function LocationForm({ onFormSubmit, isPending, onBack }: Props)
                 city: "",
                 address: "",
                 landmark: "",
-                coordinates: [6.5244, 3.3792],
+                coordinates: [6.5244, 3.3792], // [latitude, longitude]
             },
             agreement: false,
         },
@@ -160,6 +160,17 @@ export default function LocationForm({ onFormSubmit, isPending, onBack }: Props)
     const longitude = coordinates?.[1] ?? 3.3792;
 
     const cityOptions = selectedState ? (nigeriaCitiesByState[selectedState] ?? []) : [];
+
+    // Smoothly fly map to coordinates when manually updated via lat/lng input fields
+    React.useEffect(() => {
+        if (mapRef.current) {
+            mapRef.current.flyTo({
+                center: [longitude, latitude],
+                zoom: 14,
+                duration: 1200,
+            });
+        }
+    }, [latitude, longitude]);
 
     const onSubmit = (data: LocationFormValues) => {
         if (!data.agreement) return;
@@ -182,7 +193,6 @@ export default function LocationForm({ onFormSubmit, isPending, onBack }: Props)
                                 onSelect={(address, lng, lat, mapboxState, mapboxCity) => {
                                     field.onChange(address);
                                     setValue("location.coordinates", [lat, lng]);
-                                    mapRef.current?.flyTo({ center: [lng, lat], zoom: 15, duration: 1500 });
 
                                     if (mapboxState) {
                                         const normalized = mapboxState
@@ -257,11 +267,11 @@ export default function LocationForm({ onFormSubmit, isPending, onBack }: Props)
             <FormCard title="Map">
                 <div className="flex flex-col md:flex-row gap-6">
                     {/* Map preview */}
-                    <div className="w-full md:w-1/2 rounded-lg overflow-hidden min-h-60">
+                    <div className="w-full md:w-1/2 rounded-lg overflow-hidden min-h-60 relative border border-neutral-200">
                         <Map
                             ref={mapRef}
                             mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
-                            initialViewState={{ longitude: longitude, latitude: latitude, zoom: 13 }}
+                            viewState={{ longitude: longitude, latitude: latitude, zoom: 13 }}
                             style={{ width: "100%", height: "100%", minHeight: "240px" }}
                             mapStyle="mapbox://styles/mapbox/streets-v12"
                             scrollZoom={false}
