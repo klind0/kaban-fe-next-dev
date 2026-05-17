@@ -121,6 +121,7 @@ const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function B
                         <Controller
                             name="status"
                             control={control}
+                            rules={{ required: 'Property status is required' }}
                             render={({ field }) => (
                                 <FormControl
                                     as='select'
@@ -136,6 +137,7 @@ const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function B
                         <Controller
                             name="property_category"
                             control={control}
+                            rules={{ required: 'Property category is required' }}
                             render={({ field }) => (
                                 <FormControl
                                     as='select'
@@ -191,6 +193,7 @@ const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function B
                     <Controller
                         name="price.amount"
                         control={control}
+                        rules={{ required: 'Price is required' }}
                         render={({ field: { onChange, value, ...restField } }) => (
                             <FormControl
                                 as='input'
