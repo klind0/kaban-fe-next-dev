@@ -52,27 +52,71 @@ export default function CreateListingScreen() {
         };
     }, []);
 
-    // Step 1: Define the Validation Logic Per Tab using live values
+    // Helper to smoothly scroll the page centrally to the missing field element
+    const scrollToMissingField = (inputName: string) => {
+        // Next.js forms typically render inputs with a 'name' attribute matching the state key
+        const element = document.querySelector(`[name="${inputName}"]`) || 
+                        document.querySelector(`[name$="${inputName}"]`); // Fallback for nested names like price.amount
+        
+        if (element) {
+            // Find the parent form-control wrapper so the label stays in view too
+            const wrapper = element.closest('.form-control') || element.closest('div') || element;
+            
+            setTimeout(() => {
+                wrapper.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center', // 🎯 Repositions the field perfectly in the middle of the screen
+                });
+                
+                // Optional: Place user focus right inside the empty input box
+                if (typeof (element as HTMLElement).focus === 'function') {
+                    (element as HTMLElement).focus({ preventScroll: true });
+                }
+            }, 100); // Small timeout ensures UI rendering threads aren't blocked
+        }
+    };
+
+    // Step 1: Define the Validation Logic Per Tab using live values + Auto Focus Scroll
     const isTabValid = (tabId: TabType): boolean => {
-        // 🚀 ALWAYS pull fresh, live values directly from the active form references if they exist
         const liveBasicValues = basicFormRef.current?.getValues?.() || null;
         const liveMediaValues = mediaFormRef.current?.getValues?.() || null;
 
-        // Fallback to the draft cache only if the form component isn't rendered/mounted yet
         const basic = liveBasicValues || draftRef.current.basic;
         const media = liveMediaValues || draftRef.current.media;
 
         switch (tabId) {
             case 'basic':
-                return !!(
-                    basic?.title &&
-                    basic?.property_category &&
-                    basic?.property_type &&
-                    basic?.status &&
-                    basic?.price?.amount
-                );
+                // 🔍 Chronologically check each essential field and target the first empty one
+                if (!basic?.title) {
+                    scrollToMissingField('title');
+                    return false;
+                }
+                if (!basic?.property_category) {
+                    scrollToMissingField('property_category');
+                    return false;
+                }
+                if (!basic?.property_type) {
+                    scrollToMissingField('property_type');
+                    return false;
+                }
+                if (!basic?.status) {
+                    scrollToMissingField('status');
+                    return false;
+                }
+                if (!basic?.price?.amount) {
+                    scrollToMissingField('price.amount'); // Selects your nested price input field name
+                    return false;
+                }
+                return true;
+
             case 'media':
-                return !!(media?.images && media.images.length > 0);
+                if (!media?.images || media.images.length === 0) {
+                    // Targets your file uploader container zone
+                    scrollToMissingField('images'); 
+                    return false;
+                }
+                return true;
+
             case 'location':
                 return true;
             default:
@@ -90,12 +134,12 @@ export default function CreateListingScreen() {
         if (targetIdx > currentIdx) {
             // Check if Basic is valid if we are trying to go past it (to Media or Location)
             if (targetIdx > 0 && !isTabValid('basic')) {
-                toast.error("The Basic Information tab is incomplete. Please fill out all essential fields.");
+                toast.error("Please fill out all essential fields (Title, Category, Type, Status, Price) before proceeding.");
                 setActiveTab('basic');
                 handleQueryParamsChange('tab', 'basic');
                 return; // 🛑 Block execution
             }
-            
+
             // Check if Media is valid if we are trying to jump straight to Location
             if (cleanTarget === 'location' && !isTabValid('media')) {
                 toast.error("The Media tab is incomplete. Please upload at least one image.");
