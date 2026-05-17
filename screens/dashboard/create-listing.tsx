@@ -38,6 +38,17 @@ export default function CreateListingScreen() {
         media: MediaListingData | null
     }>({ basic: null, media: null })
 
+    React.useEffect(() => {
+        const handleMobileDraftTrigger = () => {
+            handleSaveDraft(); // Executes your existing draft logic seamlessly
+        };
+
+        window.addEventListener('trigger-save-draft', handleMobileDraftTrigger);
+        return () => {
+            window.removeEventListener('trigger-save-draft', handleMobileDraftTrigger);
+        };
+    }, []);
+
     // Validates current step before allowing a tab change header click
     const handleTabChange = async (targetTab: string) => {
         const currentIdx = TAB_ORDER.indexOf(activeTab)
@@ -172,7 +183,7 @@ export default function CreateListingScreen() {
         try {
             const mediaData: MediaListingData = media ?? { images: [], cover_index: 0, video_url: '' }
             await createListing(basic, mediaData, null, false)
-            toast.success('Draft saved!')
+            toast.success('Listing saved as draft!')
             router.push('/dashboard')
         } catch (err) {
             toast.error(err instanceof Error ? err.message : 'Failed to save draft.')
