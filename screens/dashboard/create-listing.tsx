@@ -36,7 +36,7 @@ export default function CreateListingScreen() {
     const basicFormRef = React.useRef<BasicFormHandle>(null)
     const mediaFormRef = React.useRef<MediaFormHandle>(null)
     
-    // 🚀 Safe Real-time tracking state to bypass React.forwardRef restriction on child form
+    // 🚀 Holds data captured via the existing form submission hooks natively
     const [liveLocationData, setLiveLocationData] = React.useState<any>(null);
 
     const draftRef = React.useRef<{
@@ -83,7 +83,7 @@ export default function CreateListingScreen() {
 
         const basic = liveBasicValues || draftRef.current.basic;
         const media = liveMediaValues || draftRef.current.media;
-        const location = liveLocationData; // Checked via real-time hook sync below
+        const location = liveLocationData; 
 
         switch (tabId) {
             case 'basic':
@@ -117,6 +117,7 @@ export default function CreateListingScreen() {
                 return true;
 
             case 'location':
+                // Safe evaluation fallback
                 if (!location?.address) {
                     toast.error("Please provide a property address.");
                     scrollToMissingField('address');
@@ -173,6 +174,9 @@ export default function CreateListingScreen() {
     const handleLocationSubmit = async (data: LocationListingData, submit: boolean) => {
         const { basic, media } = draftRef.current
         
+        // 🚀 Update live tracking whenever data fires through this pipeline
+        setLiveLocationData(data);
+
         if (!submit) {
             setIsPending(true)
             try {
@@ -190,6 +194,7 @@ export default function CreateListingScreen() {
             }
         }
 
+        // Run validation layout intercept
         if (!isTabValid('location')) {
             return; 
         }
@@ -262,12 +267,11 @@ export default function CreateListingScreen() {
                 </div>
                 
                 <div className={activeTab !== 'location' ? 'hidden' : ''}>
-                    {/* 🚀 Safely tracks inputs inside your existing component structure without violating IntrinsicAttributes */}
+                    {/* 🚀 100% Valid Props structure targeting existing interface contract */}
                     <LocationForm
                         onFormSubmit={handleLocationSubmit}
                         isPending={isPending}
                         onBack={() => handleTabChange('media')}
-                        onChange={setLiveLocationData} 
                     />
                 </div>
             </DashboardPageContainer>
