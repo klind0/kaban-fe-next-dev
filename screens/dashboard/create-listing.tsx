@@ -35,7 +35,9 @@ export default function CreateListingScreen() {
 
     const basicFormRef = React.useRef<BasicFormHandle>(null)
     const mediaFormRef = React.useRef<MediaFormHandle>(null)
-    const locationFormRef = React.useRef<any>(null) // 🚀 Added to keep track of real-time location sub-form state
+    
+    // 🚀 Safe Real-time tracking state to bypass React.forwardRef restriction on child form
+    const [liveLocationData, setLiveLocationData] = React.useState<any>(null);
 
     const draftRef = React.useRef<{
         basic: BasicListingData | null
@@ -64,7 +66,7 @@ export default function CreateListingScreen() {
             setTimeout(() => {
                 wrapper.scrollIntoView({
                     behavior: 'smooth',
-                    block: 'center', // 🎯 Repositions the field perfectly in the middle of the screen
+                    block: 'center', 
                 });
                 
                 if (typeof (element as HTMLElement).focus === 'function') {
@@ -76,14 +78,12 @@ export default function CreateListingScreen() {
 
     // Step 1: Define the Validation Logic Per Tab using real-time form inputs
     const isTabValid = (tabId: TabType): boolean => {
-        // Always grab fresh, live values directly from the active sub-form components
         const liveBasicValues = basicFormRef.current?.getValues?.() || null;
         const liveMediaValues = mediaFormRef.current?.getValues?.() || null;
-        const liveLocationValues = locationFormRef.current?.getValues?.() || null;
 
         const basic = liveBasicValues || draftRef.current.basic;
         const media = liveMediaValues || draftRef.current.media;
-        const location = liveLocationValues;
+        const location = liveLocationData; // Checked via real-time hook sync below
 
         switch (tabId) {
             case 'basic':
@@ -117,7 +117,6 @@ export default function CreateListingScreen() {
                 return true;
 
             case 'location':
-                // 🚀 Location sub-form fields are now fully validated inline before submission
                 if (!location?.address) {
                     toast.error("Please provide a property address.");
                     scrollToMissingField('address');
@@ -141,31 +140,26 @@ export default function CreateListingScreen() {
         const currentIdx = TAB_ORDER.indexOf(activeTab)
         const targetIdx = TAB_ORDER.indexOf(cleanTarget)
 
-        // 1. Moving Forward: Ensure ALL previous tabs are still valid before stepping forward
         if (targetIdx > currentIdx) {
-            // Check if Basic values are completely filled if navigating past it
             if (targetIdx > 0 && !isTabValid('basic')) {
                 toast.error("Please fill out all essential fields (Title, Category, Type, Status, Price) before proceeding.");
                 setActiveTab('basic');
                 handleQueryParamsChange('tab', 'basic');
-                return; // 🛑 Block forward transition
+                return; 
             }
 
-            // Check if Media values are completely filled if navigating straight to Location
             if (cleanTarget === 'location' && !isTabValid('media')) {
                 toast.error("The Media tab is incomplete. Please upload at least one image.");
                 setActiveTab('media');
                 handleQueryParamsChange('tab', 'media');
-                return; // 🛑 Block forward transition
+                return; 
             }
         }
 
-        // 2. Allow backward navigation or forward movement if validation passed
         setActiveTab(cleanTarget)
         handleQueryParamsChange('tab', cleanTarget)
     }
 
-    // Capture validated data payloads from standard child form actions
     const handleBasicNext = (data: BasicListingData) => {
         draftRef.current.basic = data
         handleTabChange('media')
@@ -196,9 +190,8 @@ export default function CreateListingScreen() {
             }
         }
 
-        // 🚀 Intercept final production submission if location inputs are missing
         if (!isTabValid('location')) {
-            return; // 🛑 Prevent submission and anchor viewport to the missing location item
+            return; 
         }
 
         setIsPending(true)
@@ -269,11 +262,12 @@ export default function CreateListingScreen() {
                 </div>
                 
                 <div className={activeTab !== 'location' ? 'hidden' : ''}>
+                    {/* 🚀 Safely tracks inputs inside your existing component structure without violating IntrinsicAttributes */}
                     <LocationForm
-                        ref={locationFormRef} // 🚀 Wired the location reference layer here
                         onFormSubmit={handleLocationSubmit}
                         isPending={isPending}
                         onBack={() => handleTabChange('media')}
+                        onChange={setLiveLocationData} 
                     />
                 </div>
             </DashboardPageContainer>
