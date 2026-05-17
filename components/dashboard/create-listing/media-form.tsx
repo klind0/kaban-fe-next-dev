@@ -215,7 +215,7 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm({ 
                                     >
                                         <ChevronRight size={16} />
                                     </button>
-                                Dad)}
+                                )}
                             </div>
                         </div>
                     )}
