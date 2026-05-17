@@ -55,7 +55,7 @@ export function DashboardSidebar() {
         clearUser();
         Cookies.remove(QUERY_KEY.ACCESS_TOKEN);
         Cookies.remove(QUERY_KEY.REFRESH_TOKEN);
-        toast.success("Sign-out successful!");
+        toast.success("Signed-out successfully!");
     };
 
     return (

@@ -67,7 +67,7 @@ export default function SignUpForm({ onOpenChange }: SignUpFormProps) {
                     setRealtor(signupPayload.realtor);
                 }
 
-                toast.success("Signed up successfully! Loading dashboard...");
+                toast.success("Signed up successfully!");
                 reset();
                 onOpenChange();
 
