@@ -261,7 +261,6 @@ export default function LocationForm({ onFormSubmit, isPending, onBack }: Props)
                         <Map
                             ref={mapRef}
                             mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
-                            {/* Explicit inline viewState passes mandatory types to pass Vercel TypeScript validations */}
                             viewState={{ 
                                 longitude: longitude, 
                                 latitude: latitude, 
