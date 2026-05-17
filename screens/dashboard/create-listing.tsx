@@ -130,7 +130,10 @@ export default function CreateListingScreen() {
             setIsPending(true)
             try {
                 const mediaData: MediaListingData = media ?? { images: [], cover_index: 0, video_url: '' }
-                await createListing(basic ?? {}, mediaData, data, false)
+                
+                // 🚀 Typecast the draft fallback as BasicListingData to appease the compiler
+                await createListing((basic ?? {}) as BasicListingData, mediaData, data, false)
+                
                 toast.success('Draft saved successfully!')
                 router.push('/dashboard')
                 return
