@@ -19,13 +19,16 @@ const tabOptions = [
     { name: 'Location', value: 'location' },
 ]
 
-const TAB_ORDER = ['basic', 'media', 'location']
+const TAB_ORDER = ['basic', 'media', 'location'] as const;
+type TabType = typeof TAB_ORDER[number];
 
 export default function CreateListingScreen() {
     const searchParams = useSearchParams();
     const router = useRouter()
 
-    const [activeTab, setActiveTab] = React.useState<string>(searchParams.get('tab') || 'basic')
+    const [activeTab, setActiveTab] = React.useState<TabType>(
+        (searchParams.get('tab') as TabType) || 'basic'
+    )
     const [isPending, setIsPending] = React.useState(false)
 
     const { handleQueryParamsChange } = useQueryParams()
@@ -49,76 +52,70 @@ export default function CreateListingScreen() {
         };
     }, []);
 
-    // Helper function to programmatically trigger standard form validation/submission 
-    // utilizing the refs setup inside your child forms
-    const triggerFormSubmit = async (ref: React.RefObject<any>): Promise<boolean> => {
-        if (ref.current && typeof ref.current.submitForm === 'function') {
-            return await ref.current.submitForm()
-        }
-        if (ref.current && typeof ref.current.getValues === 'function') {
-            const values = ref.current.getValues()
-            return !!values
-        }
-        return false
-    }
+    // Step 1: Define the Validation Logic Per Tab using the cache
+    const isTabValid = (tabId: TabType): boolean => {
+        // Fallback to active sub-form uncommitted state values if cached object hasn't been written yet
+        const basic = draftRef.current.basic ?? basicFormRef.current?.getValues() ?? null;
+        const media = draftRef.current.media ?? mediaFormRef.current?.getValues() ?? null;
 
-    const goToTab = (tab: string) => {
-        setActiveTab(tab)
-        handleQueryParamsChange('tab', tab)
-    }
+        switch (tabId) {
+            case 'basic':
+                return !!(
+                    basic?.title &&
+                    basic?.property_category &&
+                    basic?.property_type &&
+                    basic?.status &&
+                    basic?.price?.amount
+                );
+            case 'media':
+                return !!(media?.images && media.images.length > 0);
+            case 'location':
+                return true;
+            default:
+                return false;
+        }
+    };
 
-    // Intercepts and guards ALL tab movements (Clicks up top AND Next button triggers)
-    const handleTabChange = async (targetTab: string) => {
+    // Step 2 & 3: Guarded Tab Change Interceptor for both Header Tabs and Next Buttons
+    const handleTabChange = (targetTab: string) => {
+        const cleanTarget = targetTab as TabType;
         const currentIdx = TAB_ORDER.indexOf(activeTab)
-        const targetIdx = TAB_ORDER.indexOf(targetTab)
+        const targetIdx = TAB_ORDER.indexOf(cleanTarget)
 
-        // Moving backward is always allowed freely
-        if (targetIdx <= currentIdx) {
-            goToTab(targetTab)
-            return
-        }
+        // 1. Moving Forward: Ensure current tab is completed before moving forward
+        if (targetIdx > currentIdx) {
+            if (!isTabValid(activeTab)) {
+                if (activeTab === 'basic') {
+                    toast.error("Please fill out all essential fields (Title, Category, Type, Status, Price) before proceeding.");
+                } else if (activeTab === 'media') {
+                    toast.error("Please upload at least one image before proceeding.");
+                }
+                return; // 🛑 Block tab change execution
+            }
 
-        // If trying to jump straight to Location from Basic, run validations chronologically
-        if (activeTab === 'basic' && targetTab === 'location') {
-            const isBasicValid = await triggerFormSubmit(basicFormRef)
-            if (!isBasicValid) return; // Blocked at Basic
-
-            if (!draftRef.current.media) {
-                toast.info('Please complete the Media step before proceeding to Location.')
-                goToTab('media')
-                return
+            // Additional check: If trying to skip from Basic straight to Location, check intermediate steps
+            if (activeTab === 'basic' && cleanTarget === 'location' && !isTabValid('media')) {
+                toast.info('Please complete the Media step before proceeding to Location.');
+                setActiveTab('media');
+                handleQueryParamsChange('tab', 'media');
+                return;
             }
         }
 
-        // If moving forward from Basic to Media
-        if (activeTab === 'basic' && targetTab === 'media') {
-            const isBasicValid = await triggerFormSubmit(basicFormRef)
-            if (!isBasicValid) return; // Blocked at Basic
-        }
-
-        // If moving forward from Media to Location
-        if (activeTab === 'media' && targetTab === 'location') {
-            const isMediaValid = await triggerFormSubmit(mediaFormRef)
-            if (!isMediaValid) return; // Blocked at Media
-        }
-
-        goToTab(targetTab)
+        // 2. Allow backward navigation or forward movement if validation passed
+        setActiveTab(cleanTarget)
+        handleQueryParamsChange('tab', cleanTarget)
     }
 
-    // Fired on successful Basic Form submission validation entry
+    // Capture validated data payloads from standard child form actions
     const handleBasicNext = (data: BasicListingData) => {
         draftRef.current.basic = data
-        const idx = TAB_ORDER.indexOf('basic')
-        // Route through our guarded navigation state rather than raw setter override
-        handleTabChange(TAB_ORDER[idx + 1])
+        handleTabChange('media')
     }
 
-    // Fired on successful Media Form submission validation entry
     const handleMediaNext = (data: MediaListingData) => {
         draftRef.current.media = data
-        const idx = TAB_ORDER.indexOf('media')
-        // Route through our guarded navigation state rather than raw setter override
-        handleTabChange(TAB_ORDER[idx + 1])
+        handleTabChange('location')
     }
 
     const handleLocationSubmit = async (data: LocationListingData, submit: boolean) => {
@@ -151,7 +148,7 @@ export default function CreateListingScreen() {
             if (Array.isArray(backendErrors) && backendErrors.length > 0) {
                 const firstError = backendErrors[0];
                 toast.error(firstError.message)
-                goToTab(firstError.tab);
+                handleTabChange(firstError.tab);
             } else {
                 toast.error(err instanceof Error ? err.message : 'Failed to submit listing. Please verify all entries.')
             }
@@ -190,14 +187,17 @@ export default function CreateListingScreen() {
                 </Button>
             </DashboardNavbar>
             <DashboardPageContainer>
+                {/* 1. Wired into CustomTab layout wrapper */}
                 <CustomTab
                     items={tabOptions}
                     activeTab={activeTab}
                     onTabChange={handleTabChange}
                 />
+                
                 <div className={activeTab !== 'basic' ? 'hidden' : ''}>
                     <BasicInformationForm ref={basicFormRef} onNext={handleBasicNext} />
                 </div>
+                
                 <div className={activeTab !== 'media' ? 'hidden' : ''}>
                     <MediaForm
                         ref={mediaFormRef}
@@ -205,6 +205,7 @@ export default function CreateListingScreen() {
                         onBack={() => handleTabChange('basic')}
                     />
                 </div>
+                
                 <div className={activeTab !== 'location' ? 'hidden' : ''}>
                     <LocationForm
                         onFormSubmit={handleLocationSubmit}
