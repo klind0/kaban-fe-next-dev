@@ -148,7 +148,9 @@ export default function CreateListingScreen() {
         // Processing structured Submission Validation
         setIsPending(true)
         try {
-            await createListing(basic, media, data, true)
+            // Add type assertion here so the compiler knows it satisfies the required schema shape
+            await createListing(basic as BasicListingData, media as MediaListingData, data, true)
+            
             toast.success('Listing submitted for review!')
             router.push('/dashboard')
         } catch (err: any) {
