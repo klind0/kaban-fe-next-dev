@@ -267,7 +267,9 @@ export default function LocationForm({ onFormSubmit, isPending, onBack }: Props)
                                 zoom: 13,
                                 bearing: 0,
                                 pitch: 0,
-                                padding: { top: 0, bottom: 0, left: 0, right: 0 }
+                                padding: { top: 0, bottom: 0, left: 0, right: 0 },
+                                width: 0,  // Added to satisfy older type definition bindings
+                                height: 0
                             }}
                             style={{ width: "100%", height: "100%", minHeight: "240px" }}
                             mapStyle="mapbox://styles/mapbox/streets-v12"
