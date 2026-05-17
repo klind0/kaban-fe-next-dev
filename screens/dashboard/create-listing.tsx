@@ -52,11 +52,15 @@ export default function CreateListingScreen() {
         };
     }, []);
 
-    // Step 1: Define the Validation Logic Per Tab using the cache
+    // Step 1: Define the Validation Logic Per Tab using live values
     const isTabValid = (tabId: TabType): boolean => {
-        // Fallback to active sub-form uncommitted state values if cached object hasn't been written yet
-        const basic = draftRef.current.basic ?? basicFormRef.current?.getValues() ?? null;
-        const media = draftRef.current.media ?? mediaFormRef.current?.getValues() ?? null;
+        // 🚀 ALWAYS pull fresh, live values directly from the active form references if they exist
+        const liveBasicValues = basicFormRef.current?.getValues?.() || null;
+        const liveMediaValues = mediaFormRef.current?.getValues?.() || null;
+
+        // Fallback to the draft cache only if the form component isn't rendered/mounted yet
+        const basic = liveBasicValues || draftRef.current.basic;
+        const media = liveMediaValues || draftRef.current.media;
 
         switch (tabId) {
             case 'basic':
@@ -84,21 +88,20 @@ export default function CreateListingScreen() {
 
         // 1. Moving Forward: Ensure current tab is completed before moving forward
         if (targetIdx > currentIdx) {
-            if (!isTabValid(activeTab)) {
-                if (activeTab === 'basic') {
-                    toast.error("Please fill out all essential fields (Title, Category, Type, Status, Price) before proceeding.");
-                } else if (activeTab === 'media') {
-                    toast.error("Please upload at least one image before proceeding.");
-                }
-                return; // 🛑 Block tab change execution
+            // Check if Basic is valid if we are trying to go past it (to Media or Location)
+            if (targetIdx > 0 && !isTabValid('basic')) {
+                toast.error("The Basic Information tab is incomplete. Please fill out all essential fields.");
+                setActiveTab('basic');
+                handleQueryParamsChange('tab', 'basic');
+                return; // 🛑 Block execution
             }
-
-            // Additional check: If trying to skip from Basic straight to Location, check intermediate steps
-            if (activeTab === 'basic' && cleanTarget === 'location' && !isTabValid('media')) {
-                toast.info('Please complete the Media step before proceeding to Location.');
+            
+            // Check if Media is valid if we are trying to jump straight to Location
+            if (cleanTarget === 'location' && !isTabValid('media')) {
+                toast.error("The Media tab is incomplete. Please upload at least one image.");
                 setActiveTab('media');
                 handleQueryParamsChange('tab', 'media');
-                return;
+                return; // 🛑 Block execution
             }
         }
 
