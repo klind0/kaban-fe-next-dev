@@ -40,7 +40,7 @@ export default function CreateListingScreen() {
 
     React.useEffect(() => {
         const handleMobileDraftTrigger = () => {
-            handleSaveDraft(); // Executes your existing draft logic seamlessly
+            handleSaveDraft();
         };
 
         window.addEventListener('trigger-save-draft', handleMobileDraftTrigger);
@@ -49,55 +49,12 @@ export default function CreateListingScreen() {
         };
     }, []);
 
-    // Validates current step before allowing a tab change header click
-    const handleTabChange = async (targetTab: string) => {
-        const currentIdx = TAB_ORDER.indexOf(activeTab)
-        const targetIdx = TAB_ORDER.indexOf(targetTab)
-
-        // Moving backward is always allowed
-        if (targetIdx <= currentIdx) {
-            setActiveTab(targetTab)
-            handleQueryParamsChange('tab', targetTab)
-            return
-        }
-
-        // If trying to jump straight to Location from Basic, make sure they pass through Media first
-        if (activeTab === 'basic' && targetTab === 'location') {
-            const isBasicValid = await triggerFormSubmit(basicFormRef)
-            if (!isBasicValid) return; // Blocked at Basic
-            
-            // If Basic passed but Media draft is empty, redirect them safely to Media instead of Location
-            if (!draftRef.current.media) {
-                toast.info('Please complete the Media step before proceeding to Location.')
-                setActiveTab('media')
-                handleQueryParamsChange('tab', 'media')
-                return
-            }
-        }
-
-        // If jumping forward from Basic to Media
-        if (activeTab === 'basic' && targetTab === 'media') {
-            const isValid = await triggerFormSubmit(basicFormRef)
-            if (!isValid) return
-        }
-
-        // If jumping forward from Media to Location
-        if (activeTab === 'media' && targetTab === 'location') {
-            const isValid = await triggerFormSubmit(mediaFormRef)
-            if (!isValid) return
-        }
-
-        setActiveTab(targetTab)
-        handleQueryParamsChange('tab', targetTab)
-    }
-
     // Helper function to programmatically trigger standard form validation/submission 
     // utilizing the refs setup inside your child forms
     const triggerFormSubmit = async (ref: React.RefObject<any>): Promise<boolean> => {
         if (ref.current && typeof ref.current.submitForm === 'function') {
             return await ref.current.submitForm()
         }
-        // Fallback check if submitForm helper isn't fully async or exported
         if (ref.current && typeof ref.current.getValues === 'function') {
             const values = ref.current.getValues()
             return !!values
@@ -110,28 +67,67 @@ export default function CreateListingScreen() {
         handleQueryParamsChange('tab', tab)
     }
 
+    // Intercepts and guards ALL tab movements (Clicks up top AND Next button triggers)
+    const handleTabChange = async (targetTab: string) => {
+        const currentIdx = TAB_ORDER.indexOf(activeTab)
+        const targetIdx = TAB_ORDER.indexOf(targetTab)
+
+        // Moving backward is always allowed freely
+        if (targetIdx <= currentIdx) {
+            goToTab(targetTab)
+            return
+        }
+
+        // If trying to jump straight to Location from Basic, run validations chronologically
+        if (activeTab === 'basic' && targetTab === 'location') {
+            const isBasicValid = await triggerFormSubmit(basicFormRef)
+            if (!isBasicValid) return; // Blocked at Basic
+
+            if (!draftRef.current.media) {
+                toast.info('Please complete the Media step before proceeding to Location.')
+                goToTab('media')
+                return
+            }
+        }
+
+        // If moving forward from Basic to Media
+        if (activeTab === 'basic' && targetTab === 'media') {
+            const isBasicValid = await triggerFormSubmit(basicFormRef)
+            if (!isBasicValid) return; // Blocked at Basic
+        }
+
+        // If moving forward from Media to Location
+        if (activeTab === 'media' && targetTab === 'location') {
+            const isMediaValid = await triggerFormSubmit(mediaFormRef)
+            if (!isMediaValid) return; // Blocked at Media
+        }
+
+        goToTab(targetTab)
+    }
+
+    // Fired on successful Basic Form submission validation entry
     const handleBasicNext = (data: BasicListingData) => {
         draftRef.current.basic = data
         const idx = TAB_ORDER.indexOf('basic')
-        goToTab(TAB_ORDER[idx + 1])
+        // Route through our guarded navigation state rather than raw setter override
+        handleTabChange(TAB_ORDER[idx + 1])
     }
 
+    // Fired on successful Media Form submission validation entry
     const handleMediaNext = (data: MediaListingData) => {
         draftRef.current.media = data
         const idx = TAB_ORDER.indexOf('media')
-        goToTab(TAB_ORDER[idx + 1])
+        // Route through our guarded navigation state rather than raw setter override
+        handleTabChange(TAB_ORDER[idx + 1])
     }
 
-   const handleLocationSubmit = async (data: LocationListingData, submit: boolean) => {
+    const handleLocationSubmit = async (data: LocationListingData, submit: boolean) => {
         const { basic, media } = draftRef.current
         
-        // If they are just saving a draft, bypass complete validation checks
         if (!submit) {
             setIsPending(true)
             try {
                 const mediaData: MediaListingData = media ?? { images: [], cover_index: 0, video_url: '' }
-                
-                // 🚀 Typecast the draft fallback as BasicListingData to appease the compiler
                 await createListing((basic ?? {}) as BasicListingData, mediaData, data, false)
                 
                 toast.success('Draft saved successfully!')
@@ -145,29 +141,18 @@ export default function CreateListingScreen() {
             }
         }
 
-        // Processing structured Submission Validation
         setIsPending(true)
         try {
-            // Add type assertion here so the compiler knows it satisfies the required schema shape
             await createListing(basic as BasicListingData, media as MediaListingData, data, true)
-            
             toast.success('Listing submitted for review!')
             router.push('/dashboard')
         } catch (err: any) {
-            // Check if the backend sent our structured tab error object
             const backendErrors = err?.response?.data?.errors;
-            
             if (Array.isArray(backendErrors) && backendErrors.length > 0) {
-                // 1. Focus on the first error to guide the user back chronologically
                 const firstError = backendErrors[0];
-                
-                // 2. Display the field-specific missing error message
                 toast.error(firstError.message)
-                
-                // 3. Programmatically force the wizard layout back to the target tab
                 goToTab(firstError.tab);
             } else {
-                // Generic error fallback
                 toast.error(err instanceof Error ? err.message : 'Failed to submit listing. Please verify all entries.')
             }
         } finally {
@@ -187,7 +172,7 @@ export default function CreateListingScreen() {
         setIsPending(true)
         try {
             const mediaData: MediaListingData = media ?? { images: [], cover_index: 0, video_url: '' }
-            await createListing(basic, mediaData, null, false)
+            await createListing(basic as BasicListingData, mediaData, null, false)
             toast.success('Listing saved as draft!')
             router.push('/dashboard')
         } catch (err) {
@@ -217,14 +202,14 @@ export default function CreateListingScreen() {
                     <MediaForm
                         ref={mediaFormRef}
                         onNext={handleMediaNext}
-                        onBack={() => goToTab('basic')}
+                        onBack={() => handleTabChange('basic')}
                     />
                 </div>
                 <div className={activeTab !== 'location' ? 'hidden' : ''}>
                     <LocationForm
                         onFormSubmit={handleLocationSubmit}
                         isPending={isPending}
-                        onBack={() => goToTab('media')}
+                        onBack={() => handleTabChange('media')}
                     />
                 </div>
             </DashboardPageContainer>
