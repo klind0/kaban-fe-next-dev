@@ -18,15 +18,19 @@ type MediaFormValues = {
 };
 
 type Props = {
-    onNext: (data: MediaListingData) => void;
+    onSubmitSuccess: (data: MediaListingData) => void;
     onBack: () => void;
+    initialData?: Partial<MediaListingData>;
 };
 
 export type MediaFormHandle = {
     getValues: () => MediaListingData;
 };
 
-const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm({ onNext, onBack }, ref) {
+const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm(
+    { onSubmitSuccess, onBack, initialData },
+    ref
+) {
     const MAX_IMAGES = 10;
 
     const {
@@ -38,7 +42,11 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm({ 
         setError,
         getValues,
     } = useForm<MediaFormValues>({
-        defaultValues: { images: [], cover_index: 0, video_url: "" },
+        defaultValues: {
+            images: initialData?.images || [],
+            cover_index: initialData?.cover_index || 0,
+            video_url: initialData?.video_url || "",
+        },
         mode: "onChange",
     });
 
@@ -63,13 +71,17 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm({ 
     }, [watchedImages]);
 
     // Handle Imperative Actions from the workflow controller
-    React.useImperativeHandle(ref, () => ({
-        getValues: () => ({
-            images: getValues("images"),
-            cover_index: getValues("cover_index"),
-            video_url: getValues("video_url"),
+    React.useImperativeHandle(
+        ref,
+        () => ({
+            getValues: () => ({
+                images: getValues("images"),
+                cover_index: getValues("cover_index"),
+                video_url: getValues("video_url"),
+            }),
         }),
-    }), [getValues]);
+        [getValues]
+    );
 
     const handleFiles = React.useCallback(
         (incoming: FileList | null) => {
@@ -81,9 +93,9 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm({ 
             const merged = [...currentFiles, ...newFiles];
 
             if (totalTargetCount > MAX_IMAGES) {
-                setError("images", { 
-                    type: "manual", 
-                    message: `Limit exceeded. Maximum allowed images is ${MAX_IMAGES}. You tried uploading ${totalTargetCount}.` 
+                setError("images", {
+                    type: "manual",
+                    message: `Limit exceeded. Maximum allowed images is ${MAX_IMAGES}. You tried uploading ${totalTargetCount}.`,
                 });
                 toast.error(`Cannot add files. Maximum image limit is ${MAX_IMAGES}.`);
                 return;
@@ -98,16 +110,19 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm({ 
     const removeImage = (index: number) => {
         const currentFiles = getValues("images") || [];
         const nextFiles = currentFiles.filter((_, i) => i !== index);
-        
+
         setValue("images", nextFiles, { shouldValidate: true });
-        
+
         if (nextFiles.length === 0) {
-            setError("images", { type: "manual", message: "At least one property image is required" });
+            setError("images", {
+                type: "manual",
+                message: "At least one property image is required",
+            });
         } else {
             clearErrors("images");
         }
 
-        // Adjust index pointer tracking rules gracefully
+        // Adjust index pointer tracking rules gracefully when items shift positions
         if (watchedCoverIndex === index) {
             setValue("cover_index", 0);
         } else if (watchedCoverIndex > index) {
@@ -124,10 +139,19 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm({ 
     };
 
     const onSubmit = (data: MediaFormValues) => {
-        onNext({ 
-            images: data.images, 
-            cover_index: data.cover_index, 
-            video_url: data.video_url 
+        if (data.images.length === 0) {
+            setError("images", {
+                type: "manual",
+                message: "At least one property image is required to proceed",
+            });
+            toast.error("Please upload at least one image.");
+            return;
+        }
+
+        onSubmitSuccess({
+            images: data.images,
+            cover_index: data.cover_index,
+            video_url: data.video_url,
         });
     };
 
@@ -161,7 +185,9 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm({ 
                                         <div
                                             key={i}
                                             className={`relative shrink-0 w-60 h-42.5 rounded-lg overflow-hidden border-2 ${
-                                                i === watchedCoverIndex ? "border-primary" : "border-transparent"
+                                                i === watchedCoverIndex
+                                                    ? "border-primary"
+                                                    : "border-transparent"
                                             }`}
                                         >
                                             <Image
@@ -169,7 +195,7 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm({ 
                                                 alt={`upload-${i}`}
                                                 fill
                                                 className="object-cover"
-                                                unoptimized // Speeds up the rendering cycle loop since those blob local schemas don't hit Next image server optimization endpoints
+                                                unoptimized
                                             />
                                             {/* Delete button */}
                                             <button
@@ -212,12 +238,23 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm({ 
 
                     {/* Dropzone */}
                     <div
-                        onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                        onDragOver={(e) => {
+                            e.preventDefault();
+                            setIsDragging(true);
+                        }}
                         onDragLeave={() => setIsDragging(false)}
-                        onDrop={(e) => { e.preventDefault(); setIsDragging(false); handleFiles(e.dataTransfer.files); }}
+                        onDrop={(e) => {
+                            e.preventDefault();
+                            setIsDragging(false);
+                            handleFiles(e.dataTransfer.files);
+                        }}
                         onClick={() => inputRef.current?.click()}
                         className={`border border-dashed rounded-2xl cursor-pointer py-10 flex flex-col items-center justify-center gap-3 transition-colors ${
-                            isDragging ? "border-primary bg-primary/5" : errors.images ? "border-red-500 bg-red-50/10" : "border-primary"
+                            isDragging
+                                ? "border-primary bg-primary/5"
+                                : errors.images
+                                ? "border-red-500 bg-red-50/10"
+                                : "border-primary"
                         }`}
                     >
                         <div className="w-12 h-12 rounded-full flex items-center justify-center">
@@ -225,9 +262,14 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm({ 
                         </div>
                         <div className="flex flex-col items-center gap-1">
                             <p className="text-sm text-center">
-                                <span className="font-semibold text-foreground underline">Click here to upload</span> or drag and drop
+                                <span className="font-semibold text-foreground underline">
+                                    Click here to upload
+                                </span>{" "}
+                                or drag and drop
                             </p>
-                            <p className="text-xs! font-medium">PNG, JPG (max 10 pictures total)</p>
+                            <p className="text-xs! font-medium">
+                                PNG, JPG (max 10 pictures total)
+                            </p>
                         </div>
                         <input
                             ref={inputRef}
@@ -258,10 +300,19 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm({ 
                         Example: https://www.youtube.com/watch?v=8T7SnBQDiuM
                     </p>
                 </div>
-                
+
                 <div className="flex justify-end gap-3 mt-6">
-                    <Button variant="outline" type="button" className="md:min-w-30" onClick={onBack}>Previous</Button>
-                    <Button type="submit" className="md:min-w-30">Next</Button>
+                    <Button
+                        variant="outline"
+                        type="button"
+                        className="md:min-w-30"
+                        onClick={onBack}
+                    >
+                        Previous
+                    </Button>
+                    <Button type="submit" className="md:min-w-30">
+                        Next
+                    </Button>
                 </div>
             </FormCard>
         </form>

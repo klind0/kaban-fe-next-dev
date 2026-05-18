@@ -130,14 +130,16 @@ type Props = {
     onFormSubmit: (data: LocationListingData, submit: boolean) => Promise<void>;
     isPending: boolean;
     onBack: () => void;
+    // Inject centralized error state if your central validation passes it down
+    externalErrors?: any; 
 };
 
-export default function LocationForm({ onFormSubmit, isPending, onBack }: Props) {
+export default function LocationForm({ onFormSubmit, isPending, onBack, externalErrors }: Props) {
     const {
         handleSubmit,
         control,
         setValue,
-        formState: { errors },
+        formState: { errors }, // This will now remain empty natively since rules are gone
     } = useForm<LocationFormValues>({
         defaultValues: {
             location: {
@@ -149,7 +151,7 @@ export default function LocationForm({ onFormSubmit, isPending, onBack }: Props)
             },
             agreement: false,
         },
-        mode: "all",
+        mode: "onChange",
     });
 
     const mapRef = React.useRef<MapRef>(null);
@@ -162,7 +164,7 @@ export default function LocationForm({ onFormSubmit, isPending, onBack }: Props)
     const cityOptions = selectedState ? (nigeriaCitiesByState[selectedState] ?? []) : [];
 
     const onSubmit = (data: LocationFormValues) => {
-        if (!data.agreement) return;
+        // Native submissions just forward the payload directly to the parent handler
         onFormSubmit({ location: data.location }, true);
     };
 
@@ -174,7 +176,6 @@ export default function LocationForm({ onFormSubmit, isPending, onBack }: Props)
                     <Controller
                         name="location.address"
                         control={control}
-                        rules={{ required: "This field is required" }}
                         render={({ field }) => (
                             <AddressAutocomplete
                                 value={field.value}
@@ -205,7 +206,8 @@ export default function LocationForm({ onFormSubmit, isPending, onBack }: Props)
                                         }
                                     }
                                 }}
-                                error={getErrorMessage(errors.location?.address)}
+                                // Swap with centralized error object mapping if applicable
+                                error={getErrorMessage(externalErrors?.location?.address || errors.location?.address)}
                             />
                         )}
                     />
@@ -213,13 +215,11 @@ export default function LocationForm({ onFormSubmit, isPending, onBack }: Props)
                         <Controller
                             name="location.state"
                             control={control}
-                            rules={{ required: "This field is required" }}
                             render={({ field }) => (
                                 <FormControl
                                     as="select"
                                     labelText="State"
                                     placeholder="Select state"
-                                    required
                                     containerClass="w-full"
                                     options={nigerianStates}
                                     value={field.value}
@@ -227,25 +227,23 @@ export default function LocationForm({ onFormSubmit, isPending, onBack }: Props)
                                         field.onChange(val);
                                         setValue("location.city", "");
                                     }}
-                                    error={getErrorMessage(errors.location?.state)}
+                                    error={getErrorMessage(externalErrors?.location?.state || errors.location?.state)}
                                 />
                             )}
                         />
                         <Controller
                             name="location.city"
                             control={control}
-                            rules={{ required: "This field is required" }}
                             render={({ field }) => (
                                 <FormControl
                                     as="select"
                                     labelText="City"
                                     placeholder={selectedState ? "Select city" : "Select a state first"}
-                                    required
                                     containerClass="w-full"
                                     options={cityOptions}
                                     value={field.value}
                                     onChange={field.onChange}
-                                    error={getErrorMessage(errors.location?.city)}
+                                    error={getErrorMessage(externalErrors?.location?.city || errors.location?.city)}
                                 />
                             )}
                         />
@@ -268,7 +266,7 @@ export default function LocationForm({ onFormSubmit, isPending, onBack }: Props)
                                 bearing: 0,
                                 pitch: 0,
                                 padding: { top: 0, bottom: 0, left: 0, right: 0 },
-                                width: 0,  // Added to satisfy older type definition bindings
+                                width: 0,
                                 height: 0
                             }}
                             style={{ width: "100%", height: "100%", minHeight: "240px" }}
@@ -295,7 +293,7 @@ export default function LocationForm({ onFormSubmit, isPending, onBack }: Props)
                                     type="text"
                                     containerClass="w-full"
                                     {...field}
-                                    error={getErrorMessage(errors.location?.landmark)}
+                                    error={getErrorMessage(externalErrors?.location?.landmark || errors.location?.landmark)}
                                 />
                             )}
                         />
@@ -341,7 +339,7 @@ export default function LocationForm({ onFormSubmit, isPending, onBack }: Props)
                     <h3 className="text-black text-2xl font-semibold">
                         Agreement <span className="text-[#B02817]">*</span>
                     </h3>
-                    {errors.agreement && (
+                    {(externalErrors?.agreement || errors.agreement) && (
                         <span className="text-[#B02817] text-xs sm:text-sm whitespace-nowrap">
                             This field is required
                         </span>
@@ -350,7 +348,6 @@ export default function LocationForm({ onFormSubmit, isPending, onBack }: Props)
                 <Controller
                     name="agreement"
                     control={control}
-                    rules={{ required: true }}
                     render={({ field }) => (
                         <label className="flex items-start gap-3 cursor-pointer">
                             <Checkbox
