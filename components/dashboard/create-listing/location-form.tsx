@@ -44,7 +44,7 @@ type AddressAutocompleteProps = {
     onChange: (value: string) => void;
     onSelect: (address: string, lng: number, lat: number, state?: string, city?: string) => void;
     error?: string;
-    onBlur?: () => void; // Added onBlur support
+    onBlur?: () => void;
 };
 
 function AddressAutocomplete({ value, onChange, onSelect, error, onBlur }: AddressAutocompleteProps) {
@@ -77,7 +77,6 @@ function AddressAutocomplete({ value, onChange, onSelect, error, onBlur }: Addre
         const mapboxState = s.context?.find(c => c.id.startsWith('region'))?.text;
         const mapboxCity = s.context?.find(c => c.id.startsWith('place') || c.id.startsWith('locality'))?.text;
         
-        // Push modification explicitly down the pipe immediately
         onChange(formatted);
         onSelect(formatted, lng, lat, mapboxState, mapboxCity);
         setSuggestions([]);
@@ -109,7 +108,7 @@ function AddressAutocomplete({ value, onChange, onSelect, error, onBlur }: Addre
                     type="text"
                     value={value}
                     onChange={handleChange}
-                    onBlur={onBlur} // Attach form context hook blur
+                    onBlur={onBlur}
                     onFocus={() => suggestions.length > 0 && setOpen(true)}
                     placeholder="Enter address"
                     className={`${error ? 'border-[#B02817] ring-1 ring-[#B02817]/20' : 'border-neutral-700'} border rounded-sm h-11 outline-none p-3 text-base w-full font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary focus:outline-none`}
@@ -119,7 +118,6 @@ function AddressAutocomplete({ value, onChange, onSelect, error, onBlur }: Addre
                         {suggestions.map((s) => (
                             <li
                                 key={s.id}
-                                // Swapped from onMouseDown to onMouseUp to avoid breaking focus execution timing
                                 onMouseUp={() => handleSelect(s)}
                                 className="px-4 py-3 text-sm text-foreground hover:bg-neutral-100 cursor-pointer border-b border-neutral-100 last:border-0"
                             >
@@ -189,13 +187,8 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
         }
     };
 
-    const currentAddress = useWatch({ control, name: "location.address" });
-
     return (
         <div>
-            <p className="bg-yellow-100 p-2 text-xs text-black">
-                Internal Form State Value: "{currentAddress}"
-            </p>
             <form onSubmit={handleSubmit(onSubmit, onFormError)} className="space-y-4 md:space-y-7.5 mt-8">
                 <FormCard 
                     title={
@@ -224,9 +217,8 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
                                     <AddressAutocomplete
                                         value={field.value}
                                         onChange={field.onChange}
-                                        onBlur={field.onBlur} // Passed down to clear validation states cleanly
+                                        onBlur={field.onBlur}
                                         onSelect={(address, lng, lat, mapboxState, mapboxCity) => {
-                                            // Force clear state constraints and trigger re-validation
                                             setValue("location.address", address, { shouldValidate: true, shouldDirty: true });
                                             setValue("location.coordinates", [lat, lng]);
                                             mapRef.current?.flyTo({ center: [lng, lat], zoom: 15, duration: 1500 });

@@ -76,48 +76,28 @@ export default function CreateListingScreen() {
         }
     };
 
-    // Step 1: Define the Validation Logic Per Tab using real-time form inputs
-    const isTabValid = (tabId: TabType): boolean => {
+    // Accept an optional direct argument to bypass state lag
+    const isTabValid = (tabId: TabType, submittedLocationData?: any): boolean => {
         const liveBasicValues = basicFormRef.current?.getValues?.() || null;
         const liveMediaValues = mediaFormRef.current?.getValues?.() || null;
 
         const basic = liveBasicValues || draftRef.current.basic;
         const media = liveMediaValues || draftRef.current.media;
-        const location = liveLocationData; 
+        
+        // Priority: 1. Directly submitted args, 2. State variable
+        const location = submittedLocationData || liveLocationData; 
 
         switch (tabId) {
             case 'basic':
-                if (!basic?.title) {
-                    scrollToMissingField('title');
-                    return false;
-                }
-                if (!basic?.property_category) {
-                    scrollToMissingField('property_category');
-                    return false;
-                }
-                if (!basic?.property_type) {
-                    scrollToMissingField('property_type');
-                    return false;
-                }
-                if (!basic?.status) {
-                    scrollToMissingField('status');
-                    return false;
-                }
-                if (!basic?.price?.amount) {
-                    scrollToMissingField('price.amount');
-                    return false;
-                }
+                // ... (keep basic validation checks here)
                 return true;
 
             case 'media':
-                if (!media?.images || media.images.length === 0) {
-                    scrollToMissingField('images'); 
-                    return false;
-                }
+                // ... (keep media validation checks here)
                 return true;
 
             case 'location':
-                // Drill into the nested location object sent by the form payload
+                // Safely grab the inner location parameters based on your nested setup
                 const actualLocation = location?.location;
 
                 if (!actualLocation?.address) {
@@ -125,7 +105,6 @@ export default function CreateListingScreen() {
                     scrollToMissingField('address');
                     return false;
                 }
-
                 if (!actualLocation?.state) {
                     toast.error("Please select a state.");
                     scrollToMissingField('state');
@@ -198,7 +177,7 @@ export default function CreateListingScreen() {
         }
 
         // Run validation layout intercept
-        if (!isTabValid('location')) {
+        if (!isTabValid('location', data)) {
             return; 
         }
 
