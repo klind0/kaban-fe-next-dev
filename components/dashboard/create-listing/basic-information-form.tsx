@@ -1,9 +1,18 @@
+"use client";
+
 import FormControl from "@/components/universal/form-control";
 import { getErrorMessage } from "@/lib/getErrorMessage";
 import { IListing } from "@/types/listingTypes";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import FormCard from "./form-card";
-import { bedroomOptions, featureOptions, priceSuffixOptions, propertyCategoryOptions, propertyStatusOptions, propertyTypeByCategory } from "@/lib/selectOptions";
+import { 
+    bedroomOptions, 
+    featureOptions, 
+    priceSuffixOptions, 
+    propertyCategoryOptions, 
+    propertyStatusOptions, 
+    propertyTypeByCategory 
+} from "@/lib/selectOptions";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { BasicListingData } from "@/network/listings";
@@ -12,7 +21,7 @@ import React from "react";
 type Props = {
     onNext: (data: BasicListingData) => void;
     externalErrors?: any; // Centralized validation errors injected from the parent screen
-}
+};
 
 export type BasicFormHandle = {
     getValues: () => BasicListingData;
@@ -29,8 +38,22 @@ const parseCommasToNumber = (value: string) => {
     return cleanValue ? Number(cleanValue) : 0;
 };
 
-const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function BasicInformationForm({ onNext, externalErrors }, ref) {
-    const { handleSubmit, control, formState: { errors }, setValue, getValues } = useForm<IListing>({
+const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function BasicInformationForm(
+    { onNext, externalErrors }, 
+    ref
+) {
+    // DOM references for custom components that bypass browser auto-focus mechanisms
+    const statusRef = React.useRef<HTMLDivElement>(null);
+    const categoryRef = React.useRef<HTMLDivElement>(null);
+    const typeRef = React.useRef<HTMLDivElement>(null);
+    
+    const { 
+        handleSubmit, 
+        control, 
+        formState: { errors }, 
+        setValue, 
+        getValues 
+    } = useForm<IListing>({
         defaultValues: {
             title: '',
             status: 'rent',
@@ -70,6 +93,17 @@ const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function B
         });
     };
 
+    // Scans React Hook Form errors arrays sequentially when standard onSubmit is rejected
+    const onFormError = (formErrors: typeof errors) => {
+        if (formErrors.status) {
+            statusRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+        } else if (formErrors.property_category) {
+            categoryRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+        } else if (formErrors.property_type) {
+            typeRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+    };
+
     React.useImperativeHandle(ref, () => ({
         getValues: () => {
             const data = getValues();
@@ -89,15 +123,15 @@ const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function B
     const propertyTypeOptions = propertyTypeByCategory[selectedCategory] ?? [];
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className='space-y-4 md:space-y-7.5 mt-8'>
+        <form onSubmit={handleSubmit(onSubmit, onFormError)} className='space-y-4 md:space-y-7.5 mt-8'>
             
             {/* Basic Information Card */}
             <FormCard 
                 title={
                     <div className="flex items-center justify-between w-full">
                         <span>Basic Information</span>
-                        {(externalErrors?.title || externalErrors?.status || externalErrors?.property_category || externalErrors?.property_type) && (
-                            <span className="text-[#B02817] text-xs sm:text-sm font-normal whitespace-nowrap">
+                        {(externalErrors?.title || externalErrors?.status || externalErrors?.property_category || externalErrors?.property_type || errors.title || errors.status || errors.property_category || errors.property_type) && (
+                            <span className="text-[#B02817] text-xs sm:text-sm font-normal whitespace-nowrap bg-red-50/60 px-2 py-0.5 rounded">
                                 This section has missing required fields
                             </span>
                         )}
@@ -108,10 +142,11 @@ const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function B
                     <Controller
                         name="title"
                         control={control}
+                        rules={{ required: "Property title is required" }}
                         render={({ field }) => (
                             <FormControl
                                 as='input'
-                                labelText='Title'
+                                labelText='Title *'
                                 placeholder='Enter title'
                                 type='text'
                                 {...field}
@@ -119,57 +154,74 @@ const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function B
                             />
                         )}
                     />
+                    
                     <div className="w-full flex flex-col md:flex-row gap-6">
-                        <Controller
-                            name="status"
-                            control={control}
-                            render={({ field }) => (
-                                <FormControl
-                                    as='select'
-                                    labelText='Status'
-                                    options={propertyStatusOptions}
-                                    placeholder='For sale, for rent'
-                                    containerClass="w-full"
-                                    {...field}
-                                    error={getErrorMessage(externalErrors?.status || errors.status)}
-                                />
-                            )}
-                        />
-                        <Controller
-                            name="property_category"
-                            control={control}
-                            render={({ field }) => (
-                                <FormControl
-                                    as='select'
-                                    labelText='Category'
-                                    options={propertyCategoryOptions}
-                                    placeholder='Residential, Commercial, Industrial'
-                                    containerClass="w-full"
-                                    {...field}
-                                    onChange={(e) => {
-                                        field.onChange(e);
-                                        setValue('property_type', '');
-                                    }}
-                                    error={getErrorMessage(externalErrors?.property_category || errors.property_category)}
-                                />
-                            )}
-                        />
-                        <Controller
-                            name="property_type"
-                            control={control}
-                            render={({ field }) => (
-                                <FormControl
-                                    as='select'
-                                    labelText='Property Type'
-                                    options={propertyTypeOptions}
-                                    placeholder={selectedCategory ? 'Select property type' : 'Select a category first'}
-                                    containerClass="w-full"
-                                    {...field}
-                                    error={getErrorMessage(externalErrors?.property_type || errors.property_type)}
-                                />
-                            )}
-                        />
+                        {/* Status Selection */}
+                        <div ref={statusRef} className="w-full scroll-mt-24">
+                            <Controller
+                                name="status"
+                                control={control}
+                                rules={{ required: "Property status is required" }}
+                                render={({ field }) => (
+                                    <FormControl
+                                        as='select'
+                                        labelText='Status *'
+                                        options={propertyStatusOptions}
+                                        placeholder='For sale, for rent'
+                                        containerClass="w-full"
+                                        {...field}
+                                        error={getErrorMessage(externalErrors?.status || errors.status)}
+                                    />
+                                )}
+                            />
+                        </div>
+
+                        {/* Category Selection */}
+                        <div ref={categoryRef} className="w-full scroll-mt-24">
+                            <Controller
+                                name="property_category"
+                                control={control}
+                                rules={{ required: "Property category is required" }}
+                                render={({ field }) => (
+                                    <FormControl
+                                        as='select'
+                                        labelText='Category *'
+                                        options={propertyCategoryOptions}
+                                        placeholder='Residential, Commercial, Industrial'
+                                        containerClass="w-full"
+                                        {...field}
+                                        onChange={(e) => {
+                                            field.onChange(e);
+                                            setValue('property_type', '', { shouldValidate: true });
+                                        }}
+                                        error={getErrorMessage(externalErrors?.property_category || errors.property_category)}
+                                    />
+                                )}
+                            />
+                        </div>
+
+                        {/* Property Type Selection */}
+                        <div ref={typeRef} className="w-full scroll-mt-24">
+                            <Controller
+                                name="property_type"
+                                control={control}
+                                rules={{ required: "Property type is required" }}
+                                render={({ field }) => (
+                                    <FormControl
+                                        as='select'
+                                        labelText='Property Type *'
+                                        options={propertyTypeOptions}
+                                        placeholder={selectedCategory ? 'Select property type' : 'Select a category first'}
+                                        containerClass="w-full"
+                                        {...field}
+                                        disabled={!selectedCategory}
+                                        error={getErrorMessage(externalErrors?.property_type || errors.property_type)}
+                                    />
+                                )}
+                            />
+                        </div>
                     </div>
+
                     <Controller
                         name="description"
                         control={control}
@@ -192,8 +244,8 @@ const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function B
                 title={
                     <div className="flex items-center justify-between w-full">
                         <span>Price</span>
-                        {externalErrors?.price?.amount && (
-                            <span className="text-[#B02817] text-xs sm:text-sm font-normal whitespace-nowrap">
+                        {(externalErrors?.price?.amount || errors.price?.amount) && (
+                            <span className="text-[#B02817] text-xs sm:text-sm font-normal whitespace-nowrap bg-red-50/60 px-2 py-0.5 rounded">
                                 This section has missing required fields
                             </span>
                         )}
@@ -204,15 +256,18 @@ const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function B
                     <Controller
                         name="price.amount"
                         control={control}
+                        rules={{ 
+                            required: "Price amount is required",
+                            min: { value: 1, message: "Price must be greater than 0" }
+                        }}
                         render={({ field: { onChange, value, ...restField } }) => (
                             <FormControl
                                 as='input'
-                                labelText='Sale/Rent Price (₦)'
+                                labelText='Sale/Rent Price (₦) *'
                                 placeholder='0'
                                 type="text"
                                 inputMode="numeric"
                                 value={formatNumberWithCommas(value)}
-                                min={0}
                                 containerClass="w-full"
                                 onChange={(e) => {
                                     const rawValue = e.target.value;
@@ -258,6 +313,7 @@ const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function B
                                     containerClass="w-full"
                                     {...field}
                                     value={String(field.value ?? '')}
+                                    onChange={(val) => field.onChange(Number(val) || 0)}
                                     error={getErrorMessage(externalErrors?.details?.bedroom || errors.details?.bedroom)}
                                 />
                             )}
@@ -274,6 +330,7 @@ const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function B
                                     containerClass="w-full"
                                     {...field}
                                     value={String(field.value ?? '')}
+                                    onChange={(val) => field.onChange(Number(val) || 0)}
                                     error={getErrorMessage(externalErrors?.details?.bathroom || errors.details?.bathroom)}
                                 />
                             )}
@@ -290,6 +347,7 @@ const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function B
                                     containerClass="w-full"
                                     {...field}
                                     value={String(field.value ?? '')}
+                                    onChange={(val) => field.onChange(Number(val) || 0)}
                                     error={getErrorMessage(externalErrors?.details?.parking_space || errors.details?.parking_space)}
                                 />
                             )}
@@ -328,6 +386,7 @@ const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function B
                             )}
                         />
                     </div>
+                    
                     <Controller
                         name="details.features"
                         control={control}
@@ -379,7 +438,7 @@ const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function B
                 <Button type="submit" className="md:min-w-30">Next</Button>
             </div>
         </form>
-    )
+    );
 });
 
 export default BasicInformationForm;

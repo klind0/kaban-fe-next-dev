@@ -50,7 +50,6 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm(
         mode: "onChange",
     });
 
-    // React Hook Form Watchers
     const watchedImages = useWatch({ control, name: "images" }) || [];
     const watchedCoverIndex = useWatch({ control, name: "cover_index" }) || 0;
 
@@ -59,18 +58,26 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm(
     const inputRef = React.useRef<HTMLInputElement>(null);
     const scrollRef = React.useRef<HTMLDivElement>(null);
 
-    // Sync object URL previews cleanly with the react-hook-form single-source-of-truth images array
     React.useEffect(() => {
         const objectUrls = watchedImages.map((file) => URL.createObjectURL(file));
         setPreviews(objectUrls);
 
-        // Revoke the memory allocations once the source tracking switches up
+        if (watchedImages.length > 0) {
+            setTimeout(() => {
+                if (scrollRef.current) {
+                    scrollRef.current.scrollTo({
+                        left: scrollRef.current.scrollWidth,
+                        behavior: "smooth",
+                    });
+                }
+            }, 100);
+        }
+
         return () => {
             objectUrls.forEach((url) => URL.revokeObjectURL(url));
         };
     }, [watchedImages]);
 
-    // Handle Imperative Actions from the workflow controller
     React.useImperativeHandle(
         ref,
         () => ({
@@ -107,7 +114,8 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm(
         [setValue, clearErrors, setError, getValues]
     );
 
-    const removeImage = (index: number) => {
+    const removeImage = (e: React.MouseEvent, index: number) => {
+        e.stopPropagation(); // Prevents dropzone container file upload popup open
         const currentFiles = getValues("images") || [];
         const nextFiles = currentFiles.filter((_, i) => i !== index);
 
@@ -122,7 +130,6 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm(
             clearErrors("images");
         }
 
-        // Adjust index pointer tracking rules gracefully when items shift positions
         if (watchedCoverIndex === index) {
             setValue("cover_index", 0);
         } else if (watchedCoverIndex > index) {
@@ -130,11 +137,13 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm(
         }
     };
 
-    const setCover = (index: number) => {
+    const setCover = (e: React.MouseEvent, index: number) => {
+        e.stopPropagation(); // Prevents dropzone click bubble triggers
         setValue("cover_index", index);
     };
 
-    const scrollRight = () => {
+    const scrollRight = (e: React.MouseEvent) => {
+        e.stopPropagation();
         scrollRef.current?.scrollBy({ left: 280, behavior: "smooth" });
     };
 
@@ -159,12 +168,12 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm(
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 md:space-y-7.5 mt-8">
             <FormCard title="Image">
                 <div className="space-y-4">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <label className="text-foreground text-sm font-medium">
                             Upload high-quality images * (Max {MAX_IMAGES})
                         </label>
                         {errors.images && (
-                            <span className="text-[#B02817] text-xs sm:text-sm font-medium bg-red-50 px-2 py-1 rounded">
+                            <span className="text-red-600 text-xs sm:text-sm font-medium bg-red-50 border border-red-200 px-2.5 py-1 rounded-md self-start sm:self-auto">
                                 {errors.images.message || "This field contains errors"}
                             </span>
                         )}
@@ -200,7 +209,7 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm(
                                             {/* Delete button */}
                                             <button
                                                 type="button"
-                                                onClick={() => removeImage(i)}
+                                                onClick={(e) => removeImage(e, i)}
                                                 className="absolute top-2 right-2 w-6 h-6 rounded-full bg-red-500 flex items-center justify-center z-10 hover:bg-red-600 transition-colors"
                                             >
                                                 <X size={12} className="text-white" />
@@ -213,7 +222,7 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm(
                                             ) : (
                                                 <button
                                                     type="button"
-                                                    onClick={() => setCover(i)}
+                                                    onClick={(e) => setCover(e, i)}
                                                     className="absolute bottom-2 left-2 bg-white hover:bg-white/70 text-foreground text-xs font-semibold px-3 py-1 rounded z-10 transition-colors"
                                                 >
                                                     Set cover
@@ -253,7 +262,7 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm(
                             isDragging
                                 ? "border-primary bg-primary/5"
                                 : errors.images
-                                ? "border-red-500 bg-red-50/10"
+                                ? "border-red-500 bg-red-50/20"
                                 : "border-primary"
                         }`}
                     >
@@ -267,7 +276,7 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm(
                                 </span>{" "}
                                 or drag and drop
                             </p>
-                            <p className="text-xs! font-medium">
+                            <p className="text-xs font-medium text-neutral-400">
                                 PNG, JPG (max 10 pictures total)
                             </p>
                         </div>

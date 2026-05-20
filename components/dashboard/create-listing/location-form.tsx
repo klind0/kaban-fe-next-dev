@@ -1,3 +1,5 @@
+"use client";
+
 import FormControl from "@/components/universal/form-control";
 import { getErrorMessage } from "@/lib/getErrorMessage";
 import { IListing } from "@/types/listingTypes";
@@ -96,7 +98,7 @@ function AddressAutocomplete({ value, onChange, onSelect, error }: AddressAutoco
                     <label className="text-foreground text-sm font-medium">Address *</label>
                 </div>
                 {error && (
-                    <span className="text-[#B02817] text-xs sm:text-sm whitespace-nowrap">{error}</span>
+                    <span className="text-[#B02817] text-xs sm:text-sm whitespace-nowrap bg-red-50 px-2 py-0.5 rounded">{error}</span>
                 )}
             </div>
             <div className="relative">
@@ -106,7 +108,7 @@ function AddressAutocomplete({ value, onChange, onSelect, error }: AddressAutoco
                     onChange={handleChange}
                     onFocus={() => suggestions.length > 0 && setOpen(true)}
                     placeholder="Enter address"
-                    className={`${error ? 'border-[#B02817]' : 'border-neutral-700'} border rounded-sm h-11 outline-none p-3 text-base w-full font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary focus:outline-none`}
+                    className={`${error ? 'border-[#B02817] ring-1 ring-[#B02817]/20' : 'border-neutral-700'} border rounded-sm h-11 outline-none p-3 text-base w-full font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary focus:outline-none`}
                 />
                 {open && suggestions.length > 0 && (
                     <ul className="absolute z-50 top-full left-0 right-0 mt-1 bg-white border border-neutral-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
@@ -130,16 +132,22 @@ type Props = {
     onFormSubmit: (data: LocationListingData, submit: boolean) => Promise<void>;
     isPending: boolean;
     onBack: () => void;
-    // Inject centralized error state if your central validation passes it down
     externalErrors?: any; 
 };
 
 export default function LocationForm({ onFormSubmit, isPending, onBack, externalErrors }: Props) {
+    // References targeting component root divs for auto-scrolling fallback actions
+    const addressBlockRef = React.useRef<HTMLDivElement>(null);
+    const stateBlockRef = React.useRef<HTMLDivElement>(null);
+    const cityBlockRef = React.useRef<HTMLDivElement>(null);
+    const agreementBlockRef = React.useRef<HTMLDivElement>(null);
+    const mapRef = React.useRef<MapRef>(null);
+
     const {
         handleSubmit,
         control,
         setValue,
-        formState: { errors }, // This will now remain empty natively since rules are gone
+        formState: { errors },
     } = useForm<LocationFormValues>({
         defaultValues: {
             location: {
@@ -154,8 +162,6 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
         mode: "onChange",
     });
 
-    const mapRef = React.useRef<MapRef>(null);
-
     const coordinates = useWatch({ control, name: "location.coordinates" });
     const selectedState = useWatch({ control, name: "location.state" });
     const latitude = coordinates?.[0] ?? 6.5244;
@@ -164,89 +170,131 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
     const cityOptions = selectedState ? (nigeriaCitiesByState[selectedState] ?? []) : [];
 
     const onSubmit = (data: LocationFormValues) => {
-        // Native submissions just forward the payload directly to the parent handler
         onFormSubmit({ location: data.location }, true);
     };
 
-    return (
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 md:space-y-7.5 mt-8">
-            {/* Location card */}
-            <FormCard title="Location">
-                <div className="space-y-6">
-                    <Controller
-                        name="location.address"
-                        control={control}
-                        render={({ field }) => (
-                            <AddressAutocomplete
-                                value={field.value}
-                                onChange={field.onChange}
-                                onSelect={(address, lng, lat, mapboxState, mapboxCity) => {
-                                    field.onChange(address);
-                                    setValue("location.coordinates", [lat, lng]);
-                                    mapRef.current?.flyTo({ center: [lng, lat], zoom: 15, duration: 1500 });
+    // Auto-scroll logic targeting sequential missing layouts on submission errors
+    const onFormError = (formErrors: typeof errors) => {
+        if (formErrors.location?.address) {
+            addressBlockRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+        } else if (formErrors.location?.state) {
+            stateBlockRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+        } else if (formErrors.location?.city) {
+            cityBlockRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+        } else if (formErrors.agreement) {
+            agreementBlockRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+    };
 
-                                    if (mapboxState) {
-                                        const normalized = mapboxState
-                                            .replace(/\s+State$/i, '')
-                                            .replace(/Federal Capital Territory/i, 'FCT')
-                                            .trim();
-                                        const stateMatch = nigerianStates.find(
-                                            s => s.value.toLowerCase() === normalized.toLowerCase()
-                                        );
-                                        if (stateMatch) {
-                                            setValue("location.state", stateMatch.value);
-                                            setValue("location.city", "");
-                                            if (mapboxCity) {
-                                                const cityList = nigeriaCitiesByState[stateMatch.value] ?? [];
-                                                const cityMatch = cityList.find(
-                                                    c => c.value.toLowerCase() === mapboxCity.toLowerCase()
-                                                );
-                                                if (cityMatch) setValue("location.city", cityMatch.value);
-                                            }
-                                        }
-                                    }
-                                }}
-                                // Swap with centralized error object mapping if applicable
-                                error={getErrorMessage(externalErrors?.location?.address || errors.location?.address)}
-                            />
+    return (
+        <form onSubmit={handleSubmit(onSubmit, onFormError)} className="space-y-4 md:space-y-7.5 mt-8">
+            {/* Location card */}
+            <FormCard 
+                title={
+                    <div className="flex items-center justify-between w-full">
+                        <span>Location</span>
+                        {(externalErrors?.location?.address ||
+                            externalErrors?.location?.state ||
+                            externalErrors?.location?.city ||
+                            errors.location?.address ||
+                            errors.location?.state ||
+                            errors.location?.city) && (
+                            <span className="text-[#B02817] text-xs sm:text-sm font-normal bg-red-50/60 px-2 py-0.5 rounded">
+                                Section has missing required fields
+                            </span>
                         )}
-                    />
-                    <div className="w-full flex flex-col md:flex-row gap-6">
+                    </div>
+                }
+            >
+                <div className="space-y-6">
+                    {/* Address Autocomplete Input Block Wrapper */}
+                    <div ref={addressBlockRef} className="w-full scroll-mt-24">
                         <Controller
-                            name="location.state"
+                            name="location.address"
                             control={control}
+                            rules={{ required: "Property location address is required" }}
                             render={({ field }) => (
-                                <FormControl
-                                    as="select"
-                                    labelText="State"
-                                    placeholder="Select state"
-                                    containerClass="w-full"
-                                    options={nigerianStates}
-                                    value={field.value}
-                                    onChange={(val) => {
-                                        field.onChange(val);
-                                        setValue("location.city", "");
-                                    }}
-                                    error={getErrorMessage(externalErrors?.location?.state || errors.location?.state)}
-                                />
-                            )}
-                        />
-                        <Controller
-                            name="location.city"
-                            control={control}
-                            render={({ field }) => (
-                                <FormControl
-                                    as="select"
-                                    labelText="City"
-                                    placeholder={selectedState ? "Select city" : "Select a state first"}
-                                    containerClass="w-full"
-                                    options={cityOptions}
+                                <AddressAutocomplete
                                     value={field.value}
                                     onChange={field.onChange}
-                                    error={getErrorMessage(externalErrors?.location?.city || errors.location?.city)}
+                                    onSelect={(address, lng, lat, mapboxState, mapboxCity) => {
+                                        field.onChange(address);
+                                        setValue("location.coordinates", [lat, lng]);
+                                        mapRef.current?.flyTo({ center: [lng, lat], zoom: 15, duration: 1500 });
+
+                                        if (mapboxState) {
+                                            const normalized = mapboxState
+                                                .replace(/\s+State$/i, '')
+                                                .replace(/Federal Capital Territory/i, 'FCT')
+                                                .trim();
+                                            const stateMatch = nigerianStates.find(
+                                                s => s.value.toLowerCase() === normalized.toLowerCase()
+                                            );
+                                            if (stateMatch) {
+                                                setValue("location.state", stateMatch.value, { shouldValidate: true });
+                                                setValue("location.city", "", { shouldValidate: true });
+                                                if (mapboxCity) {
+                                                    const cityList = nigeriaCitiesByState[stateMatch.value] ?? [];
+                                                    const cityMatch = cityList.find(
+                                                        c => c.value.toLowerCase() === mapboxCity.toLowerCase()
+                                                    );
+                                                    if (cityMatch) setValue("location.city", cityMatch.value, { shouldValidate: true });
+                                                }
+                                            }
+                                        }
+                                    }}
+                                    error={getErrorMessage(externalErrors?.location?.address || errors.location?.address)}
                                 />
                             )}
                         />
+                    </div>
+
+                    <div className="w-full flex flex-col md:flex-row gap-6">
+                        {/* State Selection Target Wrapper */}
+                        <div ref={stateBlockRef} className="w-full scroll-mt-24">
+                            <Controller
+                                name="location.state"
+                                control={control}
+                                rules={{ required: "State selection is required" }}
+                                render={({ field }) => (
+                                    <FormControl
+                                        as="select"
+                                        labelText="State *"
+                                        placeholder="Select state"
+                                        containerClass="w-full"
+                                        options={nigerianStates}
+                                        value={field.value}
+                                        onChange={(val) => {
+                                            field.onChange(val);
+                                            setValue("location.city", "", { shouldValidate: true });
+                                        }}
+                                        error={getErrorMessage(externalErrors?.location?.state || errors.location?.state)}
+                                    />
+                                )}
+                            />
+                        </div>
+
+                        {/* City Dropdown Target Wrapper */}
+                        <div ref={cityBlockRef} className="w-full scroll-mt-24">
+                            <Controller
+                                name="location.city"
+                                control={control}
+                                rules={{ required: "City selection is required" }}
+                                render={({ field }) => (
+                                    <FormControl
+                                        as="select"
+                                        labelText="City *"
+                                        placeholder={selectedState ? "Select city" : "Select a state first"}
+                                        containerClass="w-full"
+                                        options={cityOptions}
+                                        disabled={!selectedState}
+                                        value={field.value}
+                                        onChange={field.onChange}
+                                        error={getErrorMessage(externalErrors?.location?.city || errors.location?.city)}
+                                    />
+                                )}
+                            />
+                        </div>
                     </div>
                 </div>
             </FormCard>
@@ -334,13 +382,13 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
             </FormCard>
 
             {/* Agreement card */}
-            <div className="p-4 md:p-8 space-y-4 rounded-[10px] border border-neutral-600">
+            <div ref={agreementBlockRef} className="p-4 md:p-8 space-y-4 rounded-[10px] border border-neutral-600 scroll-mt-24">
                 <div className="flex items-center justify-between">
                     <h3 className="text-black text-2xl font-semibold">
                         Agreement <span className="text-[#B02817]">*</span>
                     </h3>
                     {(externalErrors?.agreement || errors.agreement) && (
-                        <span className="text-[#B02817] text-xs sm:text-sm whitespace-nowrap">
+                        <span className="text-[#B02817] text-xs sm:text-sm whitespace-nowrap bg-red-50 px-2 py-0.5 rounded">
                             This field is required
                         </span>
                     )}
@@ -348,12 +396,13 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
                 <Controller
                     name="agreement"
                     control={control}
+                    rules={{ required: "You must check the agreement consent box to continue" }}
                     render={({ field }) => (
                         <label className="flex items-start gap-3 cursor-pointer">
                             <Checkbox
                                 checked={field.value}
                                 onCheckedChange={field.onChange}
-                                className="mt-0.5"
+                                className={`mt-0.5 ${errors.agreement ? 'border-[#B02817] ring-1 ring-[#B02817]/20' : ''}`}
                             />
                             <span className="text-sm text-foreground">
                                 I consent that I am an authorized marketing representative of the above described real estate property.
