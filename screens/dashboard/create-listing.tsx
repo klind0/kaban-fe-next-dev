@@ -117,13 +117,16 @@ export default function CreateListingScreen() {
                 return true;
 
             case 'location':
-                // Safe evaluation fallback
-                if (!location?.address) {
+                // Drill into the nested location object sent by the form payload
+                const actualLocation = location?.location;
+
+                if (!actualLocation?.address) {
                     toast.error("Please provide a property address.");
                     scrollToMissingField('address');
                     return false;
                 }
-                if (!location?.state) {
+
+                if (!actualLocation?.state) {
                     toast.error("Please select a state.");
                     scrollToMissingField('state');
                     return false;
