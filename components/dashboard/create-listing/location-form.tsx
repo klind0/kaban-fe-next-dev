@@ -44,9 +44,10 @@ type AddressAutocompleteProps = {
     onChange: (value: string) => void;
     onSelect: (address: string, lng: number, lat: number, state?: string, city?: string) => void;
     error?: string;
+    onBlur?: () => void; // Added onBlur support
 };
 
-function AddressAutocomplete({ value, onChange, onSelect, error }: AddressAutocompleteProps) {
+function AddressAutocomplete({ value, onChange, onSelect, error, onBlur }: AddressAutocompleteProps) {
     const [suggestions, setSuggestions] = React.useState<Suggestion[]>([]);
     const [open, setOpen] = React.useState(false);
     const debounceRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -75,6 +76,8 @@ function AddressAutocomplete({ value, onChange, onSelect, error }: AddressAutoco
         const formatted = formatSuggestion(s);
         const mapboxState = s.context?.find(c => c.id.startsWith('region'))?.text;
         const mapboxCity = s.context?.find(c => c.id.startsWith('place') || c.id.startsWith('locality'))?.text;
+        
+        // Push modification explicitly down the pipe immediately
         onChange(formatted);
         onSelect(formatted, lng, lat, mapboxState, mapboxCity);
         setSuggestions([]);
@@ -106,6 +109,7 @@ function AddressAutocomplete({ value, onChange, onSelect, error }: AddressAutoco
                     type="text"
                     value={value}
                     onChange={handleChange}
+                    onBlur={onBlur} // Attach form context hook blur
                     onFocus={() => suggestions.length > 0 && setOpen(true)}
                     placeholder="Enter address"
                     className={`${error ? 'border-[#B02817] ring-1 ring-[#B02817]/20' : 'border-neutral-700'} border rounded-sm h-11 outline-none p-3 text-base w-full font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary focus:outline-none`}
@@ -115,7 +119,8 @@ function AddressAutocomplete({ value, onChange, onSelect, error }: AddressAutoco
                         {suggestions.map((s) => (
                             <li
                                 key={s.id}
-                                onMouseDown={() => handleSelect(s)}
+                                // Swapped from onMouseDown to onMouseUp to avoid breaking focus execution timing
+                                onMouseUp={() => handleSelect(s)}
                                 className="px-4 py-3 text-sm text-foreground hover:bg-neutral-100 cursor-pointer border-b border-neutral-100 last:border-0"
                             >
                                 {formatSuggestion(s)}
@@ -136,7 +141,6 @@ type Props = {
 };
 
 export default function LocationForm({ onFormSubmit, isPending, onBack, externalErrors }: Props) {
-    // References targeting component root divs for auto-scrolling fallback actions
     const addressBlockRef = React.useRef<HTMLDivElement>(null);
     const stateBlockRef = React.useRef<HTMLDivElement>(null);
     const cityBlockRef = React.useRef<HTMLDivElement>(null);
@@ -173,7 +177,6 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
         onFormSubmit({ location: data.location }, true);
     };
 
-    // Auto-scroll logic targeting sequential missing layouts on submission errors
     const onFormError = (formErrors: typeof errors) => {
         if (formErrors.location?.address) {
             addressBlockRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -188,7 +191,6 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
 
     return (
         <form onSubmit={handleSubmit(onSubmit, onFormError)} className="space-y-4 md:space-y-7.5 mt-8">
-            {/* Location card */}
             <FormCard 
                 title={
                     <div className="flex items-center justify-between w-full">
@@ -207,7 +209,6 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
                 }
             >
                 <div className="space-y-6">
-                    {/* Address Autocomplete Input Block Wrapper */}
                     <div ref={addressBlockRef} className="w-full scroll-mt-24">
                         <Controller
                             name="location.address"
@@ -217,8 +218,10 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
                                 <AddressAutocomplete
                                     value={field.value}
                                     onChange={field.onChange}
+                                    onBlur={field.onBlur} // Passed down to clear validation states cleanly
                                     onSelect={(address, lng, lat, mapboxState, mapboxCity) => {
-                                        field.onChange(address);
+                                        // Force clear state constraints and trigger re-validation
+                                        setValue("location.address", address, { shouldValidate: true, shouldDirty: true });
                                         setValue("location.coordinates", [lat, lng]);
                                         mapRef.current?.flyTo({ center: [lng, lat], zoom: 15, duration: 1500 });
 
@@ -250,7 +253,6 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
                     </div>
 
                     <div className="w-full flex flex-col md:flex-row gap-6">
-                        {/* State Selection Target Wrapper */}
                         <div ref={stateBlockRef} className="w-full scroll-mt-24">
                             <Controller
                                 name="location.state"
@@ -274,7 +276,6 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
                             />
                         </div>
 
-                        {/* City Dropdown Target Wrapper */}
                         <div ref={cityBlockRef} className="w-full scroll-mt-24">
                             <Controller
                                 name="location.city"
@@ -302,7 +303,6 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
             {/* Map card */}
             <FormCard title="Map">
                 <div className="flex flex-col md:flex-row gap-6">
-                    {/* Map preview */}
                     <div className="w-full md:w-1/2 rounded-lg overflow-hidden min-h-60">
                         <Map
                             ref={mapRef}
@@ -328,7 +328,6 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
                         </Map>
                     </div>
 
-                    {/* Map fields */}
                     <div className="w-full md:w-1/2 space-y-5">
                         <Controller
                             name="location.landmark"
