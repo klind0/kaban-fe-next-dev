@@ -18,7 +18,7 @@ type MediaFormValues = {
 };
 
 type Props = {
-    onSubmitSuccess: (data: MediaListingData) => void;
+    onNext: (data: MediaListingData) => void;
     onBack: () => void;
     initialData?: Partial<MediaListingData>;
 };
@@ -28,7 +28,7 @@ export type MediaFormHandle = {
 };
 
 const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm(
-    { onSubmitSuccess, onBack, initialData },
+    { onNext, onBack, initialData },
     ref
 ) {
     const MAX_IMAGES = 10;
@@ -148,7 +148,7 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm(
             return;
         }
 
-        onSubmitSuccess({
+        onNext({
             images: data.images,
             cover_index: data.cover_index,
             video_url: data.video_url,
