@@ -12,7 +12,7 @@ import React from "react";
 import { MediaListingData } from "@/network/listings";
 
 type MediaFormValues = {
-    images: string[];
+    images: (File | string)[];
     cover_index: number;
     video_url: string;
 };
@@ -58,15 +58,32 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm(
     const inputRef = React.useRef<HTMLInputElement>(null);
     const scrollRef = React.useRef<HTMLDivElement>(null);
 
-   React.useEffect(() => {
-        setPreviews(watchedImages); 
+    // Dynamic generation of client memory paths for local files or URLs
+    React.useEffect(() => {
+        const objectUrls = watchedImages.map((img) => {
+            if (img instanceof File) {
+                return URL.createObjectURL(img);
+            }
+            return img; // Already a secure remote URL string
+        });
+
+        setPreviews(objectUrls);
+
+        // Memory optimization cleanup callback
+        return () => {
+            objectUrls.forEach((url) => {
+                if (url.startsWith("blob:")) {
+                    URL.revokeObjectURL(url);
+                }
+            });
+        };
     }, [watchedImages]);
 
     React.useImperativeHandle(
         ref,
         () => ({
             getValues: () => ({
-                images: getValues("images"),
+                images: getValues("images") as any,
                 cover_index: getValues("cover_index"),
                 video_url: getValues("video_url"),
             }),
@@ -78,8 +95,8 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm(
         (incoming: FileList | null) => {
             if (!incoming || incoming.length === 0) return;
 
-            const currentUrls = getValues("images") || [];
-            const totalTargetCount = currentFiles.length + incoming.length;
+            const currentAssets = getValues("images") || [];
+            const totalTargetCount = currentAssets.length + incoming.length;
             
             if (totalTargetCount > MAX_IMAGES) {
                 setError("images", {
@@ -90,49 +107,24 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm(
                 return;
             }
 
-            const uploadToastId = toast.loading("Uploading images to cloud storage...");
+            // Append incoming files instantly into memory for multipart compilation
+            const incomingFilesArray = Array.from(incoming);
+            const mergedAssets = [...currentAssets, ...incomingFilesArray];
 
-            try {
-                const uploadPromises = Array.from(incoming).map(async (file) => {
-                    const formData = new FormData();
-                    formData.append("file", file);
-                    // If uploading directly from client side, append your upload preset:
-                    // formData.append("upload_preset", "your_cloudinary_preset");
-
-                    // Replace with your actual upload API endpoint route or Cloudinary URL
-                    const res = await fetch("/api/upload", { 
-                        method: "POST",
-                        body: formData
-                    });
-
-                    if (!res.ok) throw new Error("Upload failed");
-                    
-                    const data = await res.json();
-                    return data.url; // Assuming your endpoint returns { url: "https://res.cloudinary.com/..." }
-                });
-
-                const uploadedUrls = await Promise.all(uploadPromises);
-                const mergedUrls = [...currentUrls, ...uploadedUrls];
-
-                setValue("images", mergedUrls, { shouldValidate: true });
-                clearErrors("images");
-                toast.success("Images uploaded successfully!", { id: uploadToastId });
-            } catch (error) {
-                console.error("Cloudinary Upload Error:", error);
-                toast.error("Failed to upload images. Please try again.", { id: uploadToastId });
-            }
+            setValue("images", mergedAssets, { shouldValidate: true });
+            clearErrors("images");
         },
         [setValue, clearErrors, setError, getValues]
     );
 
     const removeImage = (e: React.MouseEvent, index: number) => {
-        e.stopPropagation(); // Prevents dropzone container file upload popup open
-        const currentFiles = getValues("images") || [];
-        const nextFiles = currentFiles.filter((_, i) => i !== index);
+        e.stopPropagation();
+        const currentAssets = getValues("images") || [];
+        const nextAssets = currentAssets.filter((_, i) => i !== index);
 
-        setValue("images", nextFiles, { shouldValidate: true });
+        setValue("images", nextAssets, { shouldValidate: true });
 
-        if (nextFiles.length === 0) {
+        if (nextAssets.length === 0) {
             setError("images", {
                 type: "manual",
                 message: "At least one property image is required",
@@ -149,7 +141,7 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm(
     };
 
     const setCover = (e: React.MouseEvent, index: number) => {
-        e.stopPropagation(); // Prevents dropzone click bubble triggers
+        e.stopPropagation();
         setValue("cover_index", index);
     };
 
@@ -169,7 +161,7 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm(
         }
 
         onNext({
-            images: data.images,
+            images: data.images as any,
             cover_index: data.cover_index,
             video_url: data.video_url,
         });

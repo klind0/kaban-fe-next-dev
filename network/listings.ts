@@ -58,7 +58,14 @@ async function createDraft(
 }
 
 async function uploadImages(listingId: string, files: File[]): Promise<void> {
-  return uploadListingImagesAction(listingId, files);
+  if (!files || files.length === 0) return;
+
+  const formData = new FormData();
+  files.forEach((file) => {
+    formData.append("images", file);
+  });
+
+  return uploadListingImagesAction(listingId, formData);
 }
 
 async function submitListing(listingId: string): Promise<unknown> {
@@ -72,7 +79,9 @@ export async function createListing(
   submit: boolean,
 ): Promise<unknown> {
   const listingId = await createDraft(basic, media, location ?? undefined);
+  
   await uploadImages(listingId, media.images);
+  
   if (submit) {
     return submitListing(listingId);
   }

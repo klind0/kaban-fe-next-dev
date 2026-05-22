@@ -28,22 +28,19 @@ export async function submitListingAction(id: string): Promise<unknown> {
 
 export async function uploadListingImagesAction(
   listingId: string,
-  files: File[],
+  formData: FormData,
 ): Promise<void> {
-  if (!files.length) return;
+  if (!formData.has("images")) return;
 
   const cookieStore = await cookies();
   const accessToken = cookieStore.get(QUERY_KEY.ACCESS_TOKEN)?.value;
-
-  const fd = new FormData();
-  files.forEach((f) => fd.append("images", f));
 
   const res = await fetch(
     `${process.env.API_URL}/api/listings/${listingId}/images`,
     {
       method: "POST",
       headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
-      body: fd,
+      body: formData, 
     },
   );
 
