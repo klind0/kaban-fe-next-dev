@@ -12,7 +12,7 @@ import React from "react";
 import { MediaListingData } from "@/network/listings";
 
 type MediaFormValues = {
-    images: File[];
+    images: string[];
     cover_index: number;
     video_url: string;
 };
@@ -58,24 +58,8 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm(
     const inputRef = React.useRef<HTMLInputElement>(null);
     const scrollRef = React.useRef<HTMLDivElement>(null);
 
-    React.useEffect(() => {
-        const objectUrls = watchedImages.map((file) => URL.createObjectURL(file));
-        setPreviews(objectUrls);
-
-        if (watchedImages.length > 0) {
-            setTimeout(() => {
-                if (scrollRef.current) {
-                    scrollRef.current.scrollTo({
-                        left: scrollRef.current.scrollWidth,
-                        behavior: "smooth",
-                    });
-                }
-            }, 100);
-        }
-
-        return () => {
-            objectUrls.forEach((url) => URL.revokeObjectURL(url));
-        };
+   React.useEffect(() => {
+        setPreviews(watchedImages); 
     }, [watchedImages]);
 
     React.useImperativeHandle(
@@ -94,11 +78,9 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm(
         (incoming: FileList | null) => {
             if (!incoming || incoming.length === 0) return;
 
-            const currentFiles = getValues("images") || [];
+            const currentUrls = getValues("images") || [];
             const totalTargetCount = currentFiles.length + incoming.length;
-            const newFiles = Array.from(incoming);
-            const merged = [...currentFiles, ...newFiles];
-
+            
             if (totalTargetCount > MAX_IMAGES) {
                 setError("images", {
                     type: "manual",
@@ -108,8 +90,37 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm(
                 return;
             }
 
-            setValue("images", merged, { shouldValidate: true });
-            clearErrors("images");
+            const uploadToastId = toast.loading("Uploading images to cloud storage...");
+
+            try {
+                const uploadPromises = Array.from(incoming).map(async (file) => {
+                    const formData = new FormData();
+                    formData.append("file", file);
+                    // If uploading directly from client side, append your upload preset:
+                    // formData.append("upload_preset", "your_cloudinary_preset");
+
+                    // Replace with your actual upload API endpoint route or Cloudinary URL
+                    const res = await fetch("/api/upload", { 
+                        method: "POST",
+                        body: formData
+                    });
+
+                    if (!res.ok) throw new Error("Upload failed");
+                    
+                    const data = await res.json();
+                    return data.url; // Assuming your endpoint returns { url: "https://res.cloudinary.com/..." }
+                });
+
+                const uploadedUrls = await Promise.all(uploadPromises);
+                const mergedUrls = [...currentUrls, ...uploadedUrls];
+
+                setValue("images", mergedUrls, { shouldValidate: true });
+                clearErrors("images");
+                toast.success("Images uploaded successfully!", { id: uploadToastId });
+            } catch (error) {
+                console.error("Cloudinary Upload Error:", error);
+                toast.error("Failed to upload images. Please try again.", { id: uploadToastId });
+            }
         },
         [setValue, clearErrors, setError, getValues]
     );

@@ -245,6 +245,7 @@ export default function CreateListingScreen() {
                         ref={mediaFormRef}
                         onNext={handleMediaNext}
                         onBack={() => handleTabChange('basic')}
+                        initialData={draftRef.current.media || undefined}
                     />
                 </div>
                 
