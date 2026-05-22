@@ -65,6 +65,12 @@ async function uploadImages(listingId: string, files: File[]): Promise<void> {
     formData.append("images", file);
   });
 
+  // Log explicitly what is inside the FormData object
+  console.log("📦 Packaging FormData for Server Action:");
+  for (let [key, value] of formData.entries()) {
+    console.log(`Key: ${key} | Is File? ${value instanceof File} | Name: ${(value as File).name}`);
+  }
+
   return uploadListingImagesAction(listingId, formData);
 }
 

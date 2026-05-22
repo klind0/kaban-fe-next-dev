@@ -109,6 +109,11 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm(
 
             // Append incoming files instantly into memory for multipart compilation
             const incomingFilesArray = Array.from(incoming);
+            console.log("📸 Frontend Files Selected:", incomingFilesArray.map(f => ({
+                name: f.name,
+                size: f.size,
+                type: f.type
+            })));
             const mergedAssets = [...currentAssets, ...incomingFilesArray];
 
             setValue("images", mergedAssets, { shouldValidate: true });

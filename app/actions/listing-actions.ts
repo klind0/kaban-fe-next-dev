@@ -35,6 +35,13 @@ export async function uploadListingImagesAction(
   const cookieStore = await cookies();
   const accessToken = cookieStore.get(QUERY_KEY.ACCESS_TOKEN)?.value;
 
+  // Inside @/app/actions/listing-actions.ts -> uploadListingImagesAction
+  const files = formData.getAll("images");
+  console.log(`🖥️ Server Action Received ${files.length} files.`);
+  files.forEach((file: any) => {
+    console.log(`- File Name: ${file.name}, Size: ${file.size} bytes`);
+  });
+
   const res = await fetch(
     `${process.env.API_URL}/api/listings/${listingId}/images`,
     {
