@@ -58,18 +58,27 @@ async function createDraft(
 }
 
 async function uploadImages(listingId: string, files: File[]): Promise<void> {
-  if (!files || files.length === 0) return;
+  if (!files || files.length === 0) {
+    console.log("🟡 [NETWORK] No images array provided for upload execution.");
+    return;
+  } 
 
   const formData = new FormData();
   files.forEach((file) => {
     formData.append("images", file);
   });
 
-  // Log explicitly what is inside the FormData object
-  console.log("📦 Packaging FormData for Server Action:");
+  // 🕵️‍♂️ BOUNDARY PAYLOAD MIRROR
+  console.log("==========================================");
+  console.log(`📦 [NETWORK] COMPILING MULTIPART STREAM FOR ID: ${listingId}`);
   for (let [key, value] of formData.entries()) {
-    console.log(`Key: ${key} | Is File? ${value instanceof File} | Name: ${(value as File).name}`);
+    if (value instanceof File) {
+      console.log(`👉 Field Key: "${key}" | [File Object] -> Name: "${value.name}" | Size: ${value.size} bytes`);
+    } else {
+      console.log(`👉 Field Key: "${key}" | Value: "${value}"`);
+    }
   }
+  console.log("==========================================");
 
   return uploadListingImagesAction(listingId, formData);
 }

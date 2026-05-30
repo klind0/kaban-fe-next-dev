@@ -155,6 +155,17 @@ export default function CreateListingScreen() {
         
         setLiveLocationData(data);
 
+        // 🕵️‍♂️ CLIENT STATE MIRROR
+        console.log("==========================================");
+        console.log("🟢 [CLIENT] RAW FORM DATA STATES IN MEMORY:");
+        console.log("1. BASIC INFORMATION:", JSON.stringify(basic, null, 2));
+        console.log("2. LOCATION DATA:", JSON.stringify(data, null, 2));
+        console.log("3. MEDIA METADATA:", {
+            cover_index: media?.cover_index,
+            video_url: media?.video_url,
+            total_images: media?.images?.length || 0
+        });                             
+
         if (!basic) {
             toast.error("Please fill out essential fields on the Basic tab.");
             handleTabChange('basic');
@@ -164,6 +175,8 @@ export default function CreateListingScreen() {
         if (submit && !isTabValid('location', data)) {
             return; 
         }
+
+        console.log("==========================================");
 
         setIsPending(true);
         try {
@@ -177,6 +190,7 @@ export default function CreateListingScreen() {
             toast.success(submit ? 'Listing submitted for review!' : 'Draft saved successfully!');
             router.push('/dashboard');
         } catch (err: any) {
+            console.error("🔴 [CLIENT] CAUGHT MUTATION ERROR:", err);
             const backendErrors = err?.response?.data?.errors;
             if (Array.isArray(backendErrors) && backendErrors.length > 0) {
                 const firstError = backendErrors[0];
@@ -185,6 +199,7 @@ export default function CreateListingScreen() {
             } else {
                 toast.error(err instanceof Error ? err.message : 'Failed to process operation.');
             }
+            toast.error(err.message || 'Operation failed.');
         } finally {
             setIsPending(false);
         }

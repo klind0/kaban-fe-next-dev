@@ -30,29 +30,78 @@ export async function uploadListingImagesAction(
   listingId: string,
   formData: FormData,
 ): Promise<void> {
-  if (!formData.has("images")) return;
+  const baseUrl = process.env.API_URL;
+  
+  // Safeguard against a completely missing or misspelled environment variable
+  if (!baseUrl) {
+    console.error("❌ [SERVER ACTION] CRITICAL ERROR: process.env.API_URL is undefined!");
+    throw new Error("Server configuration error: API base URL is missing.");
+  }
+
+  const targetUrl = `${baseUrl}/api/listings/${listingId}/images`;
+  
+  console.log("==========================================");
+  console.log("🖥️ [SERVER ACTION] EXECUTING HANDSHAKE...");
+  console.log(`📡 Forwarding Target: POST ${targetUrl}`);
+
+  // Safely extract files from the stream (avoids brittle .has() bugs with custom browser engines)
+  const files = formData.getAll("images");
+  console.log(`📥 Received Stream Contains: ${files.length} files under key "images"`);
+
+  if (!files || files.length === 0) {
+    console.warn("⚠️ [SERVER ACTION]: Aborting. Zero files detected in the target payload stream.");
+    return;
+  }
+
+  // Deep inspection loop to track payload integrity
+  files.forEach((file: any) => {
+    console.log(`- File Name: ${file.name || "Unknown Name"}, Size: ${file.size || 0} bytes`);
+  });
 
   const cookieStore = await cookies();
   const accessToken = cookieStore.get(QUERY_KEY.ACCESS_TOKEN)?.value;
+  console.log(`🔑 Auth Token Attached: ${accessToken ? "YES (Bearer token found)" : "NO"}`);
+  console.log("==========================================");
 
-  // Inside @/app/actions/listing-actions.ts -> uploadListingImagesAction
-  const files = formData.getAll("images");
-  console.log(`🖥️ Server Action Received ${files.length} files.`);
-  files.forEach((file: any) => {
-    console.log(`- File Name: ${file.name}, Size: ${file.size} bytes`);
-  });
-
-  const res = await fetch(
-    `${process.env.API_URL}/api/listings/${listingId}/images`,
-    {
+  try {
+    const res = await fetch(targetUrl, {
       method: "POST",
       headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
-      body: formData, 
-    },
-  );
+      body: formData, // Next.js streams this binary stream to the backend perfectly
+    });
 
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err?.message ?? `Image upload failed: ${res.status}`);
+    console.log("==========================================");
+    console.log(`🏁 [BACKEND RESPONSE HANDSHAKE STATUS: ${res.status} ${res.statusText}]`);
+    console.log("📋 Content-Type Header Received:", res.headers.get("content-type"));
+
+    // Read the body payload as text into memory FIRST. 
+    // This allows us to log raw HTML crashes (502 errors) without breaking the stream.
+    const rawResponseText = await res.text();
+    console.log("📥 RAW BACKEND OUTPUT PAYLOAD:");
+    
+    let parsedJson: any = null;
+    let isJson = false;
+
+    try {
+      parsedJson = JSON.parse(rawResponseText);
+      isJson = true;
+      console.log(JSON.stringify(parsedJson, null, 2));
+    } catch {
+      console.log(rawResponseText || "[Empty Response Body]");
+    }
+    console.log("==========================================");
+
+    if (!res.ok) {
+      // Re-use the already consumed stream data from memory to pull the precise error message
+      const backendMessage = isJson ? (parsedJson?.message || parsedJson?.error) : null;
+      throw new Error(backendMessage ?? `Backend Rejected Request with status ${res.status}`);
+    }
+
+  } catch (error: any) {
+    console.error("💥 [SERVER ACTION EXCEPTION] RUNTIME CRASH:");
+    console.error(`   Message: ${error?.message}`);
+    console.error(`   Stack: ${error?.stack}`);
+    console.log("==========================================");
+    throw error;
   }
 }
