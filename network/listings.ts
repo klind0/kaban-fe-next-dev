@@ -26,15 +26,23 @@ export type LocationListingData = {
   location: IListing["location"];
 };
 
-function omitEmptyStrings(obj: Record<string, unknown>): Record<string, unknown> {
+// ✨ FIXED: Maps empty strings to null instead of deleting keys entirely
+function sanitizePayload(obj: Record<string, unknown>): Record<string, unknown> {
   return Object.fromEntries(
-    Object.entries(obj)
-      .filter(([, v]) => v !== '' && v !== null && v !== undefined)
-      .map(([k, v]) =>
-        typeof v === 'object' && !Array.isArray(v) && v !== null
-          ? [k, omitEmptyStrings(v as Record<string, unknown>)]
-          : [k, v]
-      )
+    Object.entries(obj).map(([k, v]) => {
+      // 1. If it's a raw empty string, convert it to an explicit null value
+      if (v === '') {
+        return [k, null];
+      }
+      
+      // 2. If it's a nested object (and not an array), sanitize it recursively
+      if (typeof v === 'object' && !Array.isArray(v) && v !== null) {
+        return [k, sanitizePayload(v as Record<string, unknown>)];
+      }
+      
+      // 3. Keep original arrays, numbers, booleans, and valid strings intact
+      return [k, v];
+    })
   );
 }
 
@@ -46,12 +54,23 @@ async function createDraft(
   const loc = location?.location;
   const hasLocation = loc && (loc.state || loc.city || loc.address);
 
-  const input = omitEmptyStrings({
+  // Apply the safe schema mapping conversion
+  const input = sanitizePayload({
     ...basic,
     ...(hasLocation ? location : {}),
     cover_index: media.cover_index,
     ...(media.video_url ? { video_url: media.video_url } : {}),
   } as Record<string, unknown>);
+
+  // Force cast numeric fields that may be coming from form components as strings
+  if (input.details && typeof input.details === 'object') {
+    const details = input.details as Record<string, unknown>;
+    if (details.land_area === null || details.land_area === '') {
+      details.land_area = null; 
+    } else if (typeof details.land_area === 'string') {
+      details.land_area = parseFloat(details.land_area) || null;
+    }
+  }
 
   const result = await createListingAction(input);
   return result.id;
@@ -93,8 +112,10 @@ export async function createListing(
   location: LocationListingData | null,
   submit: boolean,
 ): Promise<unknown> {
+  // Step 1: Hit NestJS GraphQL backend to save textual data properties
   const listingId = await createDraft(basic, media, location ?? undefined);
   
+  // Step 2: Hit NestJS REST endpoint to process multi-part stream array files
   await uploadImages(listingId, media.images);
   
   if (submit) {
