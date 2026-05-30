@@ -26,7 +26,6 @@ export type LocationListingData = {
   location: IListing["location"];
 };
 
-// Clean utility to strip empty properties completely out of the key space
 function cleanGraphQLInput(obj: any): any {
   if (obj === null || obj === undefined) return undefined;
   
@@ -37,11 +36,9 @@ function cleanGraphQLInput(obj: any): any {
   if (typeof obj === 'object') {
     const cleaned: Record<string, any> = {};
     for (const [key, value] of Object.entries(obj)) {
-      // Skip empty string properties entirely so they default to undefined
       if (value === '') continue;
       
       const processed = cleanGraphQLInput(value);
-      // Skip objects that ended up completely empty after internal cleaning
       if (processed !== undefined && processed !== null) {
         if (typeof processed === 'object' && !Array.isArray(processed) && Object.keys(processed).length === 0) {
           continue;
@@ -63,18 +60,31 @@ async function createDraft(
   const loc = location?.location;
   const hasLocation = loc && (loc.state || loc.city || loc.address);
 
-  // Deeply copy basic inputs to safeguard against mutating source component states
+  // Deeply copy clean fields, excluding media parameters like cover_index from the root text input
   const rawPayload: Record<string, any> = JSON.parse(JSON.stringify({
     ...basic,
-    ...(hasLocation ? { location: location.location } : {}),
-    cover_index: media.cover_index,
   }));
+
+  // Map out coordinates to safe key/value float items if they exist
+  if (hasLocation && location?.location) {
+    const sourceCoords = location.location.coordinates;
+    
+    rawPayload.location = {
+      state: location.location.state,
+      city: location.location.city,
+      address: location.location.address,
+      landmark: location.location.landmark || undefined,
+      // ✨ FIX 1: Provide fallback structures for coordinate pairs
+      coordinates: Array.isArray(sourceCoords) && sourceCoords.length === 2 
+        ? { lat: Number(sourceCoords[0]), lng: Number(sourceCoords[1]) }
+        : undefined
+    };
+  }
 
   if (media.video_url && media.video_url !== '') {
     rawPayload.video_url = media.video_url;
   }
 
-  // Enforce absolute type casting for numeric values from input elements
   if (rawPayload.price?.amount) {
     rawPayload.price.amount = Number(rawPayload.price.amount);
   }
@@ -88,7 +98,6 @@ async function createDraft(
     if (d.parking_space) d.parking_space = Number(d.parking_space);
     if (d.total_floors) d.total_floors = Number(d.total_floors);
     
-    // Explicitly parse float or drop land_area field entirely if it's missing
     if (d.land_area && d.land_area !== '') {
       d.land_area = parseFloat(d.land_area);
     } else {
@@ -96,7 +105,9 @@ async function createDraft(
     }
   }
 
-  // Remove keys with empty properties so they are completely absent from the network request
+  // ✨ FIX 2: Explicitly clear cover_index out of this payload text schema entirely
+  delete rawPayload.cover_index;
+
   const input = cleanGraphQLInput(rawPayload);
 
   const result = await createListingAction(input);
@@ -114,7 +125,6 @@ async function uploadImages(listingId: string, files: File[]): Promise<void> {
     formData.append("images", file);
   });
 
-  // 🕵️‍♂️ BOUNDARY PAYLOAD MIRROR
   console.log("==========================================");
   console.log(`📦 [NETWORK] COMPILING MULTIPART STREAM FOR ID: ${listingId}`);
   for (let [key, value] of formData.entries()) {
