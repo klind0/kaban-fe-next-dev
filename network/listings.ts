@@ -26,24 +26,33 @@ export type LocationListingData = {
   location: IListing["location"];
 };
 
-// ✨ FIXED: Maps empty strings to null instead of deleting keys entirely
-function sanitizePayload(obj: Record<string, unknown>): Record<string, unknown> {
-  return Object.fromEntries(
-    Object.entries(obj).map(([k, v]) => {
-      // 1. If it's a raw empty string, convert it to an explicit null value
-      if (v === '') {
-        return [k, null];
-      }
+// Clean utility to strip empty properties completely out of the key space
+function cleanGraphQLInput(obj: any): any {
+  if (obj === null || obj === undefined) return undefined;
+  
+  if (Array.isArray(obj)) {
+    return obj.map(cleanGraphQLInput);
+  }
+
+  if (typeof obj === 'object') {
+    const cleaned: Record<string, any> = {};
+    for (const [key, value] of Object.entries(obj)) {
+      // Skip empty string properties entirely so they default to undefined
+      if (value === '') continue;
       
-      // 2. If it's a nested object (and not an array), sanitize it recursively
-      if (typeof v === 'object' && !Array.isArray(v) && v !== null) {
-        return [k, sanitizePayload(v as Record<string, unknown>)];
+      const processed = cleanGraphQLInput(value);
+      // Skip objects that ended up completely empty after internal cleaning
+      if (processed !== undefined && processed !== null) {
+        if (typeof processed === 'object' && !Array.isArray(processed) && Object.keys(processed).length === 0) {
+          continue;
+        }
+        cleaned[key] = processed;
       }
-      
-      // 3. Keep original arrays, numbers, booleans, and valid strings intact
-      return [k, v];
-    })
-  );
+    }
+    return Object.keys(cleaned).length > 0 ? cleaned : undefined;
+  }
+
+  return obj;
 }
 
 async function createDraft(
@@ -54,23 +63,41 @@ async function createDraft(
   const loc = location?.location;
   const hasLocation = loc && (loc.state || loc.city || loc.address);
 
-  // Apply the safe schema mapping conversion
-  const input = sanitizePayload({
+  // Deeply copy basic inputs to safeguard against mutating source component states
+  const rawPayload: Record<string, any> = JSON.parse(JSON.stringify({
     ...basic,
-    ...(hasLocation ? location : {}),
+    ...(hasLocation ? { location: location.location } : {}),
     cover_index: media.cover_index,
-    ...(media.video_url ? { video_url: media.video_url } : {}),
-  } as Record<string, unknown>);
+  }));
 
-  // Force cast numeric fields that may be coming from form components as strings
-  if (input.details && typeof input.details === 'object') {
-    const details = input.details as Record<string, unknown>;
-    if (details.land_area === null || details.land_area === '') {
-      details.land_area = null; 
-    } else if (typeof details.land_area === 'string') {
-      details.land_area = parseFloat(details.land_area) || null;
+  if (media.video_url && media.video_url !== '') {
+    rawPayload.video_url = media.video_url;
+  }
+
+  // Enforce absolute type casting for numeric values from input elements
+  if (rawPayload.price?.amount) {
+    rawPayload.price.amount = Number(rawPayload.price.amount);
+  }
+
+  if (rawPayload.details) {
+    const d = rawPayload.details;
+    if (d.bedroom) d.bedroom = Number(d.bedroom);
+    if (d.bathroom) d.bathroom = Number(d.bathroom);
+    if (d.toilet) d.toilet = Number(d.toilet);
+    if (d.living_room) d.living_room = Number(d.living_room);
+    if (d.parking_space) d.parking_space = Number(d.parking_space);
+    if (d.total_floors) d.total_floors = Number(d.total_floors);
+    
+    // Explicitly parse float or drop land_area field entirely if it's missing
+    if (d.land_area && d.land_area !== '') {
+      d.land_area = parseFloat(d.land_area);
+    } else {
+      delete d.land_area;
     }
   }
+
+  // Remove keys with empty properties so they are completely absent from the network request
+  const input = cleanGraphQLInput(rawPayload);
 
   const result = await createListingAction(input);
   return result.id;
@@ -112,10 +139,8 @@ export async function createListing(
   location: LocationListingData | null,
   submit: boolean,
 ): Promise<unknown> {
-  // Step 1: Hit NestJS GraphQL backend to save textual data properties
   const listingId = await createDraft(basic, media, location ?? undefined);
   
-  // Step 2: Hit NestJS REST endpoint to process multi-part stream array files
   await uploadImages(listingId, media.images);
   
   if (submit) {
