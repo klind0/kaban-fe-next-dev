@@ -11,11 +11,29 @@ import { cookies } from "next/headers";
 export async function createListingAction(
   input: Record<string, unknown>,
 ): Promise<{ id: string }> {
-  const data = await serverGqlRequest<{ createListing: { id: string } }>(
-    CREATE_LISTING_MUTATION,
-    { input, submit: false },
-  );
-  return data.createListing;
+  try {
+    console.log("==========================================");
+    console.log("📡 [SERVER ACTION] SENDING TO GRAPHQL:");
+    console.log(JSON.stringify(input, null, 2));
+    console.log("==========================================");
+
+    const data = await serverGqlRequest<{ createListing: { id: string } }>(
+      CREATE_LISTING_MUTATION,
+      { input, submit: false },
+    );
+    return data.createListing;
+  } catch (error: any) {
+    console.error("❌ [SERVER ACTION] GRAPHQL MUTATION CRASHED!");
+    
+    // Log out absolute inner details if the network client attached them
+    if (error?.response?.errors) {
+      console.error("📋 NestJS Validation Error Details:", JSON.stringify(error.response.errors, null, 2));
+    } else {
+      console.error("💥 Error Context:", error);
+    }
+    console.log("==========================================");
+    throw error;
+  }
 }
 
 export async function submitListingAction(id: string): Promise<unknown> {
