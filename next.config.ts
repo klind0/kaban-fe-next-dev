@@ -1,6 +1,4 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
+const nextConfig = {
   /* config options here */
   images: {
     remotePatterns: [
@@ -13,6 +11,10 @@ const nextConfig: NextConfig = {
         hostname: "res.cloudinary.com",
       },
     ],
+  },
+  // Fix: Raise the Server Actions body limit from 1MB to 20MB to accommodate image uploads
+  serverActions: {
+    bodySizeLimit: "20mb",
   },
 };
 
