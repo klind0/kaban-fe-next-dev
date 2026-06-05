@@ -14,7 +14,7 @@ interface GraphQLResponse<T> {
   errors?: { message: string }[];
 }
 
-const BACKEND_URL = process.env.API_URL || "";
+const BACKEND_URL = process.env.API_URL || "https://kaban-ai-be-graphql.onrender.com";
 
 async function execGqlFetch<T>(
   token: string | undefined,
@@ -26,7 +26,15 @@ async function execGqlFetch<T>(
     ? { Authorization: `Bearer ${token}` }
     : {};
 
-  const res = await fetch(`${BACKEND_URL}/${ENDPOINTS.GRAPHQL}`, {
+  // Clean edge-case trailing slashes from the base URL configuration
+  const cleanBaseUrl = BACKEND_URL.replace(/\/+$/, "");
+  // Clean edge-case leading slashes from the endpoint constant configuration
+  const cleanEndpoint = ENDPOINTS.GRAPHQL.replace(/^\/+/, "");
+
+  // ✨ FIX: Intercept the string interpolation to enforce the global '/api' prefix path
+  const targetUrl = `${cleanBaseUrl}/api/${cleanEndpoint}`;
+
+  const res = await fetch(targetUrl, {
     method: "POST",
     cache: "no-store",
     headers: { "Content-Type": "application/json", ...authHeader, ...headers },
@@ -34,7 +42,7 @@ async function execGqlFetch<T>(
   });
 
   if (!res.ok) {
-    throw new Error(`GraphQL request failed with status ${res.status}`);
+    throw new Error(`GraphQL request failed with status ${res.status} at ${targetUrl}`);
   }
 
   return res.json();
@@ -46,8 +54,9 @@ async function refreshAccessToken(): Promise<string> {
 
   if (!refreshToken) redirect("/");
 
+  const cleanBaseUrl = BACKEND_URL.replace(/\/+$/, "");
   const res = await fetch(
-    `${BACKEND_URL}/api/${ENDPOINTS.AUTH.REFRESH_TOKEN}`,
+    `${cleanBaseUrl}/api/${ENDPOINTS.AUTH.REFRESH_TOKEN}`,
     {
       method: "POST",
       headers: { Authorization: `Bearer ${refreshToken}` },
