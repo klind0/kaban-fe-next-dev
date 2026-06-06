@@ -40,15 +40,18 @@ export default function SignInForm({ onOpenChange }: SignInFormProps) {
             toast.success("Welcome back! Sign-in successful.");
             const { accessToken, user, realtor } = response.login;
             
-            Cookies.set(QUERY_KEY.ACCESS_TOKEN, accessToken, { expires: 30, secure: true });
+            Cookies.set(QUERY_KEY.ACCESS_TOKEN, accessToken, { 
+                expires: 30, 
+                secure: true,
+                path: '/'
+            });
+
             setUser(user);
             setRealtor(realtor);
             reset();
             onOpenChange();
             
-            // 🚀 Smoothly route the authenticated realtor right to the dashboard
-            router.push('/dashboard');
-            router.refresh();
+            window.location.href = '/dashboard';
         },
         onError: (error) => {
             toast.error(error.message || "Something went wrong. Please try again.")
