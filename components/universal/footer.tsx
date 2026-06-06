@@ -42,7 +42,7 @@ export default function Footer() {
         {
             title: "Contact",
             links: [
-                { name: "+234916 393 9777", href: "tel:+2349163939777" },
+                { name: "+234707 322 7880", href: "https://wa.me/+2347073227880" },
                 { name: "Uyo, Akwa Ibom State", href: "https://goo.gl/maps/xyz" },
                 { name: "info@kaban.ng", href: "mailto:info@kaban.ng" },
             ]
