@@ -19,12 +19,17 @@ export async function gqlRequest<T, V = Record<string, unknown>>(
   query: string,
   variables?: V,
 ): Promise<T> {
-  const response = await axiosInstance.get<GraphQLResponse<T>>(
+  const response = await axiosInstance.post<GraphQLResponse<T>>(
     ENDPOINTS.GRAPHQL,
     {
       query,
       variables,
     },
+    {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
   );
 
   if (response.data.errors?.length) {
