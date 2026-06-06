@@ -9,17 +9,35 @@ import { QUERY_KEY } from "@/enum/queryKeys";
 import { cookies } from "next/headers";
 
 export async function createListingAction(
-  input: Record<string, unknown>,
+  input: Record<string, any>, // Using any here to make deep mutations cleaner
 ): Promise<{ id: string }> {
   try {
+    // 🛠️ FIX: Deep copy the input to prevent mutating state, and reformat coordinates
+    const sanitizedInput = { ...input };
+
+    if (sanitizedInput.location) {
+      const { coordinates } = sanitizedInput.location;
+      
+      // If coordinates are passed as an object { lat: ..., lng: ... }, reshape into [lng, lat]
+      if (coordinates && typeof coordinates === "object" && !Array.isArray(coordinates)) {
+        const lng = Number(coordinates.lng);
+        const lat = Number(coordinates.lat);
+
+        if (!isNaN(lng) && !isNaN(lat)) {
+          sanitizedInput.location.coordinates = [lng, lat]; // [longitude, latitude] matching Swagger DTO
+        }
+      }
+    }
+
     console.log("==========================================");
-    console.log("📡 [SERVER ACTION] SENDING TO GRAPHQL:");
-    console.log(JSON.stringify(input, null, 2));
+    console.log("📡 [SERVER ACTION] SENDING TO GRAPHQL (SANITIZED):");
+    console.log(JSON.stringify(sanitizedInput, null, 2));
     console.log("==========================================");
 
     const data = await serverGqlRequest<{ createListing: { id: string } }>(
       CREATE_LISTING_MUTATION,
-      { input, submit: false },
+      // ✨ Pass the sanitized version down
+      { input: sanitizedInput, submit: false }, 
     );
     return data.createListing;
   } catch (error: any) {
