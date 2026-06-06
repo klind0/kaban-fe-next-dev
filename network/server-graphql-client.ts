@@ -32,7 +32,7 @@ async function execGqlFetch<T>(
   const cleanEndpoint = ENDPOINTS.GRAPHQL.replace(/^\/+/, "");
 
   // ✨ FIX: Intercept the string interpolation to enforce the global '/api' prefix path
-  const targetUrl = `${cleanBaseUrl}/api/${cleanEndpoint}`;
+  const targetUrl = `${cleanBaseUrl}/${cleanEndpoint}`;
 
   const res = await fetch(targetUrl, {
     method: "POST",
@@ -56,7 +56,7 @@ async function refreshAccessToken(): Promise<string> {
 
   const cleanBaseUrl = BACKEND_URL.replace(/\/+$/, "");
   const res = await fetch(
-    `${cleanBaseUrl}/api/${ENDPOINTS.AUTH.REFRESH_TOKEN}`,
+    `${cleanBaseUrl}/${ENDPOINTS.AUTH.REFRESH_TOKEN}`,
     {
       method: "GET",
       headers: { Authorization: `Bearer ${refreshToken}` },
