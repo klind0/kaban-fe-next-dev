@@ -58,7 +58,7 @@ async function refreshAccessToken(): Promise<string> {
   const res = await fetch(
     `${cleanBaseUrl}/api/${ENDPOINTS.AUTH.REFRESH_TOKEN}`,
     {
-      method: "POST",
+      method: "GET",
       headers: { Authorization: `Bearer ${refreshToken}` },
     },
   );

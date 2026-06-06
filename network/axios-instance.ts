@@ -78,11 +78,11 @@ axiosInstance.interceptors.response.use(
       originalRequest._retry = true;
       try {
         const refreshToken = Cookies.get(QUERY_KEY.REFRESH_TOKEN);
-        const response = await axios.post<
+        const response = await axios.get<
           SuccessResponse<{
             tokens: ITokens;
           }>
-        >(`/api/${ENDPOINTS.AUTH.REFRESH_TOKEN}`, null, {
+        >(`/api/${ENDPOINTS.AUTH.REFRESH_TOKEN}`, {
           headers: {
             Authorization: `Bearer ${refreshToken}`,
           },
