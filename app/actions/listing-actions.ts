@@ -7,10 +7,12 @@ import {
 import { serverGqlRequest } from "@/network/server-graphql-client";
 import { QUERY_KEY } from "@/enum/queryKeys";
 import { cookies } from "next/headers";
+// 🛠️ FIX: Import the redirect error checker from Next.js
+import { isRedirectError } from "next/dist/client/components/redirect-error";
 
 export async function createListingAction(
   input: Record<string, any>,
-): Promise<{ success: boolean; id?: string; error?: string }> { // ✨ Return a status object
+): Promise<{ success: boolean; id?: string; error?: string }> { 
   try {
     const sanitizedInput = { ...input };
 
@@ -35,15 +37,22 @@ export async function createListingAction(
       { input: sanitizedInput, submit: false }, 
     );
     
-    // ✨ Return explicit success status
     return { success: true, id: data.createListing.id }; 
     
   } catch (error: any) {
+    // 🛠️ THE CRITICAL FIX: If it's a redirect, rethrow it so Next.js can change pages!
+    if (isRedirectError(error)) {
+      throw error;
+    }
+
     console.error("❌ [SERVER ACTION] GRAPHQL MUTATION CRASHED!");
     
     let friendlyMessage = error?.message || "Failed to create listing due to a server error.";
     
-    if (error?.response?.errors) {
+    // Adjusted check to accommodate clean GraphQL error arrays from fetch
+    if (error?.errors && Array.isArray(error.errors)) {
+      friendlyMessage = error.errors[0]?.message || friendlyMessage;
+    } else if (error?.response?.errors) {
       console.error("📋 NestJS Validation Error Details:", JSON.stringify(error.response.errors, null, 2));
       friendlyMessage = error.response.errors[0]?.message || friendlyMessage;
     } else {
@@ -51,7 +60,6 @@ export async function createListingAction(
     }
     console.log("==========================================");
     
-    // 🛠️ THE CRITICAL FIX: Return the error data safely instead of throwing it!
     return { success: false, error: friendlyMessage };
   }
 }
@@ -70,7 +78,6 @@ export async function uploadListingImagesAction(
 ): Promise<void> {
   const baseUrl = process.env.API_URL;
   
-  // Safeguard against a completely missing or misspelled environment variable
   if (!baseUrl) {
     console.error("❌ [SERVER ACTION] CRITICAL ERROR: process.env.API_URL is undefined!");
     throw new Error("Server configuration error: API base URL is missing.");
@@ -82,7 +89,6 @@ export async function uploadListingImagesAction(
   console.log("🖥️ [SERVER ACTION] EXECUTING HANDSHAKE...");
   console.log(`📡 Forwarding Target: POST ${targetUrl}`);
 
-  // Safely extract files from the stream (avoids brittle .has() bugs with custom browser engines)
   const files = formData.getAll("images");
   console.log(`📥 Received Stream Contains: ${files.length} files under key "images"`);
 
@@ -91,7 +97,6 @@ export async function uploadListingImagesAction(
     return;
   }
 
-  // Deep inspection loop to track payload integrity
   files.forEach((file: any) => {
     console.log(`- File Name: ${file.name || "Unknown Name"}, Size: ${file.size || 0} bytes`);
   });
@@ -105,15 +110,13 @@ export async function uploadListingImagesAction(
     const res = await fetch(targetUrl, {
       method: "POST",
       headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
-      body: formData, // Next.js streams this binary stream to the backend perfectly
+      body: formData, 
     });
 
     console.log("==========================================");
     console.log(`🏁 [BACKEND RESPONSE HANDSHAKE STATUS: ${res.status} ${res.statusText}]`);
     console.log("📋 Content-Type Header Received:", res.headers.get("content-type"));
 
-    // Read the body payload as text into memory FIRST. 
-    // This allows us to log raw HTML crashes (502 errors) without breaking the stream.
     const rawResponseText = await res.text();
     console.log("📥 RAW BACKEND OUTPUT PAYLOAD:");
     
@@ -130,7 +133,6 @@ export async function uploadListingImagesAction(
     console.log("==========================================");
 
     if (!res.ok) {
-      // Re-use the already consumed stream data from memory to pull the precise error message
       const backendMessage = isJson ? (parsedJson?.message || parsedJson?.error) : null;
       throw new Error(backendMessage ?? `Backend Rejected Request with status ${res.status}`);
     }
