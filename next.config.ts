@@ -1,5 +1,6 @@
-const nextConfig = {
-  /* config options here */
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       {
@@ -12,9 +13,12 @@ const nextConfig = {
       },
     ],
   },
-  // Fix: Raise the Server Actions body limit from 1MB to 20MB to accommodate image uploads
-  serverActions: {
-    bodySizeLimit: "20mb",
+  
+  // 🛠️ FIX: Nest the configuration parameters inside the experimental engine object block
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "20mb", // Next.js will now explicitly process this threshold
+    },
   },
 };
 
