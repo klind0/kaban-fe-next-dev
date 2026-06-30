@@ -119,9 +119,6 @@ export const CREATE_LISTING_MUTATION = `
 
 export const SUBMIT_LISTING_MUTATION = `
   mutation SubmitListing($id: String!) {
-    submitListing(id: $id) {
-      id
-      status
-    }
+    submitListing(id: $id)
   }
 `;
