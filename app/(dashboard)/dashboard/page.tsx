@@ -31,7 +31,7 @@ export default async function page({ searchParams }: { searchParams: Promise<{ p
     
     // 🛠️ FIX 2: Temporarily comment out the redirect so you can see the real error message 
     // on your screen instead of getting trapped in a logout loop.
-    // redirect('/?error=session_expired');
+    redirect('/?error=session_expired');
   }
 
   return (

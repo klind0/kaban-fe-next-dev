@@ -66,15 +66,14 @@ export default function DashboardHome({ listings, meta }: DashboardHomeProps) {
 		{ name: 'Pending Approval', value: 'PENDING_APPROVAL' },
 	];
 
-	const [listingArr, _] = useState<IListing[]>(listings);
 	const [sortStatus, setSortStatus] = useState<string>('ALL'); // current filter
 
 	// Main sort/filter function
 	const filteredListings = useMemo(() => {
-		if (sortStatus === 'ALL') return listingArr;
+		if (sortStatus === 'ALL') return listings;
 
-		return listingArr.filter((item) => item.listing_state === sortStatus);
-	}, [listingArr, sortStatus]);
+		return listings.filter((item) => item.listing_state === sortStatus);
+	}, [listings, sortStatus]);
 
 	function goToPage(page: number) {
 		const params = new URLSearchParams(searchParams.toString());
