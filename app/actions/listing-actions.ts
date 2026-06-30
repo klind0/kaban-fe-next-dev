@@ -9,22 +9,18 @@ import { QUERY_KEY } from "@/enum/queryKeys";
 import { cookies } from "next/headers";
 
 export async function createListingAction(
-  input: Record<string, any>, // Using any here to make deep mutations cleaner
-): Promise<{ id: string }> {
+  input: Record<string, any>,
+): Promise<{ success: boolean; id?: string; error?: string }> { // ✨ Return a status object
   try {
-    // 🛠️ FIX: Deep copy the input to prevent mutating state, and reformat coordinates
     const sanitizedInput = { ...input };
 
     if (sanitizedInput.location) {
       const { coordinates } = sanitizedInput.location;
-      
-      // If coordinates are passed as an object { lat: ..., lng: ... }, reshape into [lng, lat]
       if (coordinates && typeof coordinates === "object" && !Array.isArray(coordinates)) {
         const lng = Number(coordinates.lng);
         const lat = Number(coordinates.lat);
-
         if (!isNaN(lng) && !isNaN(lat)) {
-          sanitizedInput.location.coordinates = [lng, lat]; // [longitude, latitude] matching Swagger DTO
+          sanitizedInput.location.coordinates = [lng, lat];
         }
       }
     }
@@ -36,21 +32,27 @@ export async function createListingAction(
 
     const data = await serverGqlRequest<{ createListing: { id: string } }>(
       CREATE_LISTING_MUTATION,
-      // ✨ Pass the sanitized version down
       { input: sanitizedInput, submit: false }, 
     );
-    return data.createListing;
+    
+    // ✨ Return explicit success status
+    return { success: true, id: data.createListing.id }; 
+    
   } catch (error: any) {
     console.error("❌ [SERVER ACTION] GRAPHQL MUTATION CRASHED!");
     
-    // Log out absolute inner details if the network client attached them
+    let friendlyMessage = error?.message || "Failed to create listing due to a server error.";
+    
     if (error?.response?.errors) {
       console.error("📋 NestJS Validation Error Details:", JSON.stringify(error.response.errors, null, 2));
+      friendlyMessage = error.response.errors[0]?.message || friendlyMessage;
     } else {
       console.error("💥 Error Context:", error);
     }
     console.log("==========================================");
-    throw error;
+    
+    // 🛠️ THE CRITICAL FIX: Return the error data safely instead of throwing it!
+    return { success: false, error: friendlyMessage };
   }
 }
 

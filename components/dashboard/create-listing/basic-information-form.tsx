@@ -67,7 +67,6 @@ const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function B
             details: {
                 bedroom: 0,
                 bathroom: 0,
-                toilet: 0,
                 living_room: 0,
                 land_area: '',
                 parking_space: 0,
