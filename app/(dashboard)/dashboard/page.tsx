@@ -19,12 +19,19 @@ export default async function page({ searchParams }: { searchParams: Promise<{ p
       MY_LISTINGS_QUERY,
       { page, limit: 10, search: search || undefined }
     );
-    listings = data.myListings?.data ?? [];
-    meta = data.myListings?.meta ?? meta;
+    
+    // 🛠️ FIX 1: Add optional chaining (?.) to prevent crashing if data is undefined
+    listings = data?.myListings?.data ?? [];
+    meta = data?.myListings?.meta ?? meta;
+    
   } catch (err) {
     if (isRedirectError(err)) throw err;
-    console.error('Failed to fetch listings:', err);
-    redirect('/?error=session_expired');
+    
+    console.error('❌ DASHBOARD FETCH ERROR LOG:', err);
+    
+    // 🛠️ FIX 2: Temporarily comment out the redirect so you can see the real error message 
+    // on your screen instead of getting trapped in a logout loop.
+    // redirect('/?error=session_expired');
   }
 
   return (
