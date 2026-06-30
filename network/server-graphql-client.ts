@@ -42,7 +42,23 @@ async function execGqlFetch<T>(
   });
 
   if (!res.ok) {
-    throw new Error(`GraphQL request failed with status ${res.status} at ${targetUrl}`);
+    // Read the body as raw text first (safeguards against non-JSON crashes like 502/504 errors)
+    const responseText = await res.text();
+    
+    console.error("==========================================");
+    console.error(`❌ GRAPHQL SERVER ERROR DETAILS (Status ${res.status}):`);
+    
+    try {
+      // Attempt to parse and print the formatted NestJS/GraphQL validation error array
+      const parsedJson = JSON.parse(responseText);
+      console.error(JSON.stringify(parsedJson, null, 2));
+    } catch {
+      // Fallback if the backend returned a flat string or HTML page error
+      console.error(responseText || "[Empty Response Body]");
+    }
+    console.error("==========================================");
+    
+    throw new Error(`GraphQL request failed with status ${res.status}`);
   }
 
   return res.json();

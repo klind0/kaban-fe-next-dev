@@ -111,6 +111,11 @@ async function createDraft(
   const input = cleanGraphQLInput(rawPayload);
 
   const result = await createListingAction(input);
+
+  if (!result.success || !result.id) {
+    throw new Error(result.error || "Failed to create listing ID from server action.");
+  }
+
   return result.id;
 }
 
