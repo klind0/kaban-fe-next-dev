@@ -1,40 +1,127 @@
 export const PUBLIC_LISTINGS_QUERY = `
   query PublicListings($filter: JSONObject) {
-    publicListings(filter: $filter)
+    publicListings(filter: $filter) {
+      data {
+        id
+        title
+        status
+        property_category
+        property_type
+        cover_image
+        price {
+          amount
+          per
+        }
+        location {
+          address
+          state
+          city
+        }
+      }
+      meta {
+        total
+        page
+        limit
+        totalPages
+      }
+    }
   }
 `;
-// variables example:
-// { filter: { status: "approved", type: "sale" } }
 
 export const PUBLIC_INDIVIDUAL_LISTING_QUERY = `
   query PublicListing($id: String!) {
-    publicListing(id: $id)
+    publicListing(id: $id) {
+      id
+      title
+      description
+      status
+      property_category
+      property_type
+      cover_image
+      images {
+        url
+        publicId
+      }
+      price {
+        amount
+        per
+      }
+      location {
+        address
+        state
+        city
+        landmark
+        coordinates
+      }
+      details {
+        bedroom
+        bathroom
+        toilet
+        living_room
+        land_area
+        parking_space
+        furnished
+        serviced
+        newly_built
+        year_built
+        floor
+        total_floors
+        features
+      }
+    }
   }
 `;
 
-// variables: { id: "listing_id_here" }
-
 export const FEATURED_LISTINGS_QUERY = `
   query FeaturedListings($limit: Float) {
-    featuredListings(limit: $limit)
+    featuredListings(limit: $limit) {
+      id
+      title
+      cover_image
+      price {
+        amount
+      }
+    }
   }
 `;
 
 export const MY_LISTINGS_QUERY = `
   query MyListings($page: Float, $limit: Float, $search: String) {
-    myListings(page: $page, limit: $limit, search: $search)
+    myListings(page: $page, limit: $limit, search: $search) {
+      data {
+        id
+        title
+        status
+        property_category
+        property_type
+        price {
+          amount
+        }
+      }
+      meta {
+        total
+        page
+        limit
+        totalPages
+      }
+    }
   }
 `;
 
-// create listing mutation
+// 🛠️ FIX: Uses CreateListingDto! and explicitly requests the created layout ID back
 export const CREATE_LISTING_MUTATION = `
-  mutation CreateListing($input: JSONObject!, $submit: Boolean) {
-    createListing(input: $input, submit: $submit)
+  mutation CreateListing($input: CreateListingDto!, $submit: Boolean) {
+    createListing(input: $input, submit: $submit) {
+      id
+    }
   }
 `;
 
 export const SUBMIT_LISTING_MUTATION = `
   mutation SubmitListing($id: String!) {
-    submitListing(id: $id)
+    submitListing(id: $id) {
+      id
+      status
+    }
   }
 `;
