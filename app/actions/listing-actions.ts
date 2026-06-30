@@ -83,7 +83,8 @@ export async function uploadListingImagesAction(
     throw new Error("Server configuration error: API base URL is missing.");
   }
 
-  const targetUrl = `${baseUrl}/api/listings/${listingId}/images`;
+  const cleanBaseUrl = baseUrl.endsWith("/api") ? baseUrl : `${baseUrl}/api`;
+  const targetUrl = `${cleanBaseUrl}/listings/${listingId}/images`;
   
   console.log("==========================================");
   console.log("🖥️ [SERVER ACTION] EXECUTING HANDSHAKE...");
@@ -142,6 +143,6 @@ export async function uploadListingImagesAction(
     console.error(`   Message: ${error?.message}`);
     console.error(`   Stack: ${error?.stack}`);
     console.log("==========================================");
-    throw error;
+    throw new Error(error?.message || "Image server handshake failed.");
   }
 }
