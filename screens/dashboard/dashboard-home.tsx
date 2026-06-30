@@ -72,7 +72,10 @@ export default function DashboardHome({ listings, meta }: DashboardHomeProps) {
 	const filteredListings = useMemo(() => {
 		if (sortStatus === 'ALL') return listings;
 
-		return listings.filter((item) => item.listing_state === sortStatus);
+		return listings.filter((item) => {
+			const currentLifecycleState = item.effectiveState || item.listing_state;
+			return currentLifecycleState === sortStatus;
+		});
 	}, [listings, sortStatus]);
 
 	function goToPage(page: number) {
