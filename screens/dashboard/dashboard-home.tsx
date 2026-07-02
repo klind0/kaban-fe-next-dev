@@ -71,10 +71,13 @@ export default function DashboardHome({ listings, meta }: DashboardHomeProps) {
 	// Main sort/filter function
 	const filteredListings = useMemo(() => {
 		if (sortStatus === 'ALL') return listings;
-
+		
 		return listings.filter((item) => {
-			const currentLifecycleState = item.effectiveState || item.listing_state;
-			return currentLifecycleState === sortStatus;
+			const currentItemState = item.listing_state || (item as any).effectiveState;
+			
+			if (!currentItemState) return false;
+			
+			return currentItemState.toUpperCase() === sortStatus.toUpperCase();
 		});
 	}, [listings, sortStatus]);
 
