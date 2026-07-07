@@ -118,27 +118,7 @@ export const nigeriaCitiesByState: Record<string, { name: string; value: string 
   Adamawa: ["Demsa", "Fufore", "Ganye", "Girei", "Gombi", "Guyuk", "Hong", "Jada", "Lamurde", "Madagali", "Maiha", "Mayo-Belwa", "Michika", "Mubi", "Numan", "Shelleng", "Song", "Toungo"].map((c) => ({ name: c, value: c })),
   "Akwa Ibom": ["Abak", "Eastern Obolo", "Eket", "Esit Eket", "Essien Udim", "Etim Ekpo", "Etinan", "Ibeno", "Ibesikpo Asutan", "Ibiono Ibom", "Ika", "Ikono", "Ikot Abasi", "Ikot Ekpene", "Ini", "Itu", "Mbo", "Mkpat Enin", "Nsit Atai", "Nsit Ibom", "Nsit Ubium", "Obot Akara", "Okobo", "Onna", "Oron", "Oruk Anam", "Udung Uko", "Ukanafun", "Uruan", "Urue-Offong/Oruko", "Uyo"].map((c) => ({ name: c, value: c })),
   Anambra: ["Aguata", "Awka", "Anambra", "Anaocha", "Ayamelum", "Dunukofia", "Ekwusigo", "Idemili", "Ihiala", "Njikoka", "Nnewi", "Ogbaru", "Onitsha", "Orumba", "Oyi"].map((c) => ({ name: c, value: c })),
-  Bauchi: ["Alkaleri","Bauchi", "Bogoro", "Damban"].map((c) => ({ name: c, value: c })),
-
-Darazo
-Dass, Nigeria
-Gamawa
-Ganjuwa
-Giade
-Itas/Gadau
-Jama'are
-Katagum
-Kirfi
-Misau
-Ningi
-Shira
-Tafawa Balewa, Bauchi
-Tipchi
-Toro, Nigeria
-W
-Warji
-Z
-Zaki, Nigeria].map((c) => ({ name: c, value: c })),
+  Bauchi: ["Alkaleri","Bauchi", "Bogoro", "Damban", "Darazo", "Dass", "Gamawa", "Ganjuwa", "Giade", "Itas/Gadau", "Jama'are", "Katagum", "Kirfi", "Misau", "Ningi", "Shira", "Tafawa Balewa", "Tipchi", "Toro", "Warji", "Zaki"].map((c) => ({ name: c, value: c })),
   Bayelsa: ["Yenagoa", "Ogbia", "Sagbama", "Brass", "Nembe"].map((c) => ({ name: c, value: c })),
   Benue: ["Makurdi", "Gboko", "Otukpo", "Katsina-Ala", "Vandeikya"].map((c) => ({ name: c, value: c })),
   Borno: ["Maiduguri", "Biu", "Ngala", "Dikwa", "Gwoza"].map((c) => ({ name: c, value: c })),
