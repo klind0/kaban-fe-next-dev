@@ -233,7 +233,7 @@ export default function DashboardHome({ listings, meta }: DashboardHomeProps) {
 														</div>
 														<div className="flex justify-end w-full gap-2">
 															<div className="w-fit flex h-fit bg-[#006AFF]/10 text-primary text-[10px] sm:text-xs font-semibold rounded-[5px] p-1.5 md:p-2">
-																● stream:{' '}
+																● {' '}
 																{listing?.status.charAt(0).toUpperCase() +
 																	listing?.status.slice(1)}
 															</div>
@@ -268,7 +268,7 @@ export default function DashboardHome({ listings, meta }: DashboardHomeProps) {
 													<button 
 														onClick={() => handleDelete(listing.id)}
 														disabled={isPending}
-														title="Delete listing permanently from database"
+														title="Delete listing"
 														className={`p-0.5 rounded transition-colors ${
 															isPending ? 'opacity-40 cursor-not-allowed' : 'text-neutral-500 hover:text-red-600 hover:bg-red-50'
 														}`}
@@ -280,7 +280,7 @@ export default function DashboardHome({ listings, meta }: DashboardHomeProps) {
 													<button 
 														onClick={() => router.push(`/dashboard/edit-listing/${listing.id}`)}
 														disabled={isPending}
-														title="Edit details and resubmit for review"
+														title="Edit listing"
 														className={`p-0.5 rounded transition-colors ${
 															isPending ? 'opacity-40 cursor-not-allowed' : 'text-neutral-500 hover:text-primary hover:bg-primary/10'
 														}`}
@@ -293,7 +293,7 @@ export default function DashboardHome({ listings, meta }: DashboardHomeProps) {
 														<button 
 															onClick={() => handleRelist(listing.id)}
 															disabled={isPending}
-															title="Resubmit expired item for review"
+															title="Relist listing"
 															className="text-primary hover:bg-primary/10 transition-colors p-0.5 rounded"
 														>
 															<RefreshRightSquare className={isPending ? "animate-spin" : ""} />
@@ -305,7 +305,7 @@ export default function DashboardHome({ listings, meta }: DashboardHomeProps) {
 														<button 
 															onClick={() => handleUpgradeFeatured(listing.id)}
 															disabled={isPending}
-															title="Upgrade to Featured Listings Category"
+															title="Upgrade listing to Featured"
 															className={`p-0.5 rounded transition-colors ${
 																isPending ? 'opacity-40 cursor-not-allowed' : 'text-neutral-500 hover:text-[#41AE49] hover:bg-[#41AE49]/10'
 															}`}
