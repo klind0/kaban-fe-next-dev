@@ -82,11 +82,28 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm(
     React.useImperativeHandle(
         ref,
         () => ({
-            getValues: () => ({
-                images: getValues("images") as any,
-                cover_index: getValues("cover_index"),
-                video_url: getValues("video_url"),
-            }),
+            getValues: () => {
+                const currentData = getValues();
+                const imagesCopy = [...(currentData.images || [])];
+                const targetCoverIdx = currentData.cover_index || 0;
+
+                // Safely mirror submission reordering logic if parent steps query values out via imperative ref
+                if (targetCoverIdx > 0 && targetCoverIdx < imagesCopy.length) {
+                    const [coverImg] = imagesCopy.splice(targetCoverIdx, 1);
+                    imagesCopy.unshift(coverImg);
+                    return {
+                        images: imagesCopy as any,
+                        cover_index: 0,
+                        video_url: currentData.video_url,
+                    };
+                }
+
+                return {
+                    images: currentData.images as any,
+                    cover_index: targetCoverIdx,
+                    video_url: currentData.video_url,
+                };
+            },
         }),
         [getValues]
     );
@@ -165,9 +182,20 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm(
             return;
         }
 
+        // Create a shallow copy of the arrays to safely transform array indexing orders
+        const imagesPayload = [...data.images];
+        let finalCoverIndex = data.cover_index;
+
+        // 🚀 Reorder: Move selected cover image to index [0] so the backend naturally treats it as primary
+        if (finalCoverIndex > 0 && finalCoverIndex < imagesPayload.length) {
+            const [selectedCoverAsset] = imagesPayload.splice(finalCoverIndex, 1);
+            imagesPayload.unshift(selectedCoverAsset);
+            finalCoverIndex = 0; // The cover is now at the absolute front
+        }
+
         onNext({
-            images: data.images as any,
-            cover_index: data.cover_index,
+            images: imagesPayload as any,
+            cover_index: finalCoverIndex,
             video_url: data.video_url,
         });
     };
