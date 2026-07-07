@@ -36,3 +36,21 @@ export const SUBMIT_LISTING_MUTATION = `
     submitListing(id: $id)
   }
 `;
+
+export const DELETE_LISTING_MUTATION = `
+  mutation DeleteListing($id: String!) {
+    deleteListing(id: $id) {
+      success
+      message
+    }
+  }
+`;
+
+export const UPGRADE_FEATURED_MUTATION = `
+  mutation UpgradeToFeatured($id: String!) {
+    upgradeToFeatured(id: $id) {
+      id
+      isFeatured
+    }
+  }
+`;

@@ -3,6 +3,8 @@
 import {
   CREATE_LISTING_MUTATION,
   SUBMIT_LISTING_MUTATION,
+  DELETE_LISTING_MUTATION,
+  UPGRADE_FEATURED_MUTATION,
 } from "@/network/gql/listings.ql";
 import { serverGqlRequest } from "@/network/server-graphql-client";
 import { QUERY_KEY } from "@/enum/queryKeys";
@@ -144,5 +146,25 @@ export async function uploadListingImagesAction(
     console.error(`   Stack: ${error?.stack}`);
     console.log("==========================================");
     throw new Error(error?.message || "Image server handshake failed.");
+  }
+}
+
+export async function deleteListingAction(id: string): Promise<{ success: boolean }> {
+  try {
+    await serverGqlRequest(DELETE_LISTING_MUTATION, { id });
+    return { success: true };
+  } catch (error: any) {
+    console.error("❌ Failed to delete listing from server:", error);
+    throw new Error(error?.message || "Failed to delete listing.");
+  }
+}
+
+export async function upgradeListingToFeaturedAction(id: string): Promise<{ success: boolean }> {
+  try {
+    await serverGqlRequest(UPGRADE_FEATURED_MUTATION, { id });
+    return { success: true };
+  } catch (error: any) {
+    console.error("❌ Failed to upgrade listing to featured status:", error);
+    throw new Error(error?.message || "Failed to upgrade listing.");
   }
 }

@@ -24,7 +24,11 @@ import ListingStateBadge from '@/components/dashboard/listing-state-badge';
 import { Camera } from '@/components/icons/camera';
 import { useCallback, useMemo, useRef, useState, useTransition } from 'react';
 import { Building2 } from '@/components/icons/buildings';
-import { submitListingAction } from '@/app/actions/listing-actions';
+import { 
+	submitListingAction, 
+	deleteListingAction, 
+	upgradeListingToFeaturedAction 
+} from '@/app/actions/listing-actions';
 
 interface DashboardHomeProps {
 	listings: IListing[];
@@ -68,17 +72,14 @@ export default function DashboardHome({ listings, meta }: DashboardHomeProps) {
 		{ name: 'Pending Approval', value: 'PENDING_APPROVAL' },
 	];
 
-	const [sortStatus, setSortStatus] = useState<string>('ALL'); // current filter
+	const [sortStatus, setSortStatus] = useState<string>('ALL');
 
-	// Main sort/filter function computed directly from live server props stream
 	const filteredListings = useMemo(() => {
 		if (sortStatus === 'ALL') return listings;
 
 		return listings.filter((item) => {
 			const currentItemState = item.listing_state || (item as any).effectiveState;
-			
 			if (!currentItemState) return false;
-
 			return currentItemState.toUpperCase() === sortStatus.toUpperCase();
 		});
 	}, [listings, sortStatus]);
@@ -107,17 +108,47 @@ export default function DashboardHome({ listings, meta }: DashboardHomeProps) {
 		[router, searchParams],
 	);
 
+	const handleDelete = async (id: string) => {
+		if (!confirm("Are you sure you want to permanently delete this listing from public view and the database?")) return;
+
+		startTransition(async () => {
+			try {
+				await deleteListingAction(id);
+				alert("Listing deleted completely.");
+				router.refresh();
+			} catch (error: any) {
+				console.error("❌ Deletion Failed:", error);
+				alert(error?.message || "Failed to delete listing.");
+			}
+		});
+	};
+
 	const handleRelist = async (id: string) => {
-		if (!confirm("Are you sure you want to resubmit this listing for review?")) return;
+		if (!confirm("Are you sure you want to resubmit this expired listing to the admin panel for review?")) return;
 
 		startTransition(async () => {
 			try {
 				await submitListingAction(id);
-				alert("Listing resubmitted successfully for admin review!");
-				router.refresh(); // Tells Next.js to pull clean data layers over the wire
+				alert("Listing resubmitted successfully for review!");
+				router.refresh();
 			} catch (error: any) {
 				console.error("❌ Relisting Failed:", error);
 				alert(error?.message || "Failed to resubmit listing.");
+			}
+		});
+	};
+
+	const handleUpgradeFeatured = async (id: string) => {
+		if (!confirm("Upgrade this live listing to Featured status?")) return;
+
+		startTransition(async () => {
+			try {
+				await upgradeListingToFeaturedAction(id);
+				alert("Listing successfully promoted to Featured category!");
+				router.refresh();
+			} catch (error: any) {
+				console.error("❌ Upgrade Failed:", error);
+				alert(error?.message || "Failed to upgrade listing.");
 			}
 		});
 	};
@@ -166,6 +197,8 @@ export default function DashboardHome({ listings, meta }: DashboardHomeProps) {
 							{filteredListings?.map((listing, index) => {
 								const currentItemState = (listing?.listing_state || (listing as any).effectiveState)?.toUpperCase();
 								const isExpired = currentItemState === 'EXPIRED';
+								const isLive = currentItemState === 'PUBLISHED';
+								const isFeaturedAlready = !!listing?.isFeatured;
 
 								return (
 									<div
@@ -200,11 +233,11 @@ export default function DashboardHome({ listings, meta }: DashboardHomeProps) {
 														</div>
 														<div className="flex justify-end w-full gap-2">
 															<div className="w-fit flex h-fit bg-[#006AFF]/10 text-primary text-[10px] sm:text-xs font-semibold rounded-[5px] p-1.5 md:p-2">
-																●{' '}
+																● stream:{' '}
 																{listing?.status.charAt(0).toUpperCase() +
 																	listing?.status.slice(1)}
 															</div>
-															{listing?.isFeatured && (
+															{isFeaturedAlready && (
 																<div className="w-fit h-fit bg-[#41AE49]/10 text-[#41AE49] text-[10px] sm:text-xs font-semibold rounded-[5px] p-1.5 md:p-2">
 																	● Featured
 																</div>
@@ -231,27 +264,55 @@ export default function DashboardHome({ listings, meta }: DashboardHomeProps) {
 													</span>
 												)}
 												<div className="flex items-center gap-2">
-													<button className="disabled:opacity-40" disabled={isPending}>
-														<Trash />
-													</button>
-													<button className="disabled:opacity-40" disabled={isPending}>
-														<Edit />
-													</button>
+													{/* 🗑️ DELETE BUTTON */}
 													<button 
-														onClick={() => handleRelist(listing.id)}
-														disabled={isPending || !isExpired}
-														title={isExpired ? "Relist item for admin review" : "Only expired items can be relisted"}
-														className={`transition-colors p-0.5 rounded ${
-															isExpired && !isPending 
-																? 'text-primary hover:bg-primary/10' 
-																: 'opacity-20 cursor-not-allowed'
+														onClick={() => handleDelete(listing.id)}
+														disabled={isPending}
+														title="Delete listing permanently from database"
+														className={`p-0.5 rounded transition-colors ${
+															isPending ? 'opacity-40 cursor-not-allowed' : 'text-neutral-500 hover:text-red-600 hover:bg-red-50'
 														}`}
 													>
-														<RefreshRightSquare className={isPending && isExpired ? "animate-spin" : ""} />
+														<Trash />
 													</button>
-													<button className="disabled:opacity-40" disabled={isPending}>
-														<SendSqaure2 />
+
+													{/* 📝 EDIT BUTTON */}
+													<button 
+														onClick={() => router.push(`/dashboard/edit-listing/${listing.id}`)}
+														disabled={isPending}
+														title="Edit details and resubmit for review"
+														className={`p-0.5 rounded transition-colors ${
+															isPending ? 'opacity-40 cursor-not-allowed' : 'text-neutral-500 hover:text-primary hover:bg-primary/10'
+														}`}
+													>
+														<Edit />
 													</button>
+
+													{/* 🔄 RELIST BUTTON - ONLY APPEARS ON EXPIRED LISTINGS */}
+													{isExpired && (
+														<button 
+															onClick={() => handleRelist(listing.id)}
+															disabled={isPending}
+															title="Resubmit expired item for review"
+															className="text-primary hover:bg-primary/10 transition-colors p-0.5 rounded"
+														>
+															<RefreshRightSquare className={isPending ? "animate-spin" : ""} />
+														</button>
+													)}
+
+													{/* 🚀 UPGRADE BUTTON - ONLY APPEARS ON LIVE (PUBLISHED) NON-FEATURED ITEMS */}
+													{isLive && !isFeaturedAlready && (
+														<button 
+															onClick={() => handleUpgradeFeatured(listing.id)}
+															disabled={isPending}
+															title="Upgrade to Featured Listings Category"
+															className={`p-0.5 rounded transition-colors ${
+																isPending ? 'opacity-40 cursor-not-allowed' : 'text-neutral-500 hover:text-[#41AE49] hover:bg-[#41AE49]/10'
+															}`}
+														>
+															<SendSqaure2 />
+														</button>
+													)}
 												</div>
 											</div>
 										</div>
