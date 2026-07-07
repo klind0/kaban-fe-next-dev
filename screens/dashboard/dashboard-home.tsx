@@ -109,16 +109,15 @@ export default function DashboardHome({ listings, meta }: DashboardHomeProps) {
 	);
 
 	const handleDelete = async (id: string) => {
-		if (!confirm("Are you sure you want to permanently delete this listing from public view and the database?")) return;
+		if (!confirm("Are you sure you want to permanently delete this listing?")) return;
 
 		startTransition(async () => {
-			try {
-				await deleteListingAction(id);
+			const result = await deleteListingAction(id);
+			if (result.success) {
 				alert("Listing deleted completely.");
 				router.refresh();
-			} catch (error: any) {
-				console.error("❌ Deletion Failed:", error);
-				alert(error?.message || "Failed to delete listing.");
+			} else {
+				alert(result.error || "Failed to delete listing.");
 			}
 		});
 	};

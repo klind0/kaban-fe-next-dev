@@ -149,13 +149,20 @@ export async function uploadListingImagesAction(
   }
 }
 
-export async function deleteListingAction(id: string): Promise<{ success: boolean }> {
+export async function deleteListingAction(id: string): Promise<{ success: boolean; error?: string }> {
   try {
-    await serverGqlRequest(DELETE_LISTING_MUTATION, { id });
+    const data = await serverGqlRequest<{ deleteListing: any }>(DELETE_LISTING_MUTATION, { id });
+    
+    // Check if the returned JSON object explicitly states a failure, or assume true if it returned cleanly
+    if (data?.deleteListing?.success === false) {
+      return { success: false, error: data.deleteListing.message || "Deletion rejected by server." };
+    }
+
     return { success: true };
   } catch (error: any) {
     console.error("❌ Failed to delete listing from server:", error);
-    throw new Error(error?.message || "Failed to delete listing.");
+    const friendlyMessage = error?.errors?.[0]?.message || error?.message || "Failed to delete listing.";
+    return { success: false, error: friendlyMessage };
   }
 }
 

@@ -39,10 +39,7 @@ export const SUBMIT_LISTING_MUTATION = `
 
 export const DELETE_LISTING_MUTATION = `
   mutation DeleteListing($id: String!) {
-    deleteListing(id: $id) {
-      success
-      message
-    }
+    deleteListing(id: $id) 
   }
 `;
 
