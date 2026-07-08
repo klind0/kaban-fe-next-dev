@@ -27,34 +27,48 @@ type LandmarkAutocompleteProps = {
     onBlur?: () => void;
 };
 
-// 📍 Rewritten to safely leverage Google Places Autocomplete under Nigeria restrictions
+// 📍 Fixed Google Places Autocomplete to support continuous fluid entry typing
 function LandmarkAutocomplete({ value, onChange, onSelect, error, onBlur }: LandmarkAutocompleteProps) {
     const inputRef = React.useRef<HTMLInputElement | null>(null);
     const autocompleteRef = React.useRef<any>(null);
+    
+    // Smooth internal layout buffer value
+    const [inputValue, setInputValue] = React.useState(value || "");
+
+    // Sync input field text when updated upstream externally
+    React.useEffect(() => {
+        if (value !== undefined) {
+            setInputValue(value);
+        }
+    }, [value]);
 
     React.useEffect(() => {
         if (typeof window !== "undefined" && inputRef.current) {
-            // Check if the script loaded globally on the window
             const googleObject = (window as any).google;
             if (!googleObject || !googleObject.maps || !googleObject.maps.places) return;
 
-            autocompleteRef.current = new googleObject.maps.places.Autocomplete(inputRef.current, {
-                componentRestrictions: { country: "ng" },
-                fields: ["name", "geometry"],
-            });
+            // Instantiate only ONCE per component initialization cycle
+            if (!autocompleteRef.current) {
+                autocompleteRef.current = new googleObject.maps.places.Autocomplete(inputRef.current, {
+                    componentRestrictions: { country: "ng" },
+                    fields: ["name", "geometry"],
+                });
 
-            autocompleteRef.current.addListener("place_changed", () => {
-                const place = autocompleteRef.current?.getPlace();
-                if (!place || !place.geometry || !place.geometry.location) return;
+                autocompleteRef.current.addListener("place_changed", () => {
+                    const place = autocompleteRef.current?.getPlace();
+                    if (!place || !place.geometry || !place.geometry.location) return;
 
-                const lat = place.geometry.location.lat();
-                const lng = place.geometry.location.lng();
-                const landmarkName = place.name || "";
+                    const lat = place.geometry.location.lat();
+                    const lng = place.geometry.location.lng();
+                    const landmarkName = place.name || "";
 
-                onSelect(landmarkName, lng, lat);
-            });
+                    setInputValue(landmarkName);
+                    onChange(landmarkName);
+                    onSelect(landmarkName, lng, lat);
+                });
+            }
         }
-    }, [onSelect]);
+    }, [onChange, onSelect]); // Fixed hook re-trigger locks
 
     return (
         <div className="flex flex-col gap-1 w-full">
@@ -69,8 +83,11 @@ function LandmarkAutocomplete({ value, onChange, onSelect, error, onBlur }: Land
             <input
                 ref={inputRef}
                 type="text"
-                defaultValue={value}
-                onChange={(e) => onChange(e.target.value)}
+                value={inputValue}
+                onChange={(e) => {
+                    setInputValue(e.target.value);
+                    onChange(e.target.value);
+                }}
                 onBlur={onBlur}
                 placeholder="Search closest hotel, bank, fuel station, plaza..."
                 className={`${error ? 'border-[#B02817] ring-1 ring-[#B02817]/20' : 'border-neutral-700'} border rounded-sm h-11 outline-none p-3 text-base w-full font-medium bg-[#F9FBFF] focus:ring-2 focus:ring-primary/20 focus:border-primary`}
@@ -82,7 +99,6 @@ function LandmarkAutocomplete({ value, onChange, onSelect, error, onBlur }: Land
     );
 }
 
-// 🌐 Pure mathematical helper mapping a standard closed polygon tracking array to render circles over Mapbox
 const createGeoJsonCircle = (center: [number, number], radiusInKm: number, points: number = 64): any => {
     const [lng, lat] = center;
     const coordinatesList: [number, number][] = [];
@@ -132,7 +148,7 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
                 city: "",
                 address: "",
                 landmark: "",
-                coordinates: [6.5244, 3.3792], // Saved internally as backend spec: [lat, lng]
+                coordinates: [6.5244, 3.3792], 
             },
             agreement: false,
         },
@@ -142,13 +158,11 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
     const coordinates = useWatch({ control, name: "location.coordinates" });
     const selectedState = useWatch({ control, name: "location.state" });
     
-    // Safety check fallback array coordinates
     const latitude = coordinates?.[0] ?? 6.5244;
     const longitude = coordinates?.[1] ?? 3.3792;
 
     const cityOptions = selectedState ? (nigeriaCitiesByState[selectedState] ?? []) : [];
 
-    // Dynamically construct GeoJSON circle vector boundaries around current coordinates (600-meter radius coverage)
     const circleGeoJson = React.useMemo(() => {
         return createGeoJsonCircle([longitude, latitude], 0.6);
     }, [latitude, longitude]);
@@ -171,7 +185,6 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
 
     return (
         <div>
-            {/* Inject Google Places Javascript dependencies cleanly */}
             <Script
                 src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`}
                 strategy="beforeInteractive"
@@ -196,7 +209,6 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
                     }
                 >
                     <div className="space-y-6">
-                        {/* 🏠 Manual Street-Only Address Field Input */}
                         <div ref={addressBlockRef} className="w-full scroll-mt-24">
                             <Controller
                                 name="location.address"
@@ -264,11 +276,12 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
                     </div>
                 </FormCard>
 
-                {/* Map Card with Translucent Region Fill Circle Layer instead of Pin Marker */}
-                <FormCard title="Map Viewport & Neighborhood Boundary">
+                <FormCard title="Map Viewport">
                     <div className="flex flex-col md:flex-row gap-6">
                         <div className="w-full md:w-1/2 rounded-lg overflow-hidden min-h-60 relative border border-neutral-200">
+                            {/* Added dynamic key rendering string to enforce viewport recalibration updates */}
                             <Map
+                                key={`${latitude}-${longitude}`}
                                 ref={mapRef}
                                 mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
                                 initialViewState={{
@@ -282,7 +295,6 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
                             >
                                 <NavigationControl position="top-right" />
                                 
-                                {/* Dynamic geoJSON Translucent Region Layers representing hidden perimeter layout */}
                                 <Source id="privacy-circle-source" type="geojson" data={circleGeoJson}>
                                     <Layer
                                         id="privacy-circle-fill"
@@ -303,8 +315,9 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
                                     />
                                 </Source>
                             </Map>
-                            <div className="absolute bottom-3 left-3 bg-white/95 backdrop-blur text-[10px] font-bold text-neutral-700 px-2 py-1 rounded shadow border pointer-events-none z-10">
-                                🔒 Exact property location hidden behind a neighborhood radius
+                            <div className="absolute bottom-3 left-3 bg-white/95 backdrop-blur text-[10px] font-bold px-2 py-1 rounded shadow border pointer-events-none z-10">
+                                <span>🔒</span> 
+                                <span className="text-neutral-700 ml-1">Exact property location hidden behind a neighborhood radius</span>
                             </div>
                         </div>
 
@@ -322,7 +335,6 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
                                             setValue("location.landmark", landmarkName, { shouldValidate: true, shouldDirty: true });
                                             setValue("location.coordinates", [lat, lng], { shouldValidate: true });
                                             
-                                            // Fly camera perspective matrix over the targeted landmark positions seamlessly
                                             mapRef.current?.flyTo({ center: [lng, lat], zoom: 13.5, duration: 1200 });
                                         }}
                                         error={getErrorMessage(externalErrors?.location?.landmark || errors.location?.landmark)}
@@ -330,7 +342,6 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
                                 )}
                             />
                             
-                            {/* Hidden functional debug readouts to ensure React hook form hooks up coordinate bindings correctly */}
                             <div className="grid grid-cols-2 gap-4 pt-2">
                                 <Controller
                                     name="location.coordinates.1"
