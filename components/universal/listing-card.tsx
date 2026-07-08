@@ -12,6 +12,7 @@ import { IListing } from "@/types/listingTypes"
 import { formatPrice } from "@/lib/formatPrice"
 import React from "react"
 import { generateListingSlug } from "@/lib/manageSlug"
+import { toTitleCase } from "@/utils/formatText" // 👈 Imported the string utility formatter
 
 interface ListingCardProps {
     listingData: IListing;
@@ -79,9 +80,14 @@ export default function ListingCard({
                     </div>
                     <div>
                         <div className="flex">
-                            <span className="text-sm font-medium truncate">{title}</span>
+                            {/* 🛠 Enforced TitleCase format for the Title context layer */}
+                            <span className="text-sm font-medium truncate">{toTitleCase(title)}</span>
                         </div>
-                        <div className="flex items-center gap-1"><Location className="text-primary" /><span className="text-sm font-medium truncate">{propertyLocation}</span></div>
+                        {/* 🛠 Enforced TitleCase format for the physical text Address string */}
+                        <div className="flex items-center gap-1">
+                            <Location className="text-primary" />
+                            <span className="text-sm font-medium truncate">{toTitleCase(propertyLocation)}</span>
+                        </div>
                     </div>
                     <div className="flex items-center gap-4">
                         <div className="flex items-center gap-1">
