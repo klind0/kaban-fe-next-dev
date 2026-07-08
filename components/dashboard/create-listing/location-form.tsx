@@ -321,7 +321,7 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
                                     />
                                 </Source>
                             </Map>
-                            <div className="absolute bottom-3 left-3 bg-white/95 backdrop-blur text-[10px] font-bold text-neutral-700 px-2 py-1 rounded shadow border pointer-events-none z-10">
+                            <div className="absolute bottom-3 left-3 bg-white/95 backdrop-blur text-[10px] font-bold text-neutral-900 px-2 py-1 rounded shadow border pointer-events-none z-10">
                                 🔒 Exact property location hidden behind a neighborhood radius
                             </div>
                         </div>
