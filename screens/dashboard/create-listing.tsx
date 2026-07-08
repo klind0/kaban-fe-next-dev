@@ -192,16 +192,15 @@ export default function CreateListingScreen() {
         } catch (err: any) {
             console.error("🔴 [CLIENT] CAUGHT MUTATION ERROR:", err);
             const backendErrors = err?.response?.data?.errors;
+            
             if (Array.isArray(backendErrors) && backendErrors.length > 0) {
                 const firstError = backendErrors[0];
                 toast.error(firstError.message);
                 handleTabChange(firstError.tab);
             } else {
-                toast.error(err instanceof Error ? err.message : 'Failed to process operation.');
+                // Only trigger this if there are no specialized backend structure arrays
+                toast.error(err.message || err instanceof Error ? err.message : 'Failed to process operation.');
             }
-            toast.error(err.message || 'Operation failed.');
-        } finally {
-            setIsPending(false);
         }
     };
 

@@ -82,7 +82,7 @@ async function createDraft(
   }
 
   if (media.video_url && media.video_url !== '') {
-    rawPayload.video_url = media.video_url;
+    rawPayload.video = media.video_url;
   }
 
   if (rawPayload.price?.amount) {

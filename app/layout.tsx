@@ -31,6 +31,12 @@ export default function RootLayout({
         className={`${inter.variable} antialiased bg-neutral-25`}
         suppressHydrationWarning
       >
+        {/* 🌐 Google Maps Places API Script for Landmark Autocomplete */}
+        <Script
+          src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`}
+          strategy="beforeInteractive"
+        />
+
         <Toaster
           position="top-center"
           toastOptions={{
@@ -53,6 +59,8 @@ export default function RootLayout({
         </ReactQueryProvider>
         <GoogleAuthCallback />
         <CookiesPolicy />
+        
+        {/* Google One Tap / Identity Authentication Engine */}
         <Script
           src="https://accounts.google.com/gsi/client"
           strategy="afterInteractive"
