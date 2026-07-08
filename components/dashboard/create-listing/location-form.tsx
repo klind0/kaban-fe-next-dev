@@ -7,129 +7,104 @@ import { Controller, useForm, useWatch } from "react-hook-form";
 import FormCard from "./form-card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import Map, { MapRef, Marker, NavigationControl } from "react-map-gl/mapbox";
+import Map, { MapRef, Source, Layer, NavigationControl } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
-import { Location } from "@/components/icons/location";
 import { LocationListingData } from "@/network/listings";
 import { nigeriaCitiesByState, nigerianStates } from "@/lib/selectOptions";
 import React from "react";
+import Script from "next/script";
 
 type LocationFormValues = {
     location: IListing["location"];
     agreement: boolean;
 };
 
-type Suggestion = {
-    id: string;
-    place_name: string;
-    text: string;
-    address?: string;
-    center: [number, number];
-    context?: { id: string; text: string }[];
-};
-
-function formatSuggestion(s: Suggestion): string {
-    const parts: string[] = [];
-    const streetPart = s.address ? `${s.address} ${s.text}` : s.text;
-    parts.push(streetPart);
-    const city = s.context?.find(c => c.id.startsWith('place') || c.id.startsWith('locality'))?.text;
-    if (city) parts.push(city);
-    const state = s.context?.find(c => c.id.startsWith('region'))?.text;
-    if (state) parts.push(state);
-    return parts.join(', ');
-}
-
-type AddressAutocompleteProps = {
+type LandmarkAutocompleteProps = {
     value: string;
     onChange: (value: string) => void;
-    onSelect: (address: string, lng: number, lat: number, state?: string, city?: string) => void;
+    onSelect: (landmarkName: string, lng: number, lat: number) => void;
     error?: string;
     onBlur?: () => void;
 };
 
-function AddressAutocomplete({ value, onChange, onSelect, error, onBlur }: AddressAutocompleteProps) {
-    const [suggestions, setSuggestions] = React.useState<Suggestion[]>([]);
-    const [open, setOpen] = React.useState(false);
-    const debounceRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
-    const containerRef = React.useRef<HTMLDivElement>(null);
-
-    const fetchSuggestions = React.useCallback(async (query: string) => {
-        if (query.length < 3) { setSuggestions([]); return; }
-        const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
-        const res = await fetch(
-            `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${token}&country=ng&limit=5&types=address,place,neighborhood,locality`
-        );
-        const data = await res.json();
-        setSuggestions(data.features ?? []);
-        setOpen(true);
-    }, []);
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const val = e.target.value;
-        onChange(val);
-        if (debounceRef.current) clearTimeout(debounceRef.current);
-        debounceRef.current = setTimeout(() => fetchSuggestions(val), 400);
-    };
-
-    const handleSelect = (s: Suggestion) => {
-        const [lng, lat] = s.center;
-        const formatted = formatSuggestion(s);
-        const mapboxState = s.context?.find(c => c.id.startsWith('region'))?.text;
-        const mapboxCity = s.context?.find(c => c.id.startsWith('place') || c.id.startsWith('locality'))?.text;
-        
-        onChange(formatted);
-        onSelect(formatted, lng, lat, mapboxState, mapboxCity);
-        setSuggestions([]);
-        setOpen(false);
-    };
+// 📍 Rewritten to safely leverage Google Places Autocomplete under Nigeria restrictions
+function LandmarkAutocomplete({ value, onChange, onSelect, error, onBlur }: LandmarkAutocompleteProps) {
+    const inputRef = React.useRef<HTMLInputElement | null>(null);
+    const autocompleteRef = React.useRef<any>(null);
 
     React.useEffect(() => {
-        const handler = (e: MouseEvent) => {
-            if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-                setOpen(false);
-            }
-        };
-        document.addEventListener('mousedown', handler);
-        return () => document.removeEventListener('mousedown', handler);
-    }, []);
+        if (typeof window !== "undefined" && inputRef.current) {
+            // Check if the script loaded globally on the window
+            const googleObject = (window as any).google;
+            if (!googleObject || !googleObject.maps || !googleObject.maps.places) return;
+
+            autocompleteRef.current = new googleObject.maps.places.Autocomplete(inputRef.current, {
+                componentRestrictions: { country: "ng" },
+                fields: ["name", "geometry"],
+            });
+
+            autocompleteRef.current.addListener("place_changed", () => {
+                const place = autocompleteRef.current?.getPlace();
+                if (!place || !place.geometry || !place.geometry.location) return;
+
+                const lat = place.geometry.location.lat();
+                const lng = place.geometry.location.lng();
+                const landmarkName = place.name || "";
+
+                onSelect(landmarkName, lng, lat);
+            });
+        }
+    }, [onSelect]);
 
     return (
-        <div ref={containerRef} className="flex flex-col gap-1 w-full">
+        <div className="flex flex-col gap-1 w-full">
             <div className="flex items-center justify-baseline">
                 <div className="w-full flex justify-between">
-                    <label className="text-foreground text-sm font-medium">Address *</label>
+                    <label className="text-foreground text-sm font-medium">Nearest Landmark *</label>
                 </div>
                 {error && (
                     <span className="text-[#B02817] text-xs sm:text-sm whitespace-nowrap bg-red-50 px-2 py-0.5 rounded">{error}</span>
                 )}
             </div>
-            <div className="relative">
-                <input
-                    type="text"
-                    value={value}
-                    onChange={handleChange}
-                    onBlur={onBlur}
-                    onFocus={() => suggestions.length > 0 && setOpen(true)}
-                    placeholder="Enter address"
-                    className={`${error ? 'border-[#B02817] ring-1 ring-[#B02817]/20' : 'border-neutral-700'} border rounded-sm h-11 outline-none p-3 text-base w-full font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary focus:outline-none`}
-                />
-                {open && suggestions.length > 0 && (
-                    <ul className="absolute z-50 top-full left-0 right-0 mt-1 bg-white border border-neutral-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                        {suggestions.map((s) => (
-                            <li
-                                key={s.id}
-                                onMouseUp={() => handleSelect(s)}
-                                className="px-4 py-3 text-sm text-foreground hover:bg-neutral-100 cursor-pointer border-b border-neutral-100 last:border-0"
-                            >
-                                {formatSuggestion(s)}
-                            </li>
-                        ))}
-                    </ul>
-                )}
-            </div>
+            <input
+                ref={inputRef}
+                type="text"
+                defaultValue={value}
+                onChange={(e) => onChange(e.target.value)}
+                onBlur={onBlur}
+                placeholder="Search closest hotel, bank, fuel station, plaza..."
+                className={`${error ? 'border-[#B02817] ring-1 ring-[#B02817]/20' : 'border-neutral-700'} border rounded-sm h-11 outline-none p-3 text-base w-full font-medium bg-[#F9FBFF] focus:ring-2 focus:ring-primary/20 focus:border-primary`}
+            />
+            <p className="text-[11px] text-neutral-400 mt-0.5">
+                Type to choose a nearby public location to calculate map centering vectors safely.
+            </p>
         </div>
     );
 }
+
+// 🌐 Pure mathematical helper mapping a standard closed polygon tracking array to render circles over Mapbox
+const createGeoJsonCircle = (center: [number, number], radiusInKm: number, points: number = 64): any => {
+    const [lng, lat] = center;
+    const coordinatesList: [number, number][] = [];
+    const distanceX = radiusInKm / (111.32 * Math.cos((lat * Math.PI) / 180));
+    const distanceY = radiusInKm / 110.57;
+
+    for (let i = 0; i < points; i++) {
+        const theta = (i / points) * (2 * Math.PI);
+        const x = distanceX * Math.cos(theta);
+        const y = distanceY * Math.sin(theta);
+        coordinatesList.push([lng + x, lat + y]);
+    }
+    coordinatesList.push(coordinatesList[0]);
+
+    return {
+        type: "Feature",
+        geometry: {
+            type: "Polygon",
+            coordinates: [coordinatesList],
+        },
+    };
+};
 
 type Props = {
     onFormSubmit: (data: LocationListingData, submit: boolean) => Promise<void>;
@@ -157,7 +132,7 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
                 city: "",
                 address: "",
                 landmark: "",
-                coordinates: [6.5244, 3.3792],
+                coordinates: [6.5244, 3.3792], // Saved internally as backend spec: [lat, lng]
             },
             agreement: false,
         },
@@ -166,10 +141,17 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
 
     const coordinates = useWatch({ control, name: "location.coordinates" });
     const selectedState = useWatch({ control, name: "location.state" });
+    
+    // Safety check fallback array coordinates
     const latitude = coordinates?.[0] ?? 6.5244;
     const longitude = coordinates?.[1] ?? 3.3792;
 
     const cityOptions = selectedState ? (nigeriaCitiesByState[selectedState] ?? []) : [];
+
+    // Dynamically construct GeoJSON circle vector boundaries around current coordinates (600-meter radius coverage)
+    const circleGeoJson = React.useMemo(() => {
+        return createGeoJsonCircle([longitude, latitude], 0.6);
+    }, [latitude, longitude]);
 
     const onSubmit = (data: LocationFormValues) => {
         onFormSubmit({ location: data.location }, true);
@@ -189,6 +171,12 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
 
     return (
         <div>
+            {/* Inject Google Places Javascript dependencies cleanly */}
+            <Script
+                src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`}
+                strategy="beforeInteractive"
+            />
+
             <form onSubmit={handleSubmit(onSubmit, onFormError)} className="space-y-4 md:space-y-7.5 mt-8">
                 <FormCard 
                     title={
@@ -208,42 +196,20 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
                     }
                 >
                     <div className="space-y-6">
+                        {/* 🏠 Manual Street-Only Address Field Input */}
                         <div ref={addressBlockRef} className="w-full scroll-mt-24">
                             <Controller
                                 name="location.address"
                                 control={control}
-                                rules={{ required: "Property location address is required" }}
+                                rules={{ required: "Street name address location is required" }}
                                 render={({ field }) => (
-                                    <AddressAutocomplete
-                                        value={field.value}
-                                        onChange={field.onChange}
-                                        onBlur={field.onBlur}
-                                        onSelect={(address, lng, lat, mapboxState, mapboxCity) => {
-                                            setValue("location.address", address, { shouldValidate: true, shouldDirty: true });
-                                            setValue("location.coordinates", [lat, lng]);
-                                            mapRef.current?.flyTo({ center: [lng, lat], zoom: 15, duration: 1500 });
-
-                                            if (mapboxState) {
-                                                const normalized = mapboxState
-                                                    .replace(/\s+State$/i, '')
-                                                    .replace(/Federal Capital Territory/i, 'FCT')
-                                                    .trim();
-                                                const stateMatch = nigerianStates.find(
-                                                    s => s.value.toLowerCase() === normalized.toLowerCase()
-                                                );
-                                                if (stateMatch) {
-                                                    setValue("location.state", stateMatch.value, { shouldValidate: true });
-                                                    setValue("location.city", "", { shouldValidate: true });
-                                                    if (mapboxCity) {
-                                                        const cityList = nigeriaCitiesByState[stateMatch.value] ?? [];
-                                                        const cityMatch = cityList.find(
-                                                            c => c.value.toLowerCase() === mapboxCity.toLowerCase()
-                                                        );
-                                                        if (cityMatch) setValue("location.city", cityMatch.value, { shouldValidate: true });
-                                                    }
-                                                }
-                                            }
-                                        }}
+                                    <FormControl
+                                        as="input"
+                                        labelText="Street Address *"
+                                        placeholder="e.g. 14, Bassey Way"
+                                        type="text"
+                                        containerClass="w-full"
+                                        {...field}
                                         error={getErrorMessage(externalErrors?.location?.address || errors.location?.address)}
                                     />
                                 )}
@@ -298,82 +264,103 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
                     </div>
                 </FormCard>
 
-                {/* Map card */}
-                <FormCard title="Map">
+                {/* Map Card with Translucent Region Fill Circle Layer instead of Pin Marker */}
+                <FormCard title="Map Viewport & Neighborhood Boundary">
                     <div className="flex flex-col md:flex-row gap-6">
-                        <div className="w-full md:w-1/2 rounded-lg overflow-hidden min-h-60">
+                        <div className="w-full md:w-1/2 rounded-lg overflow-hidden min-h-60 relative border border-neutral-200">
                             <Map
                                 ref={mapRef}
                                 mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
-                                viewState={{ 
-                                    longitude: longitude, 
-                                    latitude: latitude, 
+                                initialViewState={{
+                                    longitude: longitude,
+                                    latitude: latitude,
                                     zoom: 13,
-                                    bearing: 0,
-                                    pitch: 0,
-                                    padding: { top: 0, bottom: 0, left: 0, right: 0 },
-                                    width: 0,
-                                    height: 0
                                 }}
-                                style={{ width: "100%", height: "100%", minHeight: "240px" }}
+                                style={{ width: "100%", height: "100%", minHeight: "260px" }}
                                 mapStyle="mapbox://styles/mapbox/streets-v12"
                                 scrollZoom={false}
                             >
                                 <NavigationControl position="top-right" />
-                                <Marker longitude={longitude} latitude={latitude} anchor="bottom">
-                                    <Location className="text-red-500 w-7 h-7 drop-shadow" />
-                                </Marker>
+                                
+                                {/* Dynamic geoJSON Translucent Region Layers representing hidden perimeter layout */}
+                                <Source id="privacy-circle-source" type="geojson" data={circleGeoJson}>
+                                    <Layer
+                                        id="privacy-circle-fill"
+                                        type="fill"
+                                        paint={{
+                                            "fill-color": "#006AFF",
+                                            "fill-opacity": 0.18,
+                                        }}
+                                    />
+                                    <Layer
+                                        id="privacy-circle-outline"
+                                        type="line"
+                                        paint={{
+                                            "line-color": "#006AFF",
+                                            "line-width": 2,
+                                            "line-dasharray": [2, 2],
+                                        }}
+                                    />
+                                </Source>
                             </Map>
+                            <div className="absolute bottom-3 left-3 bg-white/95 backdrop-blur text-[10px] font-bold text-neutral-700 px-2 py-1 rounded shadow border pointer-events-none z-10">
+                                🔒 Exact property location hidden behind a neighborhood radius
+                            </div>
                         </div>
 
                         <div className="w-full md:w-1/2 space-y-5">
                             <Controller
                                 name="location.landmark"
                                 control={control}
+                                rules={{ required: "A nearby target landmark identification is required" }}
                                 render={({ field }) => (
-                                    <FormControl
-                                        as="input"
-                                        labelText="Landmark"
-                                        placeholder="Nearest major road/landmark"
-                                        type="text"
-                                        containerClass="w-full"
-                                        {...field}
+                                    <LandmarkAutocomplete
+                                        value={field.value}
+                                        onChange={field.onChange}
+                                        onBlur={field.onBlur}
+                                        onSelect={(landmarkName, lng, lat) => {
+                                            setValue("location.landmark", landmarkName, { shouldValidate: true, shouldDirty: true });
+                                            setValue("location.coordinates", [lat, lng], { shouldValidate: true });
+                                            
+                                            // Fly camera perspective matrix over the targeted landmark positions seamlessly
+                                            mapRef.current?.flyTo({ center: [lng, lat], zoom: 13.5, duration: 1200 });
+                                        }}
                                         error={getErrorMessage(externalErrors?.location?.landmark || errors.location?.landmark)}
                                     />
                                 )}
                             />
-                            <Controller
-                                name="location.coordinates.1"
-                                control={control}
-                                render={({ field }) => (
-                                    <FormControl
-                                        as="input"
-                                        labelText="Longitude"
-                                        type="number"
-                                        step="any"
-                                        containerClass="w-full"
-                                        {...field}
-                                        value={field.value ?? ""}
-                                        onChange={(e) => field.onChange(parseFloat((e.target as HTMLInputElement).value) || 0)}
-                                    />
-                                )}
-                            />
-                            <Controller
-                                name="location.coordinates.0"
-                                control={control}
-                                render={({ field }) => (
-                                    <FormControl
-                                        as="input"
-                                        labelText="Latitude"
-                                        type="number"
-                                        step="any"
-                                        containerClass="w-full"
-                                        {...field}
-                                        value={field.value ?? ""}
-                                        onChange={(e) => field.onChange(parseFloat((e.target as HTMLInputElement).value) || 0)}
-                                    />
-                                )}
-                            />
+                            
+                            {/* Hidden functional debug readouts to ensure React hook form hooks up coordinate bindings correctly */}
+                            <div className="grid grid-cols-2 gap-4 pt-2">
+                                <Controller
+                                    name="location.coordinates.1"
+                                    control={control}
+                                    render={({ field }) => (
+                                        <FormControl
+                                            as="input"
+                                            labelText="Longitude"
+                                            type="number"
+                                            disabled
+                                            containerClass="w-full opacity-60"
+                                            value={field.value ?? ""}
+                                        />
+                                    )}
+                                />
+                                <Controller
+                                    name="location.coordinates.0"
+                                    control={control}
+                                    render={({ field }) => (
+                                        <FormControl
+                                            as="input"
+                                            labelText="Latitude"
+                                            type="number"
+                                            disabled
+                                            containerClass="w-full opacity-60"
+                                            value={field.value ?? ""}
+                                        />
+                                    )}
+                                />
+                            </div>
                         </div>
                     </div>
                 </FormCard>
