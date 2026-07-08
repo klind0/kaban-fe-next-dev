@@ -63,6 +63,27 @@ function LandmarkAutocomplete({ value, onChange, onSelect, error, onBlur }: Land
         return () => clearInterval(interval);
     }, []);
 
+    // 🛠 Inject dynamic styles to lift Google's dynamic overlay container above modals
+    React.useEffect(() => {
+        if (typeof window !== "undefined") {
+            const styleId = "google-autocomplete-z-index-override";
+            if (!document.getElementById(styleId)) {
+                const style = document.createElement("style");
+                style.id = styleId;
+                style.innerHTML = `
+                    .pac-container {
+                        z-index: 99999 !important;
+                        border-radius: 6px;
+                        box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+                        border: 1px solid #e5e7eb;
+                        font-family: inherit;
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+        }
+    }, []);
+
     React.useEffect(() => {
         if (typeof window !== "undefined" && inputRef.current && scriptLoaded) {
             const googleObject = (window as any).google;
@@ -105,11 +126,15 @@ function LandmarkAutocomplete({ value, onChange, onSelect, error, onBlur }: Land
                 type="text"
                 value={inputValue}
                 onChange={(e) => {
-                    const formatted = toTitleCase(e.target.value);
+                    setInputValue(e.target.value);
+                    onChange(e.target.value);
+                }}
+                onBlur={() => {
+                    const formatted = toTitleCase(inputValue);
                     setInputValue(formatted);
                     onChange(formatted);
+                    if (onBlur) onBlur();
                 }}
-                onBlur={onBlur}
                 placeholder="Search closest hotel, bank, fuel station, plaza..."
                 className={`${error ? 'border-[#B02817] ring-1 ring-[#B02817]/20' : 'border-neutral-700'} border rounded-sm h-11 outline-none p-3 text-base w-full font-medium bg-[#F9FBFF] focus:ring-2 focus:ring-primary/20 focus:border-primary`}
             />
@@ -179,8 +204,8 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
     const coordinates = useWatch({ control, name: "location.coordinates" });
     const selectedState = useWatch({ control, name: "location.state" });
     
-    const latitude = coordinates?.[0] ?? 6.5244;
-    const longitude = coordinates?.[1] ?? 3.3792;
+    const latitude = coordinates?.[0] ?? 5.0377;
+    const longitude = coordinates?.[1] ?? 7.9128;
 
     const cityOptions = selectedState ? (nigeriaCitiesByState[selectedState] ?? []) : [];
 
@@ -189,7 +214,6 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
     }, [latitude, longitude]);
 
     const onSubmit = (data: LocationFormValues) => {
-        // Strict normalization transforms applied to values before backend communication layers execute
         const normalizedData: LocationListingData = {
             location: {
                 ...data.location,
@@ -234,9 +258,9 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
                                         placeholder="e.g. 14, Bassey Way"
                                         type="text"
                                         containerClass="w-full"
-                                        value={toTitleCase(field.value || "")}
-                                        onChange={(e: any) => field.onChange(toTitleCase(e.target.value))}
-                                        onBlur={field.onBlur}
+                                        value={field.value || ""}
+                                        onChange={(e: any) => field.onChange(e.target.value)}
+                                        onBlur={() => field.onChange(toTitleCase(field.value || ""))}
                                         error={getErrorMessage(externalErrors?.location?.address || errors.location?.address)}
                                     />
                                 )}
