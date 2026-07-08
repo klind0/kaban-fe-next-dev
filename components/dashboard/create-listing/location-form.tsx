@@ -113,8 +113,8 @@ function LandmarkAutocomplete({ value, onChange, onSelect, error, onBlur }: Land
                 placeholder="Search closest hotel, bank, fuel station, plaza..."
                 className={`${error ? 'border-[#B02817] ring-1 ring-[#B02817]/20' : 'border-neutral-700'} border rounded-sm h-11 outline-none p-3 text-base w-full font-medium bg-[#F9FBFF] focus:ring-2 focus:ring-primary/20 focus:border-primary`}
             />
-            <p className="text-[11px] text-neutral-400 mt-0.5">
-                Type to choose a nearby public location to calculate map centering vectors safely.
+            <p className="text-[11px] text-neutral-800 mt-0.5">
+                Type to choose a nearby public location.
             </p>
         </div>
     );
@@ -169,7 +169,7 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
                 city: "",
                 address: "",
                 landmark: "",
-                coordinates: [6.5244, 3.3792], 
+                coordinates: [5.0377, 7.9128], 
             },
             agreement: false,
         },

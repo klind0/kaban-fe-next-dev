@@ -12,7 +12,7 @@ import { IListing } from "@/types/listingTypes"
 import { formatPrice } from "@/lib/formatPrice"
 import React from "react"
 import { generateListingSlug } from "@/lib/manageSlug"
-import { toTitleCase } from "@/utils/formatText" // 👈 Imported the string utility formatter
+import { toTitleCase } from "@/utils/formatText"
 
 interface ListingCardProps {
     listingData: IListing;
@@ -50,7 +50,21 @@ export default function ListingCard({
     const beds = details?.bedroom ?? 0;
     const baths = details?.bathroom ?? 0;
     const parkingSpots = details?.parking_space ?? 0;
-    const propertyLocation = location?.address ?? '';
+
+    // 🛠 Construct a clean string checking if city/state properties are provided explicitly
+    const buildFullLocationString = () => {
+        if (!location) return "";
+        
+        // If address already includes commas, it might already be a fully concatenated string
+        if (location.address && location.address.includes(",")) {
+            return location.address;
+        }
+
+        const parts = [location.address, location.city, location.state].filter(Boolean);
+        return parts.join(", ");
+    };
+
+    const propertyLocation = buildFullLocationString();
 
     return (
         <Link href={`/property/${generateListingSlug(listingData)}`} className='group block w-full max-w-134.5 rounded-[10px] shadow overflow-hidden cursor-pointer duration-300'>
@@ -69,7 +83,8 @@ export default function ListingCard({
             <div className="bg-white p-4 w-full">
                 <div className="space-y-3">
                     <div className="space-y-2">
-                        <span className="text-xs font-semibold">{property_type}</span>
+                        {/* 🛠 Transformed property type toTitleCase as well */}
+                        <span className="text-xs font-semibold text-neutral-500 capitalize">{toTitleCase(property_type || '')}</span>
                         <div className="flex items-center justify-between">
                             <h3 className="text-xl font-bold text-[#272D37] whitespace-nowrap">{formatPrice(price?.amount)}</h3>
                             <div className="flex items-center gap-2">
@@ -80,16 +95,16 @@ export default function ListingCard({
                     </div>
                     <div>
                         <div className="flex">
-                            {/* 🛠 Enforced TitleCase format for the Title context layer */}
-                            <span className="text-sm font-medium truncate">{toTitleCase(title)}</span>
+                            <span className="text-sm font-medium truncate">{toTitleCase(title || '')}</span>
                         </div>
-                        {/* 🛠 Enforced TitleCase format for the physical text Address string */}
-                        <div className="flex items-center gap-1">
-                            <Location className="text-primary" />
-                            <span className="text-sm font-medium truncate">{toTitleCase(propertyLocation)}</span>
+                        <div className="flex items-center gap-1 mt-1">
+                            <Location className="text-primary flex-shrink-0" />
+                            <span className="text-sm font-medium truncate text-neutral-600" title={toTitleCase(propertyLocation)}>
+                                {toTitleCase(propertyLocation)}
+                            </span>
                         </div>
                     </div>
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-4 pt-1">
                         <div className="flex items-center gap-1">
                             <Bed className="text-primary" />
                             <span className="text-xs font-medium">{beds} Bed{beds !== 1 ? 's' : ''}</span>
@@ -105,7 +120,7 @@ export default function ListingCard({
                     </div>
                 </div>
             </div>
-            <div className="bg-neutral-50 p-4 border-t border-neutral-600">
+            <div className="bg-neutral-50 p-4 border-t border-neutral-100">
                 <div className="flex items-center gap-2">
                     {realtor?.realtor_pic ? (
                         <div className="size-8 rounded-full overflow-hidden">
@@ -116,7 +131,7 @@ export default function ListingCard({
                             R
                         </div>
                     )}
-                    {realtor?.mobile_number && <span className="text-sm font-medium">{realtor.mobile_number}</span>}
+                    {realtor?.mobile_number && <span className="text-sm font-medium text-neutral-700">{realtor.mobile_number}</span>}
                 </div>
             </div>
         </Link>
