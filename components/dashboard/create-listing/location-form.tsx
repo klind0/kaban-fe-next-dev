@@ -75,6 +75,55 @@ function LandmarkAutocomplete({ value, onChange, onSelect, error, onBlur }: Land
         return () => clearInterval(interval);
     }, []);
 
+    // Monitor if Google drops its popup box (.pac-container) into the document layout root
+    React.useEffect(() => {
+        const checkDOMContainers = () => {
+            const elements = document.querySelectorAll('.pac-container');
+            setPacElementsFound(elements.length);
+            
+            if (elements.length > 0) {
+                elements.forEach((el: any, idx) => {
+                    const style = window.getComputedStyle(el);
+                    // Log visibility vectors to confirm if layout engine is compressing it away
+                    if (style.display === 'none') {
+                        if (!el.dataset.loggedHidden) {
+                            addLog(`⚠️ ALERT: .pac-container [idx:${idx}] injected but hidden via display:none`);
+                            el.dataset.loggedHidden = "true";
+                        }
+                    } else {
+                        // Confirm active location vectors
+                        if (el.dataset.loggedHidden) {
+                            addLog(`✨ .pac-container visible layout changes detected! Height: ${style.height}, Top: ${style.top}, Left: ${style.left}`);
+                            delete el.dataset.loggedHidden;
+                        }
+                    }
+                });
+            }
+        };
+
+        const domInterval = setInterval(checkDOMContainers, 1000);
+        return () => clearInterval(domInterval);
+    }, []);
+
+    React.useEffect(() => {
+        if (typeof window !== "undefined") {
+            const styleId = "google-autocomplete-z-index-override";
+            if (!document.getElementById(styleId)) {
+                addLog("Injecting structural z-index styles into document header...");
+                const style = document.createElement("style");
+                style.id = styleId;
+                style.innerHTML = `
+                    .pac-container {
+                        z-index: 99999 !important;
+                        border: 3px solid #ff0055 !important; /* 🟥 FLASHING NEON BORDER TO VERIFY VISIBILITY */
+                        background-color: #ffffff !important;
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+        }
+    }, []);
+
     React.useEffect(() => {
         if (typeof window !== "undefined" && inputRef.current && scriptLoaded) {
             const googleObject = (window as any).google;
