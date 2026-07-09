@@ -42,6 +42,14 @@ function LandmarkAutocomplete({ value, onChange, onSelect, error, onBlur }: Land
     const autocompleteRef = React.useRef<any>(null);
     const [inputValue, setInputValue] = React.useState(value || "");
     const [scriptLoaded, setScriptLoaded] = React.useState(false);
+    
+    // 🛠 DIAGNOSTIC LOGS STATE
+    const [logs, setLogs] = React.useState<string[]>([]);
+    const [pacElementsFound, setPacElementsFound] = React.useState<number>(0);
+
+    const addLog = (msg: string) => {
+        setLogs(prev => [`[${new Date().toLocaleTimeString()}] ${msg}`, ...prev.slice(0, 15)]);
+    };
 
     React.useEffect(() => {
         if (value !== undefined) {
@@ -49,18 +57,71 @@ function LandmarkAutocomplete({ value, onChange, onSelect, error, onBlur }: Land
         }
     }, [value]);
 
-    // Polling/Interval fallback check to capture Google if it loads late
+    // Track if Google Script object is actually accessible in the window context
     React.useEffect(() => {
+        addLog("Checking window.google object availability...");
         const checkGoogle = () => {
             const googleObject = (window as any).google;
             if (googleObject?.maps?.places) {
+                addLog("✅ SUCCESS: window.google.maps.places loaded perfectly!");
                 setScriptLoaded(true);
                 clearInterval(interval);
+            } else {
+                addLog("...still looking for window.google.maps.places mapping object");
             }
         };
-        const interval = setInterval(checkGoogle, 500);
+        const interval = setInterval(checkGoogle, 1000);
         checkGoogle();
         return () => clearInterval(interval);
+    }, []);
+
+    // Monitor if Google drops its popup box (.pac-container) into the document layout root
+    React.useEffect(() => {
+        const checkDOMContainers = () => {
+            const elements = document.querySelectorAll('.pac-container');
+            setPacElementsFound(elements.length);
+            
+            if (elements.length > 0) {
+                elements.forEach((el: any, idx) => {
+                    const style = window.getComputedStyle(el);
+                    // Log visibility vectors to confirm if layout engine is compressing it away
+                    if (style.display === 'none') {
+                        if (!el.dataset.loggedHidden) {
+                            addLog(`⚠️ ALERT: .pac-container [idx:${idx}] injected but hidden via display:none`);
+                            el.dataset.loggedHidden = "true";
+                        }
+                    } else {
+                        // Confirm active location vectors
+                        if (el.dataset.loggedHidden) {
+                            addLog(`✨ .pac-container visible layout changes detected! Height: ${style.height}, Top: ${style.top}, Left: ${style.left}`);
+                            delete el.dataset.loggedHidden;
+                        }
+                    }
+                });
+            }
+        };
+
+        const domInterval = setInterval(checkDOMContainers, 1000);
+        return () => clearInterval(domInterval);
+    }, []);
+
+    React.useEffect(() => {
+        if (typeof window !== "undefined") {
+            const styleId = "google-autocomplete-z-index-override";
+            if (!document.getElementById(styleId)) {
+                addLog("Injecting structural z-index styles into document header...");
+                const style = document.createElement("style");
+                style.id = styleId;
+                style.innerHTML = `
+                    .pac-container {
+                        z-index: 99999 !important;
+                        border: 3px solid #ff0055 !important; /* 🟥 FLASHING NEON BORDER TO VERIFY VISIBILITY */
+                        background-color: #ffffff !important;
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+        }
     }, []);
 
     React.useEffect(() => {
@@ -69,29 +130,70 @@ function LandmarkAutocomplete({ value, onChange, onSelect, error, onBlur }: Land
             if (!googleObject?.maps?.places) return;
 
             if (!autocompleteRef.current) {
-                autocompleteRef.current = new googleObject.maps.places.Autocomplete(inputRef.current, {
-                    componentRestrictions: { country: "ng" },
-                    fields: ["name", "geometry"],
-                });
+                try {
+                    addLog("Initializing Google Autocomplete binding on input ref...");
+                    autocompleteRef.current = new googleObject.maps.places.Autocomplete(inputRef.current, {
+                        componentRestrictions: { country: "ng" },
+                        fields: ["name", "geometry"],
+                    });
 
-                autocompleteRef.current.addListener("place_changed", () => {
-                    const place = autocompleteRef.current?.getPlace();
-                    if (!place || !place.geometry || !place.geometry.location) return;
+                    addLog("Event listener attached. Waiting for selection triggers...");
+                    autocompleteRef.current.addListener("place_changed", () => {
+                        addLog("⚡ place_changed event fired from Google API wrapper!");
+                        const place = autocompleteRef.current?.getPlace();
+                        
+                        if (!place) {
+                            addLog("❌ ERROR: place data returned completely blank");
+                            return;
+                        }
+                        addLog(`Selected Place Name: "${place.name}"`);
 
-                    const lat = place.geometry.location.lat();
-                    const lng = place.geometry.location.lng();
-                    const landmarkName = toTitleCase(place.name || "");
+                        if (!place.geometry || !place.geometry.location) {
+                            addLog("❌ ERROR: Place returned has NO geometry or GPS coordinates");
+                            return;
+                        }
 
-                    setInputValue(landmarkName);
-                    onChange(landmarkName);
-                    onSelect(landmarkName, lng, lat);
-                });
+                        const lat = place.geometry.location.lat();
+                        const lng = place.geometry.location.lng();
+                        addLog(`📍 COORDINATES RESOLVED -> Lat: ${lat}, Lng: ${lng}`);
+
+                        const landmarkName = toTitleCase(place.name || "");
+                        setInputValue(landmarkName);
+                        onChange(landmarkName);
+                        onSelect(landmarkName, lng, lat);
+                    });
+                } catch (err: any) {
+                    addLog(`💥 INITIALIZATION EXCEPTION: ${err.message}`);
+                }
             }
         }
     }, [scriptLoaded, onChange, onSelect]);
 
     return (
-        <div className="flex flex-col gap-1 w-full">
+        <div className="flex flex-col gap-1 w-full border-2 border-amber-400 p-4 bg-amber-50/30 rounded-lg">
+            {/* --- DIAGNOSTIC HUD LAYER --- */}
+            <div className="bg-neutral-900 text-green-400 font-mono text-xs p-3 rounded mb-3 space-y-1 shadow-inner">
+                <p className="font-bold border-b border-neutral-700 pb-1 text-white text-[11px] uppercase tracking-wider flex justify-between">
+                    <span>🔍 Google Places Diagnostics HUD</span>
+                    <span className={scriptLoaded ? "text-emerald-400" : "text-rose-400"}>
+                        {scriptLoaded ? "● Connected" : "○ Disconnected"}
+                    </span>
+                </p>
+                <div className="grid grid-cols-2 gap-2 pt-1">
+                    <p>Google API Object: <span className="text-white">{scriptLoaded ? "AVAILABLE" : "MISSING"}</span></p>
+                    <p>Active `.pac-container` elements: <span className="text-white font-bold">{pacElementsFound}</span></p>
+                </div>
+                <div className="pt-2">
+                    <p className="text-neutral-400 text-[10px] uppercase font-bold">Event Timeline Feed:</p>
+                    <div className="max-h-24 overflow-y-auto space-y-0.5 mt-1 bg-neutral-950 p-1.5 rounded text-[11px]">
+                        {logs.length === 0 && <p className="text-neutral-600 italic">No events generated yet...</p>}
+                        {logs.map((log, i) => (
+                            <p key={i} className="truncate select-text">{log}</p>
+                        ))}
+                    </div>
+                </div>
+            </div>
+
             <div className="flex items-center justify-baseline">
                 <div className="w-full flex justify-between">
                     <label className="text-foreground text-sm font-medium">Nearest Landmark *</label>
@@ -105,13 +207,17 @@ function LandmarkAutocomplete({ value, onChange, onSelect, error, onBlur }: Land
                 type="text"
                 value={inputValue}
                 onChange={(e) => {
-                    const formatted = toTitleCase(e.target.value);
+                    setInputValue(e.target.value);
+                    onChange(e.target.value);
+                }}
+                onBlur={() => {
+                    const formatted = toTitleCase(inputValue);
                     setInputValue(formatted);
                     onChange(formatted);
+                    if (onBlur) onBlur();
                 }}
-                onBlur={onBlur}
                 placeholder="Search closest hotel, bank, fuel station, plaza..."
-                className={`${error ? 'border-[#B02817] ring-1 ring-[#B02817]/20' : 'border-neutral-700'} border rounded-sm h-11 outline-none p-3 text-base w-full font-medium bg-[#F9FBFF] focus:ring-2 focus:ring-primary/20 focus:border-primary`}
+                className={`${error ? 'border-[#B02817] ring-1 ring-[#B02817]/20' : 'border-neutral-700'} border rounded-sm h-11 outline-none p-3 text-base w-full font-medium bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary`}
             />
             <p className="text-[11px] text-neutral-800 mt-0.5">
                 Type to choose a nearby public location.
@@ -179,8 +285,8 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
     const coordinates = useWatch({ control, name: "location.coordinates" });
     const selectedState = useWatch({ control, name: "location.state" });
     
-    const latitude = coordinates?.[0] ?? 6.5244;
-    const longitude = coordinates?.[1] ?? 3.3792;
+    const latitude = coordinates?.[0] ?? 5.0377;
+    const longitude = coordinates?.[1] ?? 7.9128;
 
     const cityOptions = selectedState ? (nigeriaCitiesByState[selectedState] ?? []) : [];
 
@@ -189,7 +295,6 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
     }, [latitude, longitude]);
 
     const onSubmit = (data: LocationFormValues) => {
-        // Strict normalization transforms applied to values before backend communication layers execute
         const normalizedData: LocationListingData = {
             location: {
                 ...data.location,
@@ -234,9 +339,9 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
                                         placeholder="e.g. 14, Bassey Way"
                                         type="text"
                                         containerClass="w-full"
-                                        value={toTitleCase(field.value || "")}
-                                        onChange={(e: any) => field.onChange(toTitleCase(e.target.value))}
-                                        onBlur={field.onBlur}
+                                        value={field.value || ""}
+                                        onChange={(e: any) => field.onChange(e.target.value)}
+                                        onBlur={() => field.onChange(toTitleCase(field.value || ""))}
                                         error={getErrorMessage(externalErrors?.location?.address || errors.location?.address)}
                                     />
                                 )}
