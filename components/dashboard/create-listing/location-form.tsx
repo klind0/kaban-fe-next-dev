@@ -115,8 +115,13 @@ function LandmarkAutocomplete({ value, onChange, onSelect, error, onBlur }: Land
                 style.innerHTML = `
                     .pac-container {
                         z-index: 99999 !important;
-                        border: 3px solid #ff0055 !important; /* 🟥 FLASHING NEON BORDER TO VERIFY VISIBILITY */
-                        background-color: #ffffff !important;
+                        display: block !important; /* 🌟 FORCE GOOGLE TO IGNORE ITS DISPLAY:NONE INLINE RULE */
+                        visibility: visible !important;
+                        position: absolute !important;
+                        border-radius: 6px;
+                        box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+                        border: 1px solid #e5e7eb;
+                        font-family: inherit;
                     }
                 `;
                 document.head.appendChild(style);
