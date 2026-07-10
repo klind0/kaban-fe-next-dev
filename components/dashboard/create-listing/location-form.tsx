@@ -1,9 +1,7 @@
 "use client";
 
-import React, { useState, useMemo, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
-import Map, { MapRef, Source, Layer, NavigationControl } from "react-map-gl/mapbox";
-import "mapbox-gl/dist/mapbox-gl.css";
 import LandmarkAutocomplete from "./landmark-autocomplete";
 import FormControl from "@/components/universal/form-control";
 import { getErrorMessage } from "@/lib/getErrorMessage";
@@ -29,29 +27,6 @@ const toTitleCase = (str: string): string => {
         .join(" ");
 };
 
-const createGeoJsonCircle = (center: [number, number], radiusInKm: number, points: number = 64): any => {
-    const [lng, lat] = center;
-    const coordinatesList: [number, number][] = [];
-    const distanceX = radiusInKm / (111.32 * Math.cos((lat * Math.PI) / 180));
-    const distanceY = radiusInKm / 110.57;
-
-    for (let i = 0; i < points; i++) {
-        const theta = (i / points) * (2 * Math.PI);
-        const x = distanceX * Math.cos(theta);
-        const y = distanceY * Math.sin(theta);
-        coordinatesList.push([lng + x, lat + y]);
-    }
-    coordinatesList.push(coordinatesList[0]);
-
-    return {
-        type: "Feature",
-        geometry: {
-            type: "Polygon",
-            coordinates: [coordinatesList],
-        },
-    };
-};
-
 type Props = {
     onFormSubmit: (data: LocationListingData, submit: boolean) => Promise<void>;
     isPending: boolean;
@@ -59,17 +34,20 @@ type Props = {
     externalErrors?: any;
 };
 
-/* ==========================================
-   MAIN LOCATION FORM COMPONENT
-   ========================================== */
 export default function LocationForm({ onFormSubmit, isPending, onBack, externalErrors }: Props) {
     const addressBlockRef = useRef<HTMLDivElement>(null);
     const stateBlockRef = useRef<HTMLDivElement>(null);
     const cityBlockRef = useRef<HTMLDivElement>(null);
     const agreementBlockRef = useRef<HTMLDivElement>(null);
-    const mapRef = useRef<MapRef>(null);
+    
+    // Google Maps References
+    const mapContainerRef = useRef<HTMLDivElement>(null);
+    const mapInstanceRef = useRef<any>(null);
+    const circleInstanceRef = useRef<any>(null);
+
     const [scriptLoaded, setScriptLoaded] = useState(false);
 
+    // Track script loading state manually if the window object gets populated early
     useEffect(() => {
         const checkGoogle = () => {
             const googleObject = (window as any).google;
@@ -95,7 +73,7 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
                 city: "",
                 address: "",
                 landmark: "",
-                coordinates: [5.0377, 7.9128],
+                coordinates: [5.0377, 7.9128], // Default to Akwa Ibom/Uyo region
             },
             agreement: false,
         },
@@ -110,9 +88,48 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
 
     const cityOptions = selectedState ? (nigeriaCitiesByState[selectedState] ?? []) : [];
 
-    const circleGeoJson = useMemo(() => {
-        return createGeoJsonCircle([longitude, latitude], 0.6);
-    }, [latitude, longitude]);
+    // Sync state changes with native Google Map instances
+    useEffect(() => {
+        if (!scriptLoaded || !mapContainerRef.current) return;
+
+        const targetCenter = { lat: latitude, lng: longitude };
+
+        // 1. Initialize map view frame if not already active
+        if (!mapInstanceRef.current) {
+            const g = (window as any).google;
+            mapInstanceRef.current = new g.maps.Map(mapContainerRef.current, {
+                center: targetCenter,
+                zoom: 14,
+                disableDefaultUI: true,
+                zoomControl: true,
+                gestureHandling: "cooperative",
+                styles: [
+                    {
+                        featureType: "poi",
+                        elementType: "labels",
+                        stylers: [{ visibility: "off" }] // Strips clutter around business landmarks
+                    }
+                ]
+            });
+        }
+
+        // 2. Draw or dynamically translate the visual privacy overlay zone (600m)
+        if (circleInstanceRef.current) {
+            circleInstanceRef.current.setCenter(targetCenter);
+        } else {
+            const g = (window as any).google;
+            circleInstanceRef.current = new g.maps.Circle({
+                map: mapInstanceRef.current,
+                center: targetCenter,
+                radius: 600, 
+                strokeColor: "#006AFF",
+                strokeOpacity: 0.7,
+                strokeWeight: 1.5,
+                fillColor: "#006AFF",
+                fillOpacity: 0.12,
+            });
+        }
+    }, [scriptLoaded, latitude, longitude]);
 
     const onSubmit = (data: LocationFormValues) => {
         const normalizedData: LocationListingData = {
@@ -219,34 +236,12 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
 
                 <FormCard title="Map Viewport">
                     <div className="flex flex-col md:flex-row gap-6">
+                        {/* Native Google Map Frame Wrapper */}
                         <div className="w-full md:w-1/2 rounded-lg overflow-hidden min-h-60 relative border border-neutral-200">
-                            <Map
-                                key={`${latitude}-${longitude}`}
-                                ref={mapRef}
-                                mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
-                                initialViewState={{
-                                    longitude: longitude,
-                                    latitude: latitude,
-                                    zoom: 13,
-                                }}
+                            <div 
+                                ref={mapContainerRef} 
                                 style={{ width: "100%", height: "100%", minHeight: "260px" }}
-                                mapStyle="mapbox://styles/mapbox/streets-v12"
-                                scrollZoom={false}
-                            >
-                                <NavigationControl position="top-right" />
-                                <Source id="privacy-circle-source" type="geojson" data={circleGeoJson}>
-                                    <Layer
-                                        id="privacy-circle-fill"
-                                        type="fill"
-                                        paint={{ "fill-color": "#006AFF", "fill-opacity": 0.18 }}
-                                    />
-                                    <Layer
-                                        id="privacy-circle-outline"
-                                        type="line"
-                                        paint={{ "line-color": "#006AFF", "line-width": 2, "line-dasharray": [2, 2] }}
-                                    />
-                                </Source>
-                            </Map>
+                            />
                             <div className="absolute bottom-3 left-3 bg-white/95 backdrop-blur text-[10px] font-bold text-neutral-900 px-2 py-1 rounded shadow border pointer-events-none z-10">
                                 🔒 Exact property location hidden behind a neighborhood radius
                             </div>
@@ -265,7 +260,12 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
                                         onSelect={(landmarkName, lng, lat) => {
                                             setValue("location.landmark", landmarkName, { shouldValidate: true, shouldDirty: true });
                                             setValue("location.coordinates", [lat, lng], { shouldValidate: true });
-                                            mapRef.current?.flyTo({ center: [lng, lat], zoom: 13.5, duration: 1200 });
+                                            
+                                            // Handle smooth animation transitions natively
+                                            if (mapInstanceRef.current) {
+                                                mapInstanceRef.current.panTo({ lat, lng });
+                                                mapInstanceRef.current.setZoom(14.5);
+                                            }
                                         }}
                                         error={getErrorMessage(externalErrors?.location?.landmark || errors.location?.landmark)}
                                     />
@@ -294,7 +294,7 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
                     </div>
                 </FormCard>
 
-                {/* Agreement block */}
+                {/* Agreement Block */}
                 <div ref={agreementBlockRef} className="p-4 md:p-8 space-y-4 rounded-[10px] border border-neutral-600 scroll-mt-24">
                     <div className="flex items-center justify-between">
                         <h3 className="text-black text-2xl font-semibold">Agreement <span className="text-[#B02817]">*</span></h3>

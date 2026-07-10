@@ -312,7 +312,7 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm(
                                 </span>{" "}
                                 or drag and drop
                             </p>
-                            <p className="text-xs font-medium text-neutral-400">
+                            <p className="text-xs font-medium text-neutral-800">
                                 PNG, JPG (max 10 pictures total)
                             </p>
                         </div>
@@ -341,7 +341,7 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm(
                             />
                         )}
                     />
-                    <p className="text-xs text-neutral-500">
+                    <p className="text-xs text-neutral-800">
                         Example: https://www.youtube.com/watch?v=8T7SnBQDiuM
                     </p>
                 </div>
