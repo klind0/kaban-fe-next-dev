@@ -1,17 +1,19 @@
 "use client";
 
+import React, { useState, useMemo, useRef, useEffect, useCallback } from "react";
+import { Controller, useForm, useWatch } from "react-hook-form";
+import usePlacesAutocomplete, { getGeocode, getLatLng } from "use-places-autocomplete";
+import Map, { MapRef, Source, Layer, NavigationControl } from "react-map-gl/mapbox";
+import "mapbox-gl/dist/mapbox-gl.css";
+
 import FormControl from "@/components/universal/form-control";
 import { getErrorMessage } from "@/lib/getErrorMessage";
 import { IListing } from "@/types/listingTypes";
-import { Controller, useForm, useWatch } from "react-hook-form";
 import FormCard from "./form-card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import Map, { MapRef, Source, Layer, NavigationControl } from "react-map-gl/mapbox";
-import "mapbox-gl/dist/mapbox-gl.css";
 import { LocationListingData } from "@/network/listings";
 import { nigeriaCitiesByState, nigerianStates } from "@/lib/selectOptions";
-import React from "react";
 import Script from "next/script";
 
 type LocationFormValues = {
@@ -37,194 +39,122 @@ const toTitleCase = (str: string): string => {
         .join(" ");
 };
 
+/* ==========================================
+   HEADLESS LANDMARK AUTOCOMPLETE COMPONENT
+   ========================================== */
 function LandmarkAutocomplete({ value, onChange, onSelect, error, onBlur, scriptLoaded }: LandmarkAutocompleteProps) {
-    const inputRef = React.useRef<HTMLInputElement | null>(null);
-    const autocompleteRef = React.useRef<any>(null);
-    const isInitializedRef = React.useRef(false);
-    const [inputValue, setInputValue] = React.useState(value || "");
-    
-    // 🛠 DIAGNOSTIC LOGS STATE
-    const [logs, setLogs] = React.useState<string[]>([]);
-    const [pacElementsFound, setPacElementsFound] = React.useState<number>(0);
+    const {
+        ready,
+        value: textValue,
+        suggestions: { status, data },
+        setValue: setAutocompleteValue,
+        clearSuggestions,
+    } = usePlacesAutocomplete({
+        requestOptions: { componentRestrictions: { country: "ng" } },
+        debounce: 300,
+        cache: 86400,
+        initOnReady: scriptLoaded,
+    });
 
-    const addLog = React.useCallback((msg: string) => {
-        setLogs(prev => [`[${new Date().toLocaleTimeString()}] ${msg}`, ...prev.slice(0, 15)]);
-    }, []);
+    const [isFocused, setIsFocused] = useState(false);
+    const containerRef = useRef<HTMLDivElement>(null);
 
-    React.useEffect(() => {
+    // Sync input local text state when form context updates externally
+    useEffect(() => {
         if (value !== undefined) {
-            setInputValue(toTitleCase(value));
+            setAutocompleteValue(toTitleCase(value), false);
         }
-    }, [value]);
+    }, [value, setAutocompleteValue]);
 
-    // Monitor if Google drops its popup box (.pac-container) into the document layout root
-    React.useEffect(() => {
-        const checkDOMContainers = () => {
-            const elements = document.querySelectorAll('.pac-container');
-            setPacElementsFound(elements.length);
-            
-            if (elements.length > 0) {
-                elements.forEach((el: any, idx) => {
-                    const style = window.getComputedStyle(el);
-                    if (style.display === 'none') {
-                        if (!el.dataset.loggedHidden) {
-                            addLog(`⚠️ ALERT: .pac-container [idx:${idx}] injected but hidden via display:none`);
-                            el.dataset.loggedHidden = "true";
-                        }
-                    } else {
-                        if (el.dataset.loggedHidden) {
-                            addLog(`✨ .pac-container visible layout changes detected! Height: ${style.height}`);
-                            delete el.dataset.loggedHidden;
-                        }
-                    }
-                });
+    // Close layout suggestions list smoothly on clicking outside
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+                setIsFocused(false);
             }
         };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
 
-        const domInterval = setInterval(checkDOMContainers, 1000);
-        return () => clearInterval(domInterval);
-    }, [addLog]);
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setAutocompleteValue(e.target.value);
+        onChange(e.target.value);
+    };
 
-    // Inject styles only once on layout mount
-    React.useEffect(() => {
-        if (typeof window !== "undefined") {
-            const styleId = "google-autocomplete-z-index-override";
-            if (!document.getElementById(styleId)) {
-                addLog("Injecting structural z-index styles into document header...");
-                const style = document.createElement("style");
-                style.id = styleId;
-                style.innerHTML = `
-                    .pac-container {
-                        z-index: 99999 !important;
-                        display: block !important;
-                        visibility: visible !important;
-                        height: auto !important;
-                        max-height: 250px !important;
-                        overflow-y: auto !important;
-                        position: absolute !important;
-                        background-color: #ffffff !important;
-                        border: 1px solid #e5e7eb !important;
-                        box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1) !important;
-                        font-family: inherit;
-                    }
-                    .pac-item {
-                        padding: 8px 12px !important;
-                        cursor: pointer !important;
-                    }
-                    .pac-item:hover {
-                        background-color: #f3f4f6 !important;
-                    }
-                `;
-                document.head.appendChild(style);
-            }
-        }
-    }, [addLog]);
+    const handleSelectPrediction = (prediction: google.maps.places.AutocompletePrediction) => {
+        const titleCasedName = toTitleCase(prediction.structured_formatting.main_text);
+        
+        // Update fields locally, bypass drop-down updates, close menu
+        setAutocompleteValue(titleCasedName, false);
+        onChange(titleCasedName);
+        clearSuggestions();
+        setIsFocused(false);
 
-    // Bind Auto-Complete listener engine strictly ONCE
-    React.useEffect(() => {
-        if (typeof window !== "undefined" && inputRef.current && scriptLoaded) {
-            const googleObject = (window as any).google;
-            if (!googleObject?.maps?.places) return;
-
-            if (isInitializedRef.current) return;
-
-            try {
-                addLog("Initializing Google Autocomplete binding on input ref...");
-                autocompleteRef.current = new googleObject.maps.places.Autocomplete(inputRef.current, {
-                    componentRestrictions: { country: "ng" },
-                    fields: ["name", "geometry"],
-                });
-
-                inputRef.current.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter') e.preventDefault();
-                });
-
-                isInitializedRef.current = true;
-                addLog("Event listener attached. Waiting for selection triggers...");
-
-                autocompleteRef.current.addListener("place_changed", () => {
-                    addLog("⚡ place_changed event fired from Google API wrapper!");
-                    const place = autocompleteRef.current?.getPlace();
-                    
-                    if (!place) {
-                        addLog("❌ ERROR: place data returned completely blank");
-                        return;
-                    }
-                    addLog(`Selected Place Name: "${place.name}"`);
-
-                    if (!place.geometry || !place.geometry.location) {
-                        addLog("❌ ERROR: Place returned has NO geometry or GPS coordinates");
-                        return;
-                    }
-
-                    const lat = place.geometry.location.lat();
-                    const lng = place.geometry.location.lng();
-                    addLog(`📍 COORDINATES RESOLVED -> Lat: ${lat}, Lng: ${lng}`);
-
-                    const landmarkName = toTitleCase(place.name || "");
-                    setInputValue(landmarkName);
-                    onChange(landmarkName);
-                    onSelect(landmarkName, lng, lat);
-                });
-            } catch (err: any) {
-                addLog(`💥 INITIALIZATION EXCEPTION: ${err.message}`);
-            }
-        }
-    }, [scriptLoaded, addLog, onChange, onSelect]);
+        // Fetch precise coordinates safely using Geocoding service layer
+        getGeocode({ placeId: prediction.place_id })
+            .then((results) => getLatLng(results[0]))
+            .then(({ lat, lng }) => {
+                onSelect(titleCasedName, lng, lat);
+            })
+            .catch((err) => console.error("Spatial lookup failure:", err));
+    };
 
     return (
-        <div className="flex flex-col gap-1 w-full border-2 border-amber-400 p-4 bg-amber-50/30 rounded-lg">
-            {/* --- DIAGNOSTIC HUD LAYER --- */}
-            <div className="bg-neutral-900 text-green-400 font-mono text-xs p-3 rounded mb-3 space-y-1 shadow-inner">
-                <p className="font-bold border-b border-neutral-700 pb-1 text-white text-[11px] uppercase tracking-wider flex justify-between">
-                    <span>🔍 Google Places Diagnostics HUD</span>
-                    <span className={scriptLoaded ? "text-emerald-400" : "text-rose-400"}>
-                        {scriptLoaded ? "● Connected" : "○ Disconnected"}
-                    </span>
-                </p>
-                <div className="grid grid-cols-2 gap-2 pt-1">
-                    <p>Google API Object: <span className="text-white">{scriptLoaded ? "AVAILABLE" : "MISSING"}</span></p>
-                    <p>Active `.pac-container` elements: <span className="text-white font-bold">{pacElementsFound}</span></p>
-                </div>
-                <div className="pt-2">
-                    <p className="text-neutral-400 text-[10px] uppercase font-bold">Event Timeline Feed:</p>
-                    <div className="max-h-24 overflow-y-auto space-y-0.5 mt-1 bg-neutral-950 p-1.5 rounded text-[11px]">
-                        {logs.length === 0 && <p className="text-neutral-600 italic">No events generated yet...</p>}
-                        {logs.map((log, i) => (
-                            <p key={i} className="truncate select-text">{log}</p>
-                        ))}
-                    </div>
-                </div>
-            </div>
-
-            <div className="flex items-center justify-baseline">
-                <div className="w-full flex justify-between">
-                    <label className="text-foreground text-sm font-medium">Nearest Landmark *</label>
-                </div>
+        <div ref={containerRef} className="relative flex flex-col gap-1 w-full">
+            <div className="flex items-center justify-between">
+                <label className="text-foreground text-sm font-medium">Nearest Landmark *</label>
                 {error && (
-                    <span className="text-[#B02817] text-xs sm:text-sm whitespace-nowrap bg-red-50 px-2 py-0.5 rounded">{error}</span>
+                    <span className="text-[#B02817] text-xs sm:text-sm whitespace-nowrap bg-red-50 px-2 py-0.5 rounded">
+                        {error}
+                    </span>
                 )}
             </div>
+            
             <input
-                ref={inputRef}
                 type="text"
-                value={inputValue}
-                onChange={(e) => {
-                    setInputValue(e.target.value);
-                    onChange(e.target.value);
-                }}
+                value={textValue}
+                onChange={handleInputChange}
+                onFocus={() => setIsFocused(true)}
                 onBlur={() => {
-                    const formatted = toTitleCase(inputValue);
-                    setInputValue(formatted);
+                    const formatted = toTitleCase(textValue);
+                    setAutocompleteValue(formatted, false);
                     onChange(formatted);
                     if (onBlur) onBlur();
                 }}
+                disabled={!ready}
                 placeholder="Search closest hotel, bank, fuel station, plaza..."
-                className={`${error ? 'border-[#B02817] ring-1 ring-[#B02817]/20' : 'border-neutral-700'} border rounded-sm h-11 outline-none p-3 text-base w-full font-medium bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary`}
+                className={`${
+                    error ? "border-[#B02817] ring-1 ring-[#B02817]/20" : "border-neutral-700"
+                } border rounded-sm h-11 outline-none p-3 text-base w-full font-medium bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary`}
             />
             <p className="text-[11px] text-neutral-800 mt-0.5">
                 Type to choose a nearby public location.
             </p>
+
+            {/* Custom isolated UI predictions dropdown absolute layer wrapper */}
+            {isFocused && status === "OK" && (
+                <div className="absolute top-[72px] left-0 w-full bg-white border border-neutral-200 shadow-xl rounded-md z-[50] max-h-[240px] overflow-y-auto">
+                    {data.map((suggestion) => (
+                        <div
+                            key={suggestion.place_id}
+                            onMouseDown={(e) => {
+                                // Prevents onBlur from closing container prior to registering the selection click
+                                e.preventDefault();
+                            }}
+                            onClick={() => handleSelectPrediction(suggestion)}
+                            className="p-3 text-sm font-medium text-neutral-800 hover:bg-neutral-50 cursor-pointer border-b border-neutral-100 last:border-none transition-colors"
+                        >
+                            <span className="font-semibold text-black">
+                                {suggestion.structured_formatting.main_text}
+                            </span>{" "}
+                            <span className="text-xs text-neutral-500">
+                                {suggestion.structured_formatting.secondary_text}
+                            </span>
+                        </div>
+                    ))}
+                </div>
+            )}
         </div>
     );
 }
@@ -256,19 +186,21 @@ type Props = {
     onFormSubmit: (data: LocationListingData, submit: boolean) => Promise<void>;
     isPending: boolean;
     onBack: () => void;
-    externalErrors?: any; 
+    externalErrors?: any;
 };
 
+/* ==========================================
+   MAIN LOCATION FORM COMPONENT
+   ========================================== */
 export default function LocationForm({ onFormSubmit, isPending, onBack, externalErrors }: Props) {
-    const addressBlockRef = React.useRef<HTMLDivElement>(null);
-    const stateBlockRef = React.useRef<HTMLDivElement>(null);
-    const cityBlockRef = React.useRef<HTMLDivElement>(null);
-    const agreementBlockRef = React.useRef<HTMLDivElement>(null);
-    const mapRef = React.useRef<MapRef>(null);
-    const [scriptLoaded, setScriptLoaded] = React.useState(false);
+    const addressBlockRef = useRef<HTMLDivElement>(null);
+    const stateBlockRef = useRef<HTMLDivElement>(null);
+    const cityBlockRef = useRef<HTMLDivElement>(null);
+    const agreementBlockRef = useRef<HTMLDivElement>(null);
+    const mapRef = useRef<MapRef>(null);
+    const [scriptLoaded, setScriptLoaded] = useState(false);
 
-    // Dynamic verification logic pool to signal ready states safely
-    React.useEffect(() => {
+    useEffect(() => {
         const checkGoogle = () => {
             const googleObject = (window as any).google;
             if (googleObject?.maps?.places) {
@@ -293,7 +225,7 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
                 city: "",
                 address: "",
                 landmark: "",
-                coordinates: [5.0377, 7.9128], 
+                coordinates: [5.0377, 7.9128],
             },
             agreement: false,
         },
@@ -302,13 +234,13 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
 
     const coordinates = useWatch({ control, name: "location.coordinates" });
     const selectedState = useWatch({ control, name: "location.state" });
-    
+
     const latitude = coordinates?.[0] ?? 5.0377;
     const longitude = coordinates?.[1] ?? 7.9128;
 
     const cityOptions = selectedState ? (nigeriaCitiesByState[selectedState] ?? []) : [];
 
-    const circleGeoJson = React.useMemo(() => {
+    const circleGeoJson = useMemo(() => {
         return createGeoJsonCircle([longitude, latitude], 0.6);
     }, [latitude, longitude]);
 
@@ -318,7 +250,7 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
                 ...data.location,
                 address: toTitleCase(data.location.address),
                 landmark: toTitleCase(data.location.landmark),
-            }
+            },
         };
         onFormSubmit(normalizedData, true);
     };
@@ -339,7 +271,7 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
         <div>
             <Script
                 src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`}
-                strategy="lazyOnload"
+                strategy="afterInteractive"
                 onLoad={() => setScriptLoaded(true)}
             />
 
