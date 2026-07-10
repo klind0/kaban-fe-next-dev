@@ -1,11 +1,10 @@
 "use client";
 
-import React, { useState, useMemo, useRef, useEffect, useCallback } from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
-import usePlacesAutocomplete, { getGeocode, getLatLng } from "use-places-autocomplete";
 import Map, { MapRef, Source, Layer, NavigationControl } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
-
+import LandmarkAutocomplete from "./landmark-autocomplete";
 import FormControl from "@/components/universal/form-control";
 import { getErrorMessage } from "@/lib/getErrorMessage";
 import { IListing } from "@/types/listingTypes";
@@ -21,15 +20,6 @@ type LocationFormValues = {
     agreement: boolean;
 };
 
-type LandmarkAutocompleteProps = {
-    value: string;
-    onChange: (value: string) => void;
-    onSelect: (landmarkName: string, lng: number, lat: number) => void;
-    error?: string;
-    onBlur?: () => void;
-    scriptLoaded: boolean;
-};
-
 const toTitleCase = (str: string): string => {
     if (!str) return "";
     return str
@@ -38,131 +28,6 @@ const toTitleCase = (str: string): string => {
         .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
         .join(" ");
 };
-
-/* ==========================================
-   HEADLESS LANDMARK AUTOCOMPLETE COMPONENT
-   ========================================== */
-function LandmarkAutocomplete({ value, onChange, onSelect, error, onBlur, scriptLoaded }: LandmarkAutocompleteProps) {
-    const {
-        ready,
-        value: textValue,
-        suggestions: { status, data },
-        setValue: setAutocompleteValue,
-        clearSuggestions,
-        init,
-    } = usePlacesAutocomplete({
-        requestOptions: { componentRestrictions: { country: "ng" } },
-        debounce: 300,
-        cache: 86400,
-        initOnMount: false,
-    });
-
-    const [isFocused, setIsFocused] = useState(false);
-    const containerRef = useRef<HTMLDivElement>(null);
-
-    // Initialize hook when script loads
-    useEffect(() => {
-        if (scriptLoaded) {
-            init();
-        }
-    }, [scriptLoaded, init]);
-
-    // FIX: Only sync initial database value once on mount, or when explicitly changed externally
-    const isInitialSync = useRef(true);
-    useEffect(() => {
-        if (value && isInitialSync.current) {
-            setAutocompleteValue(toTitleCase(value), false);
-            isInitialSync.current = false; // Disable to allow normal typing
-        }
-    }, [value, setAutocompleteValue]);
-
-    // Smoothly handle clicking outside the suggestion area
-    useEffect(() => {
-        const handleClickOutside = (e: MouseEvent) => {
-            if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-                setIsFocused(false);
-            }
-        };
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
-
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        // Update both the underlying autocomplete engine and the parent form tracking
-        setAutocompleteValue(e.target.value, true); // 👈 passing true allows API fetching
-        onChange(e.target.value);
-    };
-
-    const handleSelectPrediction = (prediction: any) => {
-        const titleCasedName = toTitleCase(prediction.structured_formatting.main_text);
-        
-        setAutocompleteValue(titleCasedName, false);
-        onChange(titleCasedName);
-        clearSuggestions();
-        setIsFocused(false);
-
-        getGeocode({ placeId: prediction.place_id })
-            .then((results) => getLatLng(results[0]))
-            .then(({ lat, lng }) => {
-                onSelect(titleCasedName, lng, lat);
-            })
-            .catch((err) => console.error("Spatial lookup failure:", err));
-    };
-
-    return (
-        <div ref={containerRef} className="relative flex flex-col gap-1 w-full">
-            <div className="flex items-center justify-between">
-                <label className="text-foreground text-sm font-medium">Nearest Landmark *</label>
-                {error && (
-                    <span className="text-[#B02817] text-xs sm:text-sm whitespace-nowrap bg-red-50 px-2 py-0.5 rounded">
-                        {error}
-                    </span>
-                )}
-            </div>
-            
-            <input
-                type="text"
-                value={textValue}
-                onChange={handleInputChange}
-                onFocus={() => setIsFocused(true)}
-                onBlur={() => {
-                    const formatted = toTitleCase(textValue);
-                    setAutocompleteValue(formatted, false);
-                    onChange(formatted);
-                    if (onBlur) onBlur();
-                }}
-                disabled={!ready}
-                placeholder="Search closest hotel, bank, fuel station, plaza..."
-                className={`${
-                    error ? "border-[#B02817] ring-1 ring-[#B02817]/20" : "border-neutral-700"
-                } border rounded-sm h-11 outline-none p-3 text-base w-full font-medium bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary`}
-            />
-            <p className="text-[11px] text-neutral-800 mt-0.5">
-                Type to choose a nearby public location.
-            </p>
-
-            {isFocused && status === "OK" && (
-                <div className="absolute top-[72px] left-0 w-full bg-white border border-neutral-200 shadow-xl rounded-md z-[50] max-h-[240px] overflow-y-auto">
-                    {data.map((suggestion) => (
-                        <div
-                            key={suggestion.place_id}
-                            onMouseDown={(e) => e.preventDefault()}
-                            onClick={() => handleSelectPrediction(suggestion)}
-                            className="p-3 text-sm font-medium text-neutral-800 hover:bg-neutral-50 cursor-pointer border-b border-neutral-100 last:border-none transition-colors"
-                        >
-                            <span className="font-semibold text-black">
-                                {suggestion.structured_formatting.main_text}
-                            </span>{" "}
-                            <span className="text-xs text-neutral-500">
-                                {suggestion.structured_formatting.secondary_text}
-                            </span>
-                        </div>
-                    ))}
-                </div>
-            )}
-        </div>
-    );
-}
 
 const createGeoJsonCircle = (center: [number, number], radiusInKm: number, points: number = 64): any => {
     const [lng, lat] = center;
@@ -394,9 +259,8 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
                                 rules={{ required: "A nearby target landmark identification is required" }}
                                 render={({ field }) => (
                                     <LandmarkAutocomplete
-                                        value={field.value}
+                                        value={field.value || ""}
                                         onChange={field.onChange}
-                                        onBlur={field.onBlur}
                                         scriptLoaded={scriptLoaded}
                                         onSelect={(landmarkName, lng, lat) => {
                                             setValue("location.landmark", landmarkName, { shouldValidate: true, shouldDirty: true });
