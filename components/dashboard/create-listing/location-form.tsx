@@ -49,15 +49,23 @@ function LandmarkAutocomplete({ value, onChange, onSelect, error, onBlur, script
         suggestions: { status, data },
         setValue: setAutocompleteValue,
         clearSuggestions,
+        init, // 👈 Extract the explicit init method
     } = usePlacesAutocomplete({
         requestOptions: { componentRestrictions: { country: "ng" } },
         debounce: 300,
         cache: 86400,
-        initOnReady: scriptLoaded,
+        initOnMount: false, // 👈 Turn off auto-initialization on mount
     });
 
     const [isFocused, setIsFocused] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
+
+    // ⚡ Trigger initialization safely when the script status changes to true
+    useEffect(() => {
+        if (scriptLoaded) {
+            init();
+        }
+    }, [scriptLoaded, init]);
 
     // Sync input local text state when form context updates externally
     useEffect(() => {
