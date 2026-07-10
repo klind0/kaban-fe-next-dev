@@ -25,9 +25,9 @@ type LandmarkAutocompleteProps = {
     onSelect: (landmarkName: string, lng: number, lat: number) => void;
     error?: string;
     onBlur?: () => void;
+    scriptLoaded: boolean;
 };
 
-// Global string formatting utility for pristine rendering
 const toTitleCase = (str: string): string => {
     if (!str) return "";
     return str
@@ -37,43 +37,25 @@ const toTitleCase = (str: string): string => {
         .join(" ");
 };
 
-function LandmarkAutocomplete({ value, onChange, onSelect, error, onBlur }: LandmarkAutocompleteProps) {
+function LandmarkAutocomplete({ value, onChange, onSelect, error, onBlur, scriptLoaded }: LandmarkAutocompleteProps) {
     const inputRef = React.useRef<HTMLInputElement | null>(null);
     const autocompleteRef = React.useRef<any>(null);
+    const isInitializedRef = React.useRef(false);
     const [inputValue, setInputValue] = React.useState(value || "");
-    const [scriptLoaded, setScriptLoaded] = React.useState(false);
     
     // 🛠 DIAGNOSTIC LOGS STATE
     const [logs, setLogs] = React.useState<string[]>([]);
     const [pacElementsFound, setPacElementsFound] = React.useState<number>(0);
 
-    const addLog = (msg: string) => {
+    const addLog = React.useCallback((msg: string) => {
         setLogs(prev => [`[${new Date().toLocaleTimeString()}] ${msg}`, ...prev.slice(0, 15)]);
-    };
+    }, []);
 
     React.useEffect(() => {
         if (value !== undefined) {
             setInputValue(toTitleCase(value));
         }
     }, [value]);
-
-    // Track if Google Script object is actually accessible in the window context
-    React.useEffect(() => {
-        addLog("Checking window.google object availability...");
-        const checkGoogle = () => {
-            const googleObject = (window as any).google;
-            if (googleObject?.maps?.places) {
-                addLog("✅ SUCCESS: window.google.maps.places loaded perfectly!");
-                setScriptLoaded(true);
-                clearInterval(interval);
-            } else {
-                addLog("...still looking for window.google.maps.places mapping object");
-            }
-        };
-        const interval = setInterval(checkGoogle, 1000);
-        checkGoogle();
-        return () => clearInterval(interval);
-    }, []);
 
     // Monitor if Google drops its popup box (.pac-container) into the document layout root
     React.useEffect(() => {
@@ -84,16 +66,14 @@ function LandmarkAutocomplete({ value, onChange, onSelect, error, onBlur }: Land
             if (elements.length > 0) {
                 elements.forEach((el: any, idx) => {
                     const style = window.getComputedStyle(el);
-                    // Log visibility vectors to confirm if layout engine is compressing it away
                     if (style.display === 'none') {
                         if (!el.dataset.loggedHidden) {
                             addLog(`⚠️ ALERT: .pac-container [idx:${idx}] injected but hidden via display:none`);
                             el.dataset.loggedHidden = "true";
                         }
                     } else {
-                        // Confirm active location vectors
                         if (el.dataset.loggedHidden) {
-                            addLog(`✨ .pac-container visible layout changes detected! Height: ${style.height}, Top: ${style.top}, Left: ${style.left}`);
+                            addLog(`✨ .pac-container visible layout changes detected! Height: ${style.height}`);
                             delete el.dataset.loggedHidden;
                         }
                     }
@@ -103,8 +83,9 @@ function LandmarkAutocomplete({ value, onChange, onSelect, error, onBlur }: Land
 
         const domInterval = setInterval(checkDOMContainers, 1000);
         return () => clearInterval(domInterval);
-    }, []);
+    }, [addLog]);
 
+    // Inject styles only once on layout mount
     React.useEffect(() => {
         if (typeof window !== "undefined") {
             const styleId = "google-autocomplete-z-index-override";
@@ -115,64 +96,81 @@ function LandmarkAutocomplete({ value, onChange, onSelect, error, onBlur }: Land
                 style.innerHTML = `
                     .pac-container {
                         z-index: 99999 !important;
-                        display: block !important; /* 🌟 FORCE GOOGLE TO IGNORE ITS DISPLAY:NONE INLINE RULE */
+                        display: block !important;
                         visibility: visible !important;
+                        height: auto !important;
+                        max-height: 250px !important;
+                        overflow-y: auto !important;
                         position: absolute !important;
-                        border-radius: 6px;
-                        box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-                        border: 1px solid #e5e7eb;
+                        background-color: #ffffff !important;
+                        border: 1px solid #e5e7eb !important;
+                        box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1) !important;
                         font-family: inherit;
+                    }
+                    .pac-item {
+                        padding: 8px 12px !important;
+                        cursor: pointer !important;
+                    }
+                    .pac-item:hover {
+                        background-color: #f3f4f6 !important;
                     }
                 `;
                 document.head.appendChild(style);
             }
         }
-    }, []);
+    }, [addLog]);
 
+    // Bind Auto-Complete listener engine strictly ONCE
     React.useEffect(() => {
         if (typeof window !== "undefined" && inputRef.current && scriptLoaded) {
             const googleObject = (window as any).google;
             if (!googleObject?.maps?.places) return;
 
-            if (!autocompleteRef.current) {
-                try {
-                    addLog("Initializing Google Autocomplete binding on input ref...");
-                    autocompleteRef.current = new googleObject.maps.places.Autocomplete(inputRef.current, {
-                        componentRestrictions: { country: "ng" },
-                        fields: ["name", "geometry"],
-                    });
+            if (isInitializedRef.current) return;
 
-                    addLog("Event listener attached. Waiting for selection triggers...");
-                    autocompleteRef.current.addListener("place_changed", () => {
-                        addLog("⚡ place_changed event fired from Google API wrapper!");
-                        const place = autocompleteRef.current?.getPlace();
-                        
-                        if (!place) {
-                            addLog("❌ ERROR: place data returned completely blank");
-                            return;
-                        }
-                        addLog(`Selected Place Name: "${place.name}"`);
+            try {
+                addLog("Initializing Google Autocomplete binding on input ref...");
+                autocompleteRef.current = new googleObject.maps.places.Autocomplete(inputRef.current, {
+                    componentRestrictions: { country: "ng" },
+                    fields: ["name", "geometry"],
+                });
 
-                        if (!place.geometry || !place.geometry.location) {
-                            addLog("❌ ERROR: Place returned has NO geometry or GPS coordinates");
-                            return;
-                        }
+                inputRef.current.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') e.preventDefault();
+                });
 
-                        const lat = place.geometry.location.lat();
-                        const lng = place.geometry.location.lng();
-                        addLog(`📍 COORDINATES RESOLVED -> Lat: ${lat}, Lng: ${lng}`);
+                isInitializedRef.current = true;
+                addLog("Event listener attached. Waiting for selection triggers...");
 
-                        const landmarkName = toTitleCase(place.name || "");
-                        setInputValue(landmarkName);
-                        onChange(landmarkName);
-                        onSelect(landmarkName, lng, lat);
-                    });
-                } catch (err: any) {
-                    addLog(`💥 INITIALIZATION EXCEPTION: ${err.message}`);
-                }
+                autocompleteRef.current.addListener("place_changed", () => {
+                    addLog("⚡ place_changed event fired from Google API wrapper!");
+                    const place = autocompleteRef.current?.getPlace();
+                    
+                    if (!place) {
+                        addLog("❌ ERROR: place data returned completely blank");
+                        return;
+                    }
+                    addLog(`Selected Place Name: "${place.name}"`);
+
+                    if (!place.geometry || !place.geometry.location) {
+                        addLog("❌ ERROR: Place returned has NO geometry or GPS coordinates");
+                        return;
+                    }
+
+                    const lat = place.geometry.location.lat();
+                    const lng = place.geometry.location.lng();
+                    addLog(`📍 COORDINATES RESOLVED -> Lat: ${lat}, Lng: ${lng}`);
+
+                    const landmarkName = toTitleCase(place.name || "");
+                    setInputValue(landmarkName);
+                    onChange(landmarkName);
+                    onSelect(landmarkName, lng, lat);
+                });
+            } catch (err: any) {
+                addLog(`💥 INITIALIZATION EXCEPTION: ${err.message}`);
             }
         }
-    }, [scriptLoaded, onChange, onSelect]);
+    }, [scriptLoaded, addLog, onChange, onSelect]);
 
     return (
         <div className="flex flex-col gap-1 w-full border-2 border-amber-400 p-4 bg-amber-50/30 rounded-lg">
@@ -267,6 +265,21 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
     const cityBlockRef = React.useRef<HTMLDivElement>(null);
     const agreementBlockRef = React.useRef<HTMLDivElement>(null);
     const mapRef = React.useRef<MapRef>(null);
+    const [scriptLoaded, setScriptLoaded] = React.useState(false);
+
+    // Dynamic verification logic pool to signal ready states safely
+    React.useEffect(() => {
+        const checkGoogle = () => {
+            const googleObject = (window as any).google;
+            if (googleObject?.maps?.places) {
+                setScriptLoaded(true);
+                clearInterval(interval);
+            }
+        };
+        const interval = setInterval(checkGoogle, 1000);
+        checkGoogle();
+        return () => clearInterval(interval);
+    }, []);
 
     const {
         handleSubmit,
@@ -326,7 +339,8 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
         <div>
             <Script
                 src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`}
-                strategy="lazyOnload" 
+                strategy="lazyOnload"
+                onLoad={() => setScriptLoaded(true)}
             />
 
             <form onSubmit={handleSubmit(onSubmit, onFormError)} className="space-y-4 md:space-y-7.5 mt-8">
@@ -446,6 +460,7 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
                                         value={field.value}
                                         onChange={field.onChange}
                                         onBlur={field.onBlur}
+                                        scriptLoaded={scriptLoaded}
                                         onSelect={(landmarkName, lng, lat) => {
                                             setValue("location.landmark", landmarkName, { shouldValidate: true, shouldDirty: true });
                                             setValue("location.coordinates", [lat, lng], { shouldValidate: true });
