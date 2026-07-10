@@ -51,17 +51,16 @@ export default function LandmarkAutocomplete({ value, onChange, onSelect, error,
 
         const delayDebounceFn = setTimeout(async () => {
             try {
-                // Dynamically import the modern places module context
-                const { Place } = await (window as any).google.maps.importLibrary("places") as any;
+                // Fix: Import the entire library instance to keep the correct execution context
+                const placesLib = await (window as any).google.maps.importLibrary("places") as any;
                 
-                // typing via the global `google` namespace may not be available in the build
-                // environment, so use a loose any here for the request object
                 const request: any = {
                     input: inputValue,
                     componentRestrictions: { country: "ng" }, // Bound checks exclusively to Nigeria
                 };
 
-                const { predictions } = await Place.getAutocompletePredictions(request);
+                // Fix: Access the class method straight through the library namespace
+                const { predictions } = await placesLib.Place.getAutocompletePredictions(request);
 
                 if (predictions) {
                     const formatted: PredictionItem[] = predictions.map((p: any) => ({
@@ -75,7 +74,7 @@ export default function LandmarkAutocomplete({ value, onChange, onSelect, error,
             } catch (err) {
                 console.error("Autocomplete prediction retrieval failure:", err);
             }
-        }, 300); // Maintained your exact 300ms debounce layout
+        }, 300);
 
         return () => clearTimeout(delayDebounceFn);
     }, [inputValue, scriptLoaded]);
@@ -91,10 +90,10 @@ export default function LandmarkAutocomplete({ value, onChange, onSelect, error,
         if (!(window as any).google?.maps) return;
 
         try {
-            const { Place } = await (window as any).google.maps.importLibrary("places") as any;
+            // Fix: Applied the matching pattern here to safeguard geocoding instantiations
+            const placesLib = await (window as any).google.maps.importLibrary("places") as any;
             
-            // Modern alternative to legacy getGeocode/getLatLng structures
-            const placeInstance = new Place({
+            const placeInstance = new placesLib.Place({
                 id: s.placeId,
                 requestedFields: ["geometry.location"],
             });
