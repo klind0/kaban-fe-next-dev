@@ -49,32 +49,34 @@ function LandmarkAutocomplete({ value, onChange, onSelect, error, onBlur, script
         suggestions: { status, data },
         setValue: setAutocompleteValue,
         clearSuggestions,
-        init, // 👈 Extract the explicit init method
+        init,
     } = usePlacesAutocomplete({
         requestOptions: { componentRestrictions: { country: "ng" } },
         debounce: 300,
         cache: 86400,
-        initOnMount: false, // 👈 Turn off auto-initialization on mount
+        initOnMount: false,
     });
 
     const [isFocused, setIsFocused] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
 
-    // ⚡ Trigger initialization safely when the script status changes to true
+    // Initialize hook when script loads
     useEffect(() => {
         if (scriptLoaded) {
             init();
         }
     }, [scriptLoaded, init]);
 
-    // Sync input local text state when form context updates externally
+    // FIX: Only sync initial database value once on mount, or when explicitly changed externally
+    const isInitialSync = useRef(true);
     useEffect(() => {
-        if (value !== undefined) {
+        if (value && isInitialSync.current) {
             setAutocompleteValue(toTitleCase(value), false);
+            isInitialSync.current = false; // Disable to allow normal typing
         }
     }, [value, setAutocompleteValue]);
 
-    // Close layout suggestions list smoothly on clicking outside
+    // Smoothly handle clicking outside the suggestion area
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
             if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
@@ -86,20 +88,19 @@ function LandmarkAutocomplete({ value, onChange, onSelect, error, onBlur, script
     }, []);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setAutocompleteValue(e.target.value);
+        // Update both the underlying autocomplete engine and the parent form tracking
+        setAutocompleteValue(e.target.value, true); // 👈 passing true allows API fetching
         onChange(e.target.value);
     };
 
-    const handleSelectPrediction = (prediction: google.maps.places.AutocompletePrediction) => {
+    const handleSelectPrediction = (prediction: any) => {
         const titleCasedName = toTitleCase(prediction.structured_formatting.main_text);
         
-        // Update fields locally, bypass drop-down updates, close menu
         setAutocompleteValue(titleCasedName, false);
         onChange(titleCasedName);
         clearSuggestions();
         setIsFocused(false);
 
-        // Fetch precise coordinates safely using Geocoding service layer
         getGeocode({ placeId: prediction.place_id })
             .then((results) => getLatLng(results[0]))
             .then(({ lat, lng }) => {
@@ -140,16 +141,12 @@ function LandmarkAutocomplete({ value, onChange, onSelect, error, onBlur, script
                 Type to choose a nearby public location.
             </p>
 
-            {/* Custom isolated UI predictions dropdown absolute layer wrapper */}
             {isFocused && status === "OK" && (
                 <div className="absolute top-[72px] left-0 w-full bg-white border border-neutral-200 shadow-xl rounded-md z-[50] max-h-[240px] overflow-y-auto">
                     {data.map((suggestion) => (
                         <div
                             key={suggestion.place_id}
-                            onMouseDown={(e) => {
-                                // Prevents onBlur from closing container prior to registering the selection click
-                                e.preventDefault();
-                            }}
+                            onMouseDown={(e) => e.preventDefault()}
                             onClick={() => handleSelectPrediction(suggestion)}
                             className="p-3 text-sm font-medium text-neutral-800 hover:bg-neutral-50 cursor-pointer border-b border-neutral-100 last:border-none transition-colors"
                         >
