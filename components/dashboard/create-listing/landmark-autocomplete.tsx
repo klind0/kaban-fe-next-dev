@@ -1,4 +1,3 @@
-// components/dashboard/create-listing/landmark-autocomplete.tsx
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
@@ -24,6 +23,9 @@ export default function LandmarkAutocomplete({ value, onChange, onSelect, error,
     const [isFocused, setIsFocused] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
     const isInitialSync = useRef(true);
+    
+    // Track selections to prevent redundant queries right after clicking an option
+    const ignoreNextQueryRef = useRef(false);
     
     // Persistent instance references to prevent continuous allocation thrashing
     const autocompleteServiceRef = useRef<any>(null);
@@ -64,8 +66,11 @@ export default function LandmarkAutocomplete({ value, onChange, onSelect, error,
         }
 
         const delayDebounceFn = setTimeout(() => {
-            // Prevent search calls if the value matches the outer form state perfectly (avoids post-selection queries)
-            if (inputValue === value) return;
+            // Check against our selection flag instead of direct equality
+            if (ignoreNextQueryRef.current) {
+                ignoreNextQueryRef.current = false;
+                return;
+            }
 
             const request = {
                 input: inputValue,
@@ -91,11 +96,14 @@ export default function LandmarkAutocomplete({ value, onChange, onSelect, error,
         }, 300);
 
         return () => clearTimeout(delayDebounceFn);
-    }, [inputValue, scriptLoaded, value]);
+    }, [inputValue, scriptLoaded]); // Removed value dependency here to prevent extra resets
 
     const handleSelect = async (s: PredictionItem) => {
         const selectedName = s.mainText || s.description;
         
+        // Signal that the subsequent input synchronization should be ignored by the API call
+        ignoreNextQueryRef.current = true;
+
         // Immediately close down structural popups to avoid text-change race conditions
         setIsFocused(false);
         setSuggestions([]);
