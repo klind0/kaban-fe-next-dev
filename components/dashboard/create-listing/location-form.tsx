@@ -1,4 +1,3 @@
-// components/dashboard/create-listing/location-form.tsx
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
@@ -33,9 +32,10 @@ type Props = {
     isPending: boolean;
     onBack: () => void;
     externalErrors?: any;
+    initialData?: Partial<IListing["location"]>; // Added for Edit mode support
 };
 
-export default function LocationForm({ onFormSubmit, isPending, onBack, externalErrors }: Props) {
+export default function LocationForm({ onFormSubmit, isPending, onBack, externalErrors, initialData }: Props) {
     const addressBlockRef = useRef<HTMLDivElement>(null);
     const stateBlockRef = useRef<HTMLDivElement>(null);
     const cityBlockRef = useRef<HTMLDivElement>(null);
@@ -59,7 +59,6 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
             importLibrary("places")
         ])
         .then(() => {
-            console.log("✅ Diagnostic: Google Maps & Places libraries safely loaded via functional API.");
             setScriptLoaded(true);
         })
         .catch((err) => {
@@ -73,15 +72,18 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
         setValue,
         formState: { errors },
     } = useForm<LocationFormValues>({
+        // Fall back to initialData values if they are provided, otherwise use creation defaults
         defaultValues: {
             location: {
-                state: "",
-                city: "",
-                address: "",
-                landmark: "",
-                coordinates: [5.0377, 7.9128], // Default to Akwa Ibom/Uyo region
+                state: initialData?.state || "",
+                city: initialData?.city || "",
+                address: initialData?.address || "",
+                landmark: initialData?.landmark || "",
+                coordinates: initialData?.coordinates && initialData.coordinates.length === 2 
+                    ? initialData.coordinates 
+                    : [5.0377, 7.9128], 
             },
-            agreement: false,
+            agreement: !!initialData, // Automatically check agreement if it's an existing verified listing
         },
         mode: "onChange",
     });
@@ -102,11 +104,10 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
         const g = (window as any).google;
         if (!g || !g.maps) return;
 
-        // Initialize map view frame if not already active
         if (!mapInstanceRef.current) {
             mapInstanceRef.current = new g.maps.Map(mapContainerRef.current, {
                 center: targetCenter,
-                zoom: 14,
+                zoom: initialData ? 14.5 : 14, // Zoom slightly tighter if coordinates exist
                 disableDefaultUI: true,
                 zoomControl: true,
                 gestureHandling: "cooperative",
@@ -118,9 +119,11 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
                     }
                 ]
             });
+        } else {
+            // Smoothly pan map frame when editing or updates arrive
+            mapInstanceRef.current.panTo(targetCenter);
         }
 
-        // Draw or dynamically translate the visual privacy overlay zone (600m)
         if (circleInstanceRef.current) {
             circleInstanceRef.current.setCenter(targetCenter);
         } else {
@@ -135,7 +138,7 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
                 fillOpacity: 0.12,
             });
         }
-    }, [scriptLoaded, latitude, longitude]);
+    }, [scriptLoaded, latitude, longitude, initialData]);
 
     const onSubmit = (data: LocationFormValues) => {
         const normalizedData: LocationListingData = {
@@ -259,11 +262,6 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
                                         onSelect={(landmarkName, lng, lat) => {
                                             setValue("location.landmark", landmarkName, { shouldValidate: true, shouldDirty: true });
                                             setValue("location.coordinates", [lat, lng], { shouldValidate: true });
-                                            
-                                            if (mapInstanceRef.current) {
-                                                mapInstanceRef.current.panTo({ lat, lng });
-                                                mapInstanceRef.current.setZoom(14.5);
-                                            }
                                         }}
                                         error={getErrorMessage(externalErrors?.location?.landmark || errors.location?.landmark)}
                                     />
@@ -308,7 +306,7 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
                                 <Checkbox
                                     checked={field.value}
                                     onCheckedChange={field.onChange}
-                                    className={`mt-0.5 ${errors.agreement ? 'border-[#B02817] ring-1 ring-[#B02817]/20' : ''}`}
+                                    className={`mt-0.5 ${errors.agreement ? 'border-[#B02817]' : ''}`}
                                 />
                                 <span className="text-sm text-foreground">
                                     I consent that I am an authorized marketing representative of the above described real estate property.
@@ -321,7 +319,7 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
                 <div className="flex justify-end gap-3">
                     <Button variant="outline" type="button" className="md:min-w-30" onClick={onBack} disabled={isPending}>Previous</Button>
                     <Button type="submit" className="md:min-w-30" disabled={isPending}>
-                        {isPending ? 'Submitting...' : 'Submit'}
+                        {isPending ? 'Submitting...' : initialData ? 'Save Changes' : 'Submit'}
                     </Button>
                 </div>
             </form>

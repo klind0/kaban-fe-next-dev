@@ -246,7 +246,10 @@ export default function CreateListingScreen() {
                 />
                 
                 <div className={activeTab !== 'basic' ? 'hidden' : ''}>
-                    <BasicInformationForm ref={basicFormRef} onNext={handleBasicNext} />
+                    <BasicInformationForm 
+                        ref={basicFormRef} 
+                        onFormSubmit={handleBasicNext} 
+                    />
                 </div>
                 
                 <div className={activeTab !== 'media' ? 'hidden' : ''}>

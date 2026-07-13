@@ -19,8 +19,11 @@ import { BasicListingData } from "@/network/listings";
 import React from "react";
 
 type Props = {
-    onNext: (data: BasicListingData) => void;
-    externalErrors?: any; // Centralized validation errors injected from the parent screen
+    onFormSubmit: (data: BasicListingData) => void; // Aligned naming with wizard state engine callbacks
+    initialData?: Partial<IListing> | null;        // Injected polymorphic hydration state layer
+    onBack?: () => void;                           // Navigation safety escape fallback line
+    isPending?: boolean;                           // Layout locking state flag
+    externalErrors?: any;                          // Centralized validation errors injected from parent
 };
 
 export type BasicFormHandle = {
@@ -28,7 +31,7 @@ export type BasicFormHandle = {
 };
 
 const formatNumberWithCommas = (value: string | number) => {
-    if (!value) return "";
+    if (value === undefined || value === null || value === "") return "";
     const cleanValue = value.toString().replace(/\D/g, "");
     return cleanValue.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 };
@@ -39,7 +42,7 @@ const parseCommasToNumber = (value: string) => {
 };
 
 const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function BasicInformationForm(
-    { onNext, externalErrors }, 
+    { onFormSubmit, initialData, onBack, isPending, externalErrors }, 
     ref
 ) {
     // DOM references for custom components that bypass browser auto-focus mechanisms
@@ -54,34 +57,35 @@ const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function B
         setValue, 
         getValues 
     } = useForm<IListing>({
+        // Hydrate defaults gracefully from existing database entry values if in edit mode
         defaultValues: {
-            title: '',
-            status: 'rent',
-            property_category: '',
-            property_type: '',
-            description: '',
+            title: initialData?.title || '',
+            status: initialData?.status || 'rent',
+            property_category: initialData?.property_category || '',
+            property_type: initialData?.property_type || '',
+            description: initialData?.description || '',
             price: {
-                amount: 0,
-                per: ''
+                amount: initialData?.price?.amount ?? 0,
+                per: initialData?.price?.per || ''
             },
             details: {
-                bedroom: 0,
-                bathroom: 0,
-                living_room: 0,
-                land_area: '',
-                parking_space: 0,
-                furnished: false,
-                serviced: false,
-                newly_built: false,
-                total_floors: 0,
-                features: []
+                bedroom: initialData?.details?.bedroom ?? 0,
+                bathroom: initialData?.details?.bathroom ?? 0,
+                living_room: initialData?.details?.living_room ?? 0,
+                land_area: initialData?.details?.land_area || '',
+                parking_space: initialData?.details?.parking_space ?? 0,
+                furnished: initialData?.details?.furnished ?? false,
+                serviced: initialData?.details?.serviced ?? false,
+                newly_built: initialData?.details?.newly_built ?? false,
+                total_floors: initialData?.details?.total_floors ?? 0,
+                features: initialData?.details?.features || []
             },
         },
         mode: 'onChange'
     });
 
     const onSubmit = (data: IListing) => {
-        onNext({
+        onFormSubmit({
             title: data.title,
             status: data.status,
             property_category: data.property_category,
@@ -149,6 +153,7 @@ const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function B
                                 placeholder='Enter title'
                                 type='text'
                                 {...field}
+                                disabled={isPending}
                                 error={getErrorMessage(externalErrors?.title || errors.title)}
                             />
                         )}
@@ -169,6 +174,7 @@ const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function B
                                         placeholder='For sale, for rent'
                                         containerClass="w-full"
                                         {...field}
+                                        disabled={isPending}
                                         error={getErrorMessage(externalErrors?.status || errors.status)}
                                     />
                                 )}
@@ -193,6 +199,7 @@ const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function B
                                             field.onChange(e);
                                             setValue('property_type', '', { shouldValidate: true });
                                         }}
+                                        disabled={isPending}
                                         error={getErrorMessage(externalErrors?.property_category || errors.property_category)}
                                     />
                                 )}
@@ -213,7 +220,7 @@ const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function B
                                         placeholder={selectedCategory ? 'Select property type' : 'Select a category first'}
                                         containerClass="w-full"
                                         {...field}
-                                        disabled={!selectedCategory}
+                                        disabled={!selectedCategory || isPending}
                                         error={getErrorMessage(externalErrors?.property_type || errors.property_type)}
                                     />
                                 )}
@@ -231,6 +238,7 @@ const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function B
                                 placeholder='Brief description of the property'
                                 containerClass="w-full"
                                 {...field}
+                                disabled={isPending}
                                 error={getErrorMessage(externalErrors?.description || errors.description)}
                             />
                         )}
@@ -273,6 +281,7 @@ const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function B
                                     const numericValue = parseCommasToNumber(rawValue);
                                     onChange(numericValue);
                                 }}
+                                disabled={isPending}
                                 {...restField}
                                 error={getErrorMessage(externalErrors?.price?.amount || errors.price?.amount)}
                             />
@@ -289,6 +298,7 @@ const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function B
                                 placeholder='Per annum, per month, etc'
                                 containerClass="w-full"
                                 {...field}
+                                disabled={isPending}
                                 error={getErrorMessage(externalErrors?.price?.per || errors.price?.per)}
                             />
                         )}
@@ -313,6 +323,7 @@ const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function B
                                     {...field}
                                     value={String(field.value ?? '')}
                                     onChange={(val) => field.onChange(Number(val) || 0)}
+                                    disabled={isPending}
                                     error={getErrorMessage(externalErrors?.details?.bedroom || errors.details?.bedroom)}
                                 />
                             )}
@@ -330,6 +341,7 @@ const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function B
                                     {...field}
                                     value={String(field.value ?? '')}
                                     onChange={(val) => field.onChange(Number(val) || 0)}
+                                    disabled={isPending}
                                     error={getErrorMessage(externalErrors?.details?.bathroom || errors.details?.bathroom)}
                                 />
                             )}
@@ -347,6 +359,7 @@ const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function B
                                     {...field}
                                     value={String(field.value ?? '')}
                                     onChange={(val) => field.onChange(Number(val) || 0)}
+                                    disabled={isPending}
                                     error={getErrorMessage(externalErrors?.details?.parking_space || errors.details?.parking_space)}
                                 />
                             )}
@@ -363,6 +376,7 @@ const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function B
                                     placeholder='Your land area in sqm, acres, etc'
                                     containerClass="w-full"
                                     {...field}
+                                    disabled={isPending}
                                     error={getErrorMessage(externalErrors?.details?.land_area || errors.details?.land_area)}
                                 />
                             )}
@@ -380,6 +394,7 @@ const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function B
                                     {...field}
                                     value={String(field.value ?? '')}
                                     onChange={(val) => field.onChange(Number(val) || 0)}
+                                    disabled={isPending}
                                     error={getErrorMessage(externalErrors?.details?.living_room || errors.details?.living_room)}
                                 />
                             )}
@@ -411,6 +426,7 @@ const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function B
                                         <Checkbox
                                             checked={allSelected}
                                             onCheckedChange={toggleAll}
+                                            disabled={isPending}
                                         />
                                         <span className="text-sm font-medium">Select all</span>
                                     </label>
@@ -420,6 +436,7 @@ const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function B
                                                 <Checkbox
                                                     checked={selected.includes(feature.value)}
                                                     onCheckedChange={() => toggle(feature.value)}
+                                                    disabled={isPending}
                                                 />
                                                 <span className="text-sm">{feature.label}</span>
                                             </label>
@@ -433,8 +450,22 @@ const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function B
             </FormCard>
 
             <div className="flex justify-end gap-3">
-                <Button variant={'outline'} type="button" className="md:min-w-30">Cancel</Button>
-                <Button type="submit" className="md:min-w-30">Next</Button>
+                <Button 
+                    variant={'outline'} 
+                    type="button" 
+                    className="md:min-w-30"
+                    onClick={onBack}
+                    disabled={isPending}
+                >
+                    Cancel
+                </Button>
+                <Button 
+                    type="submit" 
+                    className="md:min-w-30"
+                    disabled={isPending}
+                >
+                    Next
+                </Button>
             </div>
         </form>
     );

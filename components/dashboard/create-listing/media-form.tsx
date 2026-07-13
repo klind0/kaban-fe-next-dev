@@ -18,9 +18,12 @@ type MediaFormValues = {
 };
 
 type Props = {
-    onNext: (data: MediaListingData) => void;
+    onNext?: (data: MediaListingData) => void;       // For creation wizard flow
+    onFormSubmit?: (data: MediaListingData) => void; // Standardized framework callback
     onBack: () => void;
-    initialData?: Partial<MediaListingData>;
+    isPending?: boolean;                             // Controls button mutation loaders
+    initialData?: Partial<MediaListingData> | any;   // Handles editing pre-fills
+    externalErrors?: any;                            // 🚀 ADD THIS LINE TO FIX THE TYPE ERROR
 };
 
 export type MediaFormHandle = {
@@ -28,10 +31,13 @@ export type MediaFormHandle = {
 };
 
 const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm(
-    { onNext, onBack, initialData },
+    { onNext, onFormSubmit, onBack, isPending = false, initialData },
     ref
 ) {
     const MAX_IMAGES = 10;
+
+    // Normalizes schema variations depending on how your backend branch structure passes media attachments
+    const prefilledImages = initialData?.images || initialData?.media_urls || [];
 
     const {
         handleSubmit,
@@ -43,7 +49,7 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm(
         getValues,
     } = useForm<MediaFormValues>({
         defaultValues: {
-            images: initialData?.images || [],
+            images: prefilledImages,
             cover_index: initialData?.cover_index || 0,
             video_url: initialData?.video_url || "",
         },
@@ -58,13 +64,13 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm(
     const inputRef = React.useRef<HTMLInputElement>(null);
     const scrollRef = React.useRef<HTMLDivElement>(null);
 
-    // Dynamic generation of client memory paths for local files or URLs
+    // Dynamic generation of client memory paths for local files or hosting server URLs
     React.useEffect(() => {
         const objectUrls = watchedImages.map((img) => {
             if (img instanceof File) {
                 return URL.createObjectURL(img);
             }
-            return img; // Already a secure remote URL string
+            return img; // Already a secure remote cloud URL string
         });
 
         setPreviews(objectUrls);
@@ -124,7 +130,6 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm(
                 return;
             }
 
-            // Append incoming files instantly into memory for multipart compilation
             const incomingFilesArray = Array.from(incoming);
             console.log("📸 Frontend Files Selected:", incomingFilesArray.map(f => ({
                 name: f.name,
@@ -133,7 +138,7 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm(
             })));
             const mergedAssets = [...currentAssets, ...incomingFilesArray];
 
-            setValue("images", mergedAssets, { shouldValidate: true });
+            setValue("images", mergedAssets, { shouldValidate: true, shouldDirty: true });
             clearErrors("images");
         },
         [setValue, clearErrors, setError, getValues]
@@ -144,7 +149,7 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm(
         const currentAssets = getValues("images") || [];
         const nextAssets = currentAssets.filter((_, i) => i !== index);
 
-        setValue("images", nextAssets, { shouldValidate: true });
+        setValue("images", nextAssets, { shouldValidate: true, shouldDirty: true });
 
         if (nextAssets.length === 0) {
             setError("images", {
@@ -164,7 +169,7 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm(
 
     const setCover = (e: React.MouseEvent, index: number) => {
         e.stopPropagation();
-        setValue("cover_index", index);
+        setValue("cover_index", index, { shouldDirty: true });
     };
 
     const scrollRight = (e: React.MouseEvent) => {
@@ -186,23 +191,30 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm(
         const imagesPayload = [...data.images];
         let finalCoverIndex = data.cover_index;
 
-        // 🚀 Reorder: Move selected cover image to index [0] so the backend naturally treats it as primary
+        // Reorder: Move selected cover image to index [0] so the backend naturally treats it as primary
         if (finalCoverIndex > 0 && finalCoverIndex < imagesPayload.length) {
             const [selectedCoverAsset] = imagesPayload.splice(finalCoverIndex, 1);
             imagesPayload.unshift(selectedCoverAsset);
             finalCoverIndex = 0; // The cover is now at the absolute front
         }
 
-        onNext({
+        const normalizedPayload: MediaListingData = {
             images: imagesPayload as any,
             cover_index: finalCoverIndex,
             video_url: data.video_url,
-        });
+        };
+
+        // Fire whichever callback parameter is mounted by the current parent wizard route
+        if (onFormSubmit) {
+            onFormSubmit(normalizedPayload);
+        } else if (onNext) {
+            onNext(normalizedPayload);
+        }
     };
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 md:space-y-7.5 mt-8">
-            <FormCard title="Image">
+            <FormCard title="Media Uploads">
                 <div className="space-y-4">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <label className="text-foreground text-sm font-medium">
@@ -245,8 +257,9 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm(
                                             {/* Delete button */}
                                             <button
                                                 type="button"
+                                                disabled={isPending}
                                                 onClick={(e) => removeImage(e, i)}
-                                                className="absolute top-2 right-2 w-6 h-6 rounded-full bg-red-500 flex items-center justify-center z-10 hover:bg-red-600 transition-colors"
+                                                className="absolute top-2 right-2 w-6 h-6 rounded-full bg-red-500 flex items-center justify-center z-10 hover:bg-red-600 transition-colors disabled:opacity-50"
                                             >
                                                 <X size={12} className="text-white" />
                                             </button>
@@ -258,8 +271,9 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm(
                                             ) : (
                                                 <button
                                                     type="button"
+                                                    disabled={isPending}
                                                     onClick={(e) => setCover(e, i)}
-                                                    className="absolute bottom-2 left-2 bg-white hover:bg-white/70 text-foreground text-xs font-semibold px-3 py-1 rounded z-10 transition-colors"
+                                                    className="absolute bottom-2 left-2 bg-white hover:bg-white/70 text-foreground text-xs font-semibold px-3 py-1 rounded z-10 transition-colors disabled:opacity-50"
                                                 >
                                                     Set cover
                                                 </button>
@@ -284,17 +298,22 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm(
                     {/* Dropzone */}
                     <div
                         onDragOver={(e) => {
+                            if (isPending) return;
                             e.preventDefault();
                             setIsDragging(true);
                         }}
                         onDragLeave={() => setIsDragging(false)}
                         onDrop={(e) => {
+                            if (isPending) return;
                             e.preventDefault();
                             setIsDragging(false);
                             handleFiles(e.dataTransfer.files);
                         }}
-                        onClick={() => inputRef.current?.click()}
+                        onClick={() => {
+                            if (!isPending) inputRef.current?.click();
+                        }}
                         className={`border border-dashed rounded-2xl cursor-pointer py-10 flex flex-col items-center justify-center gap-3 transition-colors ${
+                            isPending ? "opacity-60 cursor-not-allowed border-neutral-300 bg-neutral-50" :
                             isDragging
                                 ? "border-primary bg-primary/5"
                                 : errors.images
@@ -321,6 +340,7 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm(
                             type="file"
                             accept="image/png,image/jpeg"
                             multiple
+                            disabled={isPending}
                             className="hidden"
                             onChange={(e) => handleFiles(e.target.files)}
                         />
@@ -336,6 +356,7 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm(
                                 as="input"
                                 type="url"
                                 labelText="Video URL"
+                                disabled={isPending}
                                 {...field}
                                 placeholder="Youtube, Vimeo"
                             />
@@ -352,11 +373,12 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm(
                         type="button"
                         className="md:min-w-30"
                         onClick={onBack}
+                        disabled={isPending}
                     >
                         Previous
                     </Button>
-                    <Button type="submit" className="md:min-w-30">
-                        Next
+                    <Button type="submit" className="md:min-w-30" disabled={isPending}>
+                        {isPending ? 'Saving...' : initialData ? 'Save Changes' : 'Next'}
                     </Button>
                 </div>
             </FormCard>

@@ -160,7 +160,7 @@ export default function LandmarkAutocomplete({ value, onChange, onSelect, error,
                                 {s.mainText}
                             </span>
                             {/* Clearer, Higher Contrast Subtext Address */}
-                            <span className="text-xs text-neutral-600 block leading-normal font-normal">
+                            <span className="text-xs text-neutral-900 block leading-normal font-normal">
                                 {s.secondaryText || s.description}
                             </span>
                         </li>
