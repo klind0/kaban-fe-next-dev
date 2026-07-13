@@ -138,10 +138,16 @@ export default function LandmarkAutocomplete({ value, onChange, onSelect, error,
                             key={s.placeId}
                             onMouseDown={(e) => e.preventDefault()}
                             onClick={() => handleSelect(s)}
-                            className="px-4 py-3 text-sm text-foreground hover:bg-neutral-100 cursor-pointer border-b border-neutral-100 last:border-0"
+                            className="px-4 py-2.5 hover:bg-neutral-100 cursor-pointer border-b border-neutral-100 last:border-0 flex flex-col items-start gap-0.5"
                         >
-                            <span className="font-semibold text-black">{s.mainText}</span>{" "}
-                            <span className="text-xs text-neutral-500">{s.secondaryText}</span>
+                            {/* Main Heading Text */}
+                            <span className="font-semibold text-neutral-900 text-sm block leading-tight">
+                                {s.mainText}
+                            </span>
+                            {/* Clearer, Higher Contrast Subtext Address */}
+                            <span className="text-xs text-neutral-600 block leading-normal font-normal">
+                                {s.secondaryText || s.description}
+                            </span>
                         </li>
                     ))}
                 </ul>
