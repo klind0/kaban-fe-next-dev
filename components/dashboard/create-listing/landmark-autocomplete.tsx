@@ -22,6 +22,10 @@ export default function LandmarkAutocomplete({ value, onChange, onSelect, error,
     const [isFocused, setIsFocused] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
     const isInitialSync = useRef(true);
+    
+    // Persistent instance references to prevent continuous allocation thrashing
+    const autocompleteServiceRef = useRef<any>(null);
+    const geocoderRef = useRef<any>(null);
 
     // Synchronize incoming initial default values cleanly
     useEffect(() => {
@@ -42,44 +46,48 @@ export default function LandmarkAutocomplete({ value, onChange, onSelect, error,
         return () => document.removeEventListener("mousedown", handler);
     }, []);
 
-    // Fetch autocomplete predictions using the new Places Library architecture
+    // Fetch autocomplete predictions safely using window namespace matching location-form.tsx loading
     useEffect(() => {
-        if (!scriptLoaded || !inputValue || inputValue.length < 3 || !(window as any).google?.maps) {
+        if (!scriptLoaded || !inputValue || inputValue.length < 3) {
             setSuggestions([]);
             return;
         }
 
-        const delayDebounceFn = setTimeout(async () => {
-            try {
-                // Fix: Import the entire library instance to keep the correct execution context
-                const placesLib = await (window as any).google.maps.importLibrary("places") as any;
-                
-                const request: any = {
-                    input: inputValue,
-                    componentRestrictions: { country: "ng" }, // Bound checks exclusively to Nigeria
-                };
+        const mapsObj = (window as any).google?.maps;
+        if (!mapsObj || !mapsObj.places) return;
 
-                // Fix: Access the class method straight through the library namespace
-                const { predictions } = await placesLib.Place.getAutocompletePredictions(request);
+        // Lazy load service singletons securely
+        if (!autocompleteServiceRef.current) {
+            autocompleteServiceRef.current = new mapsObj.places.AutocompleteService();
+        }
 
-                if (predictions) {
-                    const formatted: PredictionItem[] = predictions.map((p: any) => ({
-                        placeId: p.placeId,
-                        mainText: p.text.mainText?.toString() || "",
-                        secondaryText: p.text.secondaryText?.toString() || "",
-                        description: p.description,
-                    }));
-                    setSuggestions(formatted);
+        const delayDebounceFn = setTimeout(() => {
+            const request = {
+                input: inputValue,
+                componentRestrictions: { country: "ng" },
+            };
+
+            autocompleteServiceRef.current.getPlacePredictions(
+                request,
+                (predictions: any[], status: string) => {
+                    if (status === "OK" && predictions) {
+                        const formatted: PredictionItem[] = predictions.map((p) => ({
+                            placeId: p.place_id,
+                            mainText: p.structured_formatting?.main_text || "",
+                            secondaryText: p.structured_formatting?.secondary_text || "",
+                            description: p.description,
+                        }));
+                        setSuggestions(formatted);
+                    } else {
+                        setSuggestions([]);
+                    }
                 }
-            } catch (err) {
-                console.error("Autocomplete prediction retrieval failure:", err);
-            }
+            );
         }, 300);
 
         return () => clearTimeout(delayDebounceFn);
     }, [inputValue, scriptLoaded]);
 
-    // Handle user selection and extract precise coordinate offsets via Place class instances
     const handleSelect = async (s: PredictionItem) => {
         const selectedName = s.mainText || s.description;
         setInputValue(selectedName);
@@ -87,26 +95,22 @@ export default function LandmarkAutocomplete({ value, onChange, onSelect, error,
         setIsFocused(false);
         setSuggestions([]);
 
-        if (!(window as any).google?.maps) return;
+        const mapsObj = (window as any).google?.maps;
+        if (!mapsObj) return;
 
-        try {
-            // Fix: Applied the matching pattern here to safeguard geocoding instantiations
-            const placesLib = await (window as any).google.maps.importLibrary("places") as any;
-            
-            const placeInstance = new placesLib.Place({
-                id: s.placeId,
-                requestedFields: ["geometry.location"],
-            });
-
-            await placeInstance.fetchFields();
-
-            const location = placeInstance.location;
-            if (location) {
-                onSelect(selectedName, location.lng(), location.lat());
-            }
-        } catch (err) {
-            console.error("Geocoding coordinates resolution failure:", err);
+        if (!geocoderRef.current) {
+            geocoderRef.current = new mapsObj.Geocoder();
         }
+
+        // Resolving precise geometry details from the selection ID
+        geocoderRef.current.geocode({ placeId: s.placeId }, (results: any[], status: string) => {
+            if (status === "OK" && results?.[0]?.geometry?.location) {
+                const loc = results[0].geometry.location;
+                onSelect(selectedName, loc.lng(), loc.lat());
+            } else {
+                console.error("Geocoding coordinates resolution failure state:", status);
+            }
+        });
     };
 
     return (
