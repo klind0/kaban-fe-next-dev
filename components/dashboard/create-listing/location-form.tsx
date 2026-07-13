@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { LocationListingData } from "@/network/listings";
 import { nigeriaCitiesByState, nigerianStates } from "@/lib/selectOptions";
-import Script from "next/script";
+import { setOptions, importLibrary } from "@googlemaps/js-api-loader";
 
 type LocationFormValues = {
     location: IListing["location"];
@@ -48,19 +48,23 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
 
     const [scriptLoaded, setScriptLoaded] = useState(false);
 
-    // Diagnostics validation loop
+    // Modern Functional API Loader initialization
     useEffect(() => {
-        const checkGoogle = () => {
-            const googleObject = (window as any).google;
-            if (googleObject?.maps?.places) {
-                console.log("✅ Diagnostic: Google Maps Places library fully injected into window.");
-                setScriptLoaded(true);
-                clearInterval(interval);
-            }
-        };
-        const interval = setInterval(checkGoogle, 500);
-        checkGoogle();
-        return () => clearInterval(interval);
+        setOptions({
+            key: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
+        });
+
+        Promise.all([
+            importLibrary("maps"),
+            importLibrary("places")
+        ])
+        .then(() => {
+            console.log("✅ Diagnostic: Google Maps & Places libraries safely loaded via functional API.");
+            setScriptLoaded(true);
+        })
+        .catch((err) => {
+            console.error("❌ Error loading Google Maps via functional wrapper:", err);
+        });
     }, []);
 
     const {
@@ -95,10 +99,11 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
         if (!scriptLoaded || !mapContainerRef.current) return;
 
         const targetCenter = { lat: latitude, lng: longitude };
+        const g = (window as any).google;
+        if (!g || !g.maps) return;
 
         // Initialize map view frame if not already active
         if (!mapInstanceRef.current) {
-            const g = (window as any).google;
             mapInstanceRef.current = new g.maps.Map(mapContainerRef.current, {
                 center: targetCenter,
                 zoom: 14,
@@ -119,7 +124,6 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
         if (circleInstanceRef.current) {
             circleInstanceRef.current.setCenter(targetCenter);
         } else {
-            const g = (window as any).google;
             circleInstanceRef.current = new g.maps.Circle({
                 map: mapInstanceRef.current,
                 center: targetCenter,
@@ -158,16 +162,6 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
 
     return (
         <div>
-            <Script
-                id="google-maps-script"
-                src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`}
-                strategy="afterInteractive"
-                onLoad={() => {
-                    console.log("Script tag onload event triggered.");
-                    setScriptLoaded(true);
-                }}
-            />
-
             <form onSubmit={handleSubmit(onSubmit, onFormError)} className="space-y-4 md:space-y-7.5 mt-8">
                 <FormCard title="Location">
                     <div className="space-y-6">
@@ -180,7 +174,7 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
                                     <FormControl
                                         as="input"
                                         labelText="Street Address *"
-                                        placeholder="e.g. 14, Bassey Way"
+                                        placeholder="e.g. 14, Wellington-Bassey Way"
                                         type="text"
                                         containerClass="w-full"
                                         value={field.value || ""}
@@ -248,7 +242,7 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
                                 style={{ width: "100%", height: "100%", minHeight: "260px" }}
                             />
                             <div className="absolute bottom-3 left-3 bg-white/95 backdrop-blur text-[10px] font-bold text-neutral-900 px-2 py-1 rounded shadow border pointer-events-none z-10">
-                                🔒 Exact property location hidden behind a neighborhood radius
+                                🔒 Exact property location is hidden behind a neighborhood radius
                             </div>
                         </div>
 

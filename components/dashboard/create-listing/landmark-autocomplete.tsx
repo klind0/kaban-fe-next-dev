@@ -1,4 +1,6 @@
 // components/dashboard/create-listing/landmark-autocomplete.tsx
+"use client";
+
 import React, { useState, useEffect, useRef } from "react";
 
 type LandmarkAutocompleteProps = {
@@ -62,6 +64,9 @@ export default function LandmarkAutocomplete({ value, onChange, onSelect, error,
         }
 
         const delayDebounceFn = setTimeout(() => {
+            // Prevent search calls if the value matches the outer form state perfectly (avoids post-selection queries)
+            if (inputValue === value) return;
+
             const request = {
                 input: inputValue,
                 componentRestrictions: { country: "ng" },
@@ -86,14 +91,16 @@ export default function LandmarkAutocomplete({ value, onChange, onSelect, error,
         }, 300);
 
         return () => clearTimeout(delayDebounceFn);
-    }, [inputValue, scriptLoaded]);
+    }, [inputValue, scriptLoaded, value]);
 
     const handleSelect = async (s: PredictionItem) => {
         const selectedName = s.mainText || s.description;
-        setInputValue(selectedName);
-        onChange(selectedName);
+        
+        // Immediately close down structural popups to avoid text-change race conditions
         setIsFocused(false);
         setSuggestions([]);
+        setInputValue(selectedName);
+        onChange(selectedName);
 
         const mapsObj = (window as any).google?.maps;
         if (!mapsObj) return;
