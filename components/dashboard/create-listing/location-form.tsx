@@ -1,3 +1,4 @@
+// components/dashboard/create-listing/location-form.tsx
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
@@ -47,16 +48,17 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
 
     const [scriptLoaded, setScriptLoaded] = useState(false);
 
-    // Track script loading state manually if the window object gets populated early
+    // Diagnostics validation loop
     useEffect(() => {
         const checkGoogle = () => {
             const googleObject = (window as any).google;
             if (googleObject?.maps?.places) {
+                console.log("✅ Diagnostic: Google Maps Places library fully injected into window.");
                 setScriptLoaded(true);
                 clearInterval(interval);
             }
         };
-        const interval = setInterval(checkGoogle, 1000);
+        const interval = setInterval(checkGoogle, 500);
         checkGoogle();
         return () => clearInterval(interval);
     }, []);
@@ -94,7 +96,7 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
 
         const targetCenter = { lat: latitude, lng: longitude };
 
-        // 1. Initialize map view frame if not already active
+        // Initialize map view frame if not already active
         if (!mapInstanceRef.current) {
             const g = (window as any).google;
             mapInstanceRef.current = new g.maps.Map(mapContainerRef.current, {
@@ -107,13 +109,13 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
                     {
                         featureType: "poi",
                         elementType: "labels",
-                        stylers: [{ visibility: "off" }] // Strips clutter around business landmarks
+                        stylers: [{ visibility: "off" }]
                     }
                 ]
             });
         }
 
-        // 2. Draw or dynamically translate the visual privacy overlay zone (600m)
+        // Draw or dynamically translate the visual privacy overlay zone (600m)
         if (circleInstanceRef.current) {
             circleInstanceRef.current.setCenter(targetCenter);
         } else {
@@ -124,7 +126,7 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
                 radius: 600, 
                 strokeColor: "#006AFF",
                 strokeOpacity: 0.7,
-                strokeWeight: 1.5,
+                weight: 1.5,
                 fillColor: "#006AFF",
                 fillOpacity: 0.12,
             });
@@ -159,8 +161,11 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
             <Script
                 id="google-maps-script"
                 src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`}
-                strategy="beforeInteractive"
-                onLoad={() => setScriptLoaded(true)}
+                strategy="afterInteractive"
+                onLoad={() => {
+                    console.log("Script tag onload event triggered.");
+                    setScriptLoaded(true);
+                }}
             />
 
             <form onSubmit={handleSubmit(onSubmit, onFormError)} className="space-y-4 md:space-y-7.5 mt-8">
@@ -237,7 +242,6 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
 
                 <FormCard title="Map Viewport">
                     <div className="flex flex-col md:flex-row gap-6">
-                        {/* Native Google Map Frame Wrapper */}
                         <div className="w-full md:w-1/2 rounded-lg overflow-hidden min-h-60 relative border border-neutral-200">
                             <div 
                                 ref={mapContainerRef} 
@@ -262,7 +266,6 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
                                             setValue("location.landmark", landmarkName, { shouldValidate: true, shouldDirty: true });
                                             setValue("location.coordinates", [lat, lng], { shouldValidate: true });
                                             
-                                            // Handle smooth animation transitions natively
                                             if (mapInstanceRef.current) {
                                                 mapInstanceRef.current.panTo({ lat, lng });
                                                 mapInstanceRef.current.setZoom(14.5);
@@ -295,7 +298,6 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
                     </div>
                 </FormCard>
 
-                {/* Agreement Block */}
                 <div ref={agreementBlockRef} className="p-4 md:p-8 space-y-4 rounded-[10px] border border-neutral-600 scroll-mt-24">
                     <div className="flex items-center justify-between">
                         <h3 className="text-black text-2xl font-semibold">Agreement <span className="text-[#B02817]">*</span></h3>
