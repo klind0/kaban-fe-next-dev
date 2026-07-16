@@ -22,6 +22,27 @@ const tabOptions = [
 const TAB_ORDER = ['basic', 'media', 'location'] as const;
 type TabType = typeof TAB_ORDER[number];
 
+// Unified helper to execute requests securely against your GraphQL backend API
+async function fetchGraphQL(query: string, variables: Record<string, any> = {}) {
+    // If your app stores authentication tokens in localStorage/cookies, retrieve it here
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+
+    const response = await fetch("https://kaban-ai-be-graphql.onrender.com/api/graphql", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            ...(token ? { "Authorization": `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ query, variables }),
+    });
+
+    const resBody = await response.json();
+    if (resBody.errors) {
+        throw new Error(resBody.errors[0]?.message || "GraphQL mutation or query execution failure.");
+    }
+    return resBody.data;
+}
+
 export default function EditListingScreen() {
     const searchParams = useSearchParams();
     const router = useRouter();
@@ -41,38 +62,61 @@ export default function EditListingScreen() {
     
     const [liveLocationData, setLiveLocationData] = React.useState<any>(null);
 
-    // Initialized as null, then fully populated from your server query on mount
+    // Dynamic ref caching system matching your multi-step edit pipeline
     const draftRef = React.useRef<{
         basic: BasicListingData | null;
         media: MediaListingData | null;
     }>({ basic: null, media: null });
 
-    // 1. Fetch existing listing record data on component mount
+    // Fetch listing details securely using the new getListingForEdit resolver
     React.useEffect(() => {
         if (!listingId) return;
 
         async function fetchListingDetails() {
             try {
                 setIsLoading(true);
-                // Replace with your actual GraphQL or network route hook payload wrapper:
-                const response = await fetch(`/api/listings/${listingId}`);
-                if (!response.ok) throw new Error("Could not fetch database records.");
+
+                const query = `
+                    query GetListingForEdit($id: String!) {
+                        getListingForEdit(id: $id)
+                    }
+                `;
                 
-                const data = await response.json();
+                const data = await fetchGraphQL(query, { id: listingId });
+                const listing = data?.getListingForEdit;
+
+                if (!listing) {
+                    throw new Error("Listing payload empty or you do not have permission to view it.");
+                }
                 
-                // Hydrate our active ref tracking memory slots
-                draftRef.current.basic = data; 
+                // Map the JSON structure safely into form schemas
+                draftRef.current.basic = {
+                    title: listing.title,
+                    description: listing.description || "",
+                    property_category: listing.property_category,
+                    property_type: listing.property_type,
+                    status: listing.status,
+                    price: listing.price?.amount || listing.price || "",
+                } as any; 
+
+                // Extract image URLs safely from either a string array or a ListingImageResponse object array
+                const mappedImages = Array.isArray(listing.images)
+                    ? listing.images.map((img: any) => typeof img === 'string' ? img : img.url)
+                    : [];
+
                 draftRef.current.media = {
-                    images: data.images || data.media_urls || [],
-                    cover_index: data.cover_index || 0,
-                    video_url: data.video_url || "",
+                    images: mappedImages.length > 0 ? mappedImages : (listing.cover_image ? [listing.cover_image] : []),
+                    cover_index: listing.cover_index || 0,
+                    video_url: listing.video || listing.video_url || "",
                 };
+
                 setLiveLocationData({
-                    location: data.location
+                    location: listing.location || { address: "", state: "", city: "", landmark: "", coordinates: [5.0377, 7.9128] }
                 });
-            } catch (err) {
+
+            } catch (err: any) {
                 console.error("❌ Error running prefill execution:", err);
-                toast.error("Failed to load listing configuration details.");
+                toast.error(err.message || "Failed to load listing configuration details.");
             } finally {
                 setIsLoading(false);
             }
@@ -194,26 +238,36 @@ export default function EditListingScreen() {
 
         setIsPending(true);
         try {
-            // 🚀 Replaced createListing call with your edit save mutation request
-            const finalizedPayload = {
-                ...basic,
-                ...media,
-                ...data,
-                is_published: submit
+            const mutation = `
+                mutation UpdateListing($id: String!, $input: JSONObject!) {
+                    updateListing(id: $id, input: $input)
+                }
+            `;
+
+            // Pack form inputs perfectly to match the server's updateListing JSONObject expectations
+            const updateInput = {
+                title: basic.title,
+                description: basic.description,
+                property_category: basic.property_category,
+                property_type: basic.property_type,
+                status: basic.status,
+                price: typeof basic.price === 'object' ? basic.price : { amount: parseFloat(basic.price as any) },
+                video: media?.video_url || "",
+                location: {
+                    address: data.location?.address,
+                    state: data.location?.state,
+                    city: data.location?.city,
+                    landmark: data.location?.landmark,
+                    coordinates: data.location?.coordinates || [5.0377, 7.9128]
+                }
             };
 
-            const response = await fetch(`/api/listings/${listingId}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(finalizedPayload),
+            await fetchGraphQL(mutation, {
+                id: listingId,
+                input: updateInput
             });
-
-            if (!response.ok) {
-                const errData = await response.json();
-                throw new Error(errData?.message || "Failed to submit updates.");
-            }
             
-            toast.success(submit ? 'Listing updates published!' : 'Changes saved as draft!');
+            toast.success(submit ? 'Listing updates published successfully!' : 'Changes successfully saved as draft!');
             router.push('/dashboard');
             router.refresh();
         } catch (err: any) {
@@ -227,9 +281,9 @@ export default function EditListingScreen() {
     if (isLoading) {
         return (
             <DashboardPageContainer>
-                <div className="w-full min-h-[60vh] flex flex-col items-center justify-center gap-2 animate-pulse">
+                <div className="w-full min-h-[60vh] flex flex-col items-center justify-center gap-2">
                     <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-                    <p className="text-sm font-medium text-neutral-500">Loading original listing details...</p>
+                    <p className="text-sm font-medium text-neutral-500">Retrieving secure listing record...</p>
                 </div>
             </DashboardPageContainer>
         );
@@ -239,7 +293,7 @@ export default function EditListingScreen() {
         <>
             <DashboardNavbar pageTitle="Edit Listing">
                 <Button className="hidden md:inline-flex" onClick={() => handleLocationSubmit(liveLocationData, false)} disabled={isPending}>
-                    Save modifications
+                    {isPending ? "Saving..." : "Save edits"}
                 </Button>
             </DashboardNavbar>
             <DashboardPageContainer>
