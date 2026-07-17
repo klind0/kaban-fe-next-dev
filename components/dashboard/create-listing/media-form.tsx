@@ -64,6 +64,13 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm(
     const inputRef = React.useRef<HTMLInputElement>(null);
     const scrollRef = React.useRef<HTMLDivElement>(null);
 
+    // 🚀 Loop Protection: Convert array instances to a stable serialized primitive string
+    const imagesSignature = React.useMemo(() => {
+        return (watchedImages || [])
+            .map((img) => (img instanceof File ? `${img.name}-${img.size}` : img))
+            .join(",");
+    }, [watchedImages]);
+
     // Dynamic generation of client memory paths for local files or hosting server URLs
     React.useEffect(() => {
         const objectUrls = watchedImages.map((img) => {
@@ -83,7 +90,8 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm(
                 }
             });
         };
-    }, [watchedImages]);
+        // 🚀 Loop Protection: Hook runs only when the serialized string representation changes
+    }, [imagesSignature]);
 
     React.useImperativeHandle(
         ref,

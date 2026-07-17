@@ -107,7 +107,14 @@ export default function EditListingScreen() {
                 };
 
                 setLiveLocationData({
-                    location: listing.location || { address: "", state: "", city: "", landmark: "", coordinates: [5.0377, 7.9128] }
+                    // If no location exists, fallback to a pre-defined stable default object
+                    location: listing.location || { 
+                        address: "", 
+                        state: "", 
+                        city: "", 
+                        landmark: "", 
+                        coordinates: [5.0377, 7.9128] 
+                    }
                 });
 
             } catch (err: any) {
@@ -322,7 +329,7 @@ export default function EditListingScreen() {
                         onFormSubmit={handleLocationSubmit}
                         isPending={isPending}
                         onBack={() => handleTabChange('media')}
-                        initialData={liveLocationData?.location || undefined}
+                        initialData={liveLocationData?.location || undefined} // 🚀 Using safe optional chaining
                     />
                 </div>
             </DashboardPageContainer>
