@@ -45,6 +45,13 @@ async function fetchGraphQL(query: string, variables: Record<string, any> = {}) 
 }
 
 export default function EditListingScreen() {
+    // 🛠️ DIAGNOSTIC TRACKER START: Tracks renders to catch active loops immediately
+    const renderCount = React.useRef(0);
+    renderCount.current++;
+    console.log(`🔄 [DIAGNOSTIC] EditListingScreen has rendered: ${renderCount.current} times.`);
+    // 🛠️ DIAGNOSTIC TRACKER END
+
+
     const searchParams = useSearchParams();
     const router = useRouter();
     const params = useParams();

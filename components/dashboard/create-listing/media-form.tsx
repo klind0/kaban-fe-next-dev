@@ -34,6 +34,14 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm(
     { onNext, onFormSubmit, onBack, isPending = false, initialData },
     ref
 ) {
+    // ----------------------------------------------------
+    // 🔍 DIAGNOSTIC RENDER TRACKER
+    // ----------------------------------------------------
+    const renderCount = React.useRef(0);
+    renderCount.current++;
+    console.log(`🔄 [RENDER] MediaForm has rendered ${renderCount.current} times.`);
+    // ----------------------------------------------------
+
     const MAX_IMAGES = 10;
 
     // Normalizes schema variations depending on how your backend branch structure passes media attachments
@@ -70,6 +78,26 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm(
             .map((img) => (img instanceof File ? `${img.name}-${img.size}` : img))
             .join(",");
     }, [watchedImages]);
+
+    // ----------------------------------------------------
+    // 🔍 HOOK DEPENDENCY MUTATION DIAGNOSTICS
+    // ----------------------------------------------------
+    const previousDeps = React.useRef({ imagesSignature, initialData });
+    React.useEffect(() => {
+        const changes: Record<string, any> = {};
+        if (imagesSignature !== previousDeps.current.imagesSignature) {
+            changes.imagesSignature = { before: previousDeps.current.imagesSignature, after: imagesSignature };
+        }
+        if (initialData !== previousDeps.current.initialData) {
+            changes.initialData = { before: previousDeps.current.initialData, after: initialData };
+        }
+        
+        if (Object.keys(changes).length > 0) {
+            console.warn("⚡ [DIAGNOSTIC] MediaForm dependency values mutated:", changes);
+        }
+        previousDeps.current = { imagesSignature, initialData };
+    }, [imagesSignature, initialData]);
+    // ----------------------------------------------------
 
     // Dynamic generation of client memory paths for local files or hosting server URLs
     React.useEffect(() => {
