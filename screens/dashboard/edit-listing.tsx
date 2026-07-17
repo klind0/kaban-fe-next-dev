@@ -12,6 +12,7 @@ import { BasicListingData, LocationListingData, MediaListingData } from '@/netwo
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import React from 'react';
 import { toast } from 'sonner';
+import { getListingForEditAction } from '@/app/actions/listing-actions';
 
 const tabOptions = [
     { name: 'Basic', value: 'basic' },
@@ -76,20 +77,16 @@ export default function EditListingScreen() {
             try {
                 setIsLoading(true);
 
-                const query = `
-                    query GetListingForEdit($id: String!) {
-                        getListingForEdit(id: $id)
-                    }
-                `;
-                
-                const data = await fetchGraphQL(query, { id: listingId });
-                const listing = data?.getListingForEdit;
+                // 2. Execute secure Server Action (authentication handled natively by Next.js!)
+                const result = await getListingForEditAction(listingId);
 
-                if (!listing) {
-                    throw new Error("Listing payload empty or you do not have permission to view it.");
+                if (!result.success) {
+                    throw new Error(result.error);
                 }
+
+                const listing = result.listing;
                 
-                // Map the JSON structure safely into form schemas
+                // Map the prefill inputs
                 draftRef.current.basic = {
                     title: listing.title,
                     description: listing.description || "",
@@ -99,7 +96,6 @@ export default function EditListingScreen() {
                     price: listing.price?.amount || listing.price || "",
                 } as any; 
 
-                // Extract image URLs safely from either a string array or a ListingImageResponse object array
                 const mappedImages = Array.isArray(listing.images)
                     ? listing.images.map((img: any) => typeof img === 'string' ? img : img.url)
                     : [];
@@ -283,7 +279,7 @@ export default function EditListingScreen() {
             <DashboardPageContainer>
                 <div className="w-full min-h-[60vh] flex flex-col items-center justify-center gap-2">
                     <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-                    <p className="text-sm font-medium text-neutral-500">Retrieving secure listing record...</p>
+                    <p className="text-sm font-medium text-neutral-800">Retrieving secure listing record...</p>
                 </div>
             </DashboardPageContainer>
         );

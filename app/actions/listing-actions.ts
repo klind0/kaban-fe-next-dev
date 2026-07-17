@@ -74,6 +74,21 @@ export async function submitListingAction(id: string): Promise<unknown> {
   return data.submitListing;
 }
 
+export async function getListingForEditAction(id: string): Promise<any> {
+  try {
+    const query = `
+      query GetListingForEdit($id: String!) {
+        getListingForEdit(id: $id)
+      }
+    `;
+    const data = await serverGqlRequest<{ getListingForEdit: any }>(query, { id });
+    return { success: true, listing: data.getListingForEdit };
+  } catch (error: any) {
+    console.error("❌ Failed to fetch listing for edit:", error);
+    return { success: false, error: error?.message || "Failed to load listing." };
+  }
+}
+
 export async function uploadListingImagesAction(
   listingId: string,
   formData: FormData,
