@@ -35,6 +35,9 @@ async function fetchGraphQL(query: string, variables: Record<string, any> = {}) 
             ...(token ? { "Authorization": `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({ query, variables }),
+        // 🚀 THE FIX: Ensures cross-origin cookie storage context (like access tokens) 
+        // is preserved and sent alongside your existing Authorization bearer token.
+        credentials: "include",
     });
 
     const resBody = await response.json();
