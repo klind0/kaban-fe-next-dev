@@ -1,4 +1,4 @@
-import Share from "@/components/icons/share";
+    import Share from "@/components/icons/share";
 import Warning from "@/components/icons/warning";
 import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/formatPrice";
