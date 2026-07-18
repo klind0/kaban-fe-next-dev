@@ -17,8 +17,10 @@ import background from '@/app/assets/images/hero-bg.webp';
 import { QUERY_KEY } from '@/enum/queryKeys';
 import { gqlRequest } from '@/network/graphql-client';
 // 💡 CHANGE: We import a public query instead of a private dashboard query
-import { PUBLIC_SEARCH_LISTINGS_QUERY } from '@/network/gql/publicListings.ql'; 
+import { PUBLIC_LISTINGS_QUERY } from '@/network/gql/listings.ql'; 
 import { IListingResponse } from '@/types/listingTypes';
+import useResponsiveNav from '@/hooks/useResponsiveNav';
+import { IQueryParamsType } from '@/types/queryParamsType';
 
 type ResultsProps = {
 	initialSearchTerm?: string;
@@ -33,7 +35,7 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
 	const { data: searchData, isLoading } = useQuery({
 		queryKey: [QUERY_KEY.PUBLIC_LISTINGS, initialSearchTerm],
 		queryFn: () =>
-			gqlRequest<{ publicListings: IListingResponse }>(PUBLIC_SEARCH_LISTINGS_QUERY, {
+			gqlRequest<{ publicListings: IListingResponse }>(PUBLIC_LISTINGS_QUERY, {
 				filter: {
 					search: initialSearchTerm || "",
 					status: "APPROVED" // Ensure unapproved drafts don't leak out
@@ -120,8 +122,9 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
 					/>
 					
 					<SearchForm
-						className={`${stackOrder === 'map' && mediasize === 'mobile' ? 'opacity-0 invisible max-h-0' : ''}`}
-					/>
+                        className={`${stackOrder === 'map' && mediasize === 'mobile' ? 'opacity-0 invisible max-h-0' : ''}`} onSearchSubmit={function (filters: Partial<IQueryParamsType>): void {
+                            throw new Error('Function not implemented.');
+                        } }					/>
 				</div>
 
 				{/* Cards Dynamic View Engine */}

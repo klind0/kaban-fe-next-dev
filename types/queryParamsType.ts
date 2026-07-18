@@ -12,6 +12,10 @@ export interface IQueryParamsType {
   priceMax?: number;
   category?: "rent" | "sale";
   tab?: string;
+  radius?: number,
+  property_type?: string,
+  roomNo?: string,
+  price?: string,
+  min_price?: number,
+  max_price?: number,
 }
-
-// Add any additional query parameters as needed

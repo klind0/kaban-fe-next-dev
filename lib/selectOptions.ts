@@ -3,6 +3,18 @@ export const propertyStatusOptions = [
   { name: "For Sale", value: "sale" },
 ];
 
+export const tabOptions = [
+  { name: "For rent", value: "rent" }, // Fixed mapping to match query keys
+  { name: "For Sale", value: "sale" },
+];
+
+export const propertyCategoryOptions = [
+  { name: "Residential", value: "residential" },
+  { name: "Commercial", value: "commercial" },
+  { name: "Industrial", value: "industrial" },
+];
+
+// Your structured dynamic category map
 export const propertyTypeByCategory: Record<string, { name: string; value: string }[]> = {
   residential: [
     { name: "Self Contain", value: "Self Contain" },
@@ -30,46 +42,23 @@ export const propertyTypeByCategory: Record<string, { name: string; value: strin
   ],
 };
 
-export const propertyTypeGroupedOptions = [
-  {
-    group: "Residential",
-    options: [
-      { name: "Self-Contained", value: "residential-self-contained" },
-      { name: "Apartment", value: "residential-apartment" },
-      { name: "Terraced House", value: "residential-terraced" },
-    ],
-  },
-  {
-    group: "Commercial",
-    options: [
-      { name: "Self-Contained", value: "commercial-self-contained" },
-      { name: "Apartment", value: "commercial-apartment" },
-    ],
-  },
-];
-
-export const bedroomOptions = [
-  { name: "1", value: "1" },
-  { name: "2", value: "2" },
-  { name: "3", value: "3" },
-  { name: "4", value: "4" },
-  { name: "5", value: "5" },
-  { name: "5+", value: "5+" },
-];
-
-export const maxPriceOptions = [
-  { name: "₦50,000", value: "50000" },
-  { name: "₦100,000", value: "100000" },
-  { name: "₦200,000", value: "200000" },
-  { name: "₦500,000", value: "500000" },
-  { name: "₦1,000,000", value: "1000000" },
-  { name: "₦1,000,000+", value: "1000000+" },
-];
-
-export const propertyCategoryOptions = [
-  { name: "Residential", value: "residential" },
-  { name: "Commercial", value: "commercial" },
-  { name: "Industrial", value: "industrial" },
+// Fallbacks matching their local page select maps to prevent component breakage
+export const property_type = [
+  { name: "Apartment", value: "Apartment" },
+  { name: "Self-Contain", value: "Self Contain" },
+  { name: "Detached House", value: "Detached House" },
+  { name: "Terraced House", value: "Terrace house" },
+  { name: "Semi-detached House", value: "Semi-detached House" },
+  { name: "Factory", value: "Factory" },
+  { name: "Warehouse", value: "Warehouse" },
+  { name: "Show-room", value: "Showroom" },
+  { name: "Land", value: "Land" },
+  { name: "Shops", value: "Shop" },
+  { name: "Hotel", value: "Hotel" },
+  { name: "Office", value: "Office" },
+  { name: "School", value: "School" },
+  { name: "Restaurant", value: "Restaurant" },
+  { name: "Event Centre", value: "Event Centre" },
 ];
 
 export const featureOptions = [
@@ -89,6 +78,51 @@ export const featureOptions = [
   { label: "Laundry Room", value: "laundry-room" },
   { label: "Walk-in Closet", value: "walk-in-closet" },
   { label: "Family Room", value: "family-room" },
+];
+
+// Clone map matching their exact variable casing for structural safety
+export const otherFeatures = featureOptions.map(f => ({
+  title: f.label,
+  checked: false
+}));
+
+
+export const bedroomOptions = [
+  { name: "1", value: "1" },
+  { name: "2", value: "2" },
+  { name: "3", value: "3" },
+  { name: "4", value: "4" },
+  { name: "5", value: "5" },
+  { name: "5+", value: "5+" },
+];
+
+// Normalizing their raw arrays to use standard { name, value } matching yours
+export const bedroom = [{ name: "Bedroom", value: "" }, ...bedroomOptions];
+export const bathroom = [
+  { name: "Bathroom", value: "" },
+  { name: "1", value: "1" },
+  { name: "2", value: "2" },
+  { name: "3", value: "3" },
+  { name: "4", value: "4" },
+  { name: "5", value: "5" },
+];
+
+export const maxPriceOptions = [
+  { name: "₦50,000", value: "50000" },
+  { name: "₦100,000", value: "100000" },
+  { name: "₦200,000", value: "200000" },
+  { name: "₦500,000", value: "500000" },
+  { name: "₦1,000,000", value: "1000000" },
+  { name: "₦1,000,000+", value: "1000000+" },
+];
+
+export const priceRange = maxPriceOptions.map(p => ({ name: p.name.replace('₦',''), value: p.value }));
+
+export const sortOptions = [
+  { name: 'Default order', value: 'default' },
+  { name: 'Price Descending', value: 'price_desc' },
+  { name: 'Price Ascending', value: 'price_asc' },
+  { name: 'Featured listings first', value: 'featured' },
 ];
 
 export const priceSuffixOptions = [

@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Map } from '@/components/icons/map';
+import { MapIcon } from '@/components/icons/map';
 import { Grid } from '@/components/icons/grid';
 import { RowVertical } from '@/components/icons/row-vertical';
 import { SortIcon } from '@/components/icons/sortIcon';
@@ -81,7 +81,7 @@ export default function SwitchGroup({
 					onClick={onClick}
 					className="md:flex hidden items-center border-l border-neutral-200 pl-2 cursor-pointer"
 				>
-					<Map
+					<MapIcon
 						className={`w-10 h-6 transition-colors ${
 							!mapState ? 'text-primary' : 'text-neutral-400 hover:text-neutral-600'
 						}`}

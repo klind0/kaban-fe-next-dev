@@ -2,7 +2,7 @@
 
 import { Dispatch, SetStateAction } from 'react';
 import { Grid } from '@/components/icons/grid';
-import { Map } from '@/components/icons/map';
+import { MapIcon } from '@/components/icons/map';
 
 type ControlProps = {
   stackOrder: 'listings' | 'map';
@@ -42,7 +42,7 @@ export default function MobileMapControl({ stackOrder, setStackOrder, setMap }: 
         onClick={() => handleStackOrder('map')}
         className={`flex py-3 w-full gap-2.5 items-center hover:text-primary rounded-lg justify-center transition-colors ${mapActive}`}
       >
-        <Map className="w-5 h-5" />
+        <MapIcon className="w-5 h-5" />
         <span className="text-sm">Map View</span>
       </button>
     </div>
