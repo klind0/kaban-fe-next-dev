@@ -45,6 +45,11 @@ const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function B
     { onFormSubmit, initialData, onBack, isPending, externalErrors }, 
     ref
 ) {
+    // 🔍 QUICK-AND-DIRTY RENDER TRACKER
+    const renderCount = React.useRef(0);
+    renderCount.current++;
+    console.log(`🔄 [RENDER] BasicInformationForm has rendered ${renderCount.current} times.`);
+
     // DOM references for custom components that bypass browser auto-focus mechanisms
     const statusRef = React.useRef<HTMLDivElement>(null);
     const categoryRef = React.useRef<HTMLDivElement>(null);

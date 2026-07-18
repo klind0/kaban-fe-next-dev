@@ -36,6 +36,11 @@ type Props = {
 };
 
 export default function LocationForm({ onFormSubmit, isPending, onBack, externalErrors, initialData }: Props) {
+    // ⚙️ DIAGNOSTIC RENDER TRACKER
+    const renderCount = useRef(0);
+    renderCount.current++;
+    console.log(`🔄 [RENDER] LocationForm has rendered ${renderCount.current} times.`);
+
     const addressBlockRef = useRef<HTMLDivElement>(null);
     const stateBlockRef = useRef<HTMLDivElement>(null);
     const cityBlockRef = useRef<HTMLDivElement>(null);
@@ -96,6 +101,9 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
 
     const cityOptions = selectedState ? (nigeriaCitiesByState[selectedState] ?? []) : [];
 
+    // Stable boolean check to use inside dependencies instead of the full initialData object reference
+    const hasInitialData = !!initialData;
+
     // Sync state changes with native Google Map instances
     useEffect(() => {
         if (!scriptLoaded || !mapContainerRef.current) return;
@@ -107,7 +115,7 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
         if (!mapInstanceRef.current) {
             mapInstanceRef.current = new g.maps.Map(mapContainerRef.current, {
                 center: targetCenter,
-                zoom: initialData ? 14.5 : 14, // Zoom slightly tighter if coordinates exist
+                zoom: hasInitialData ? 14.5 : 14, // 🚀 Loop Protection: Used hasInitialData boolean variable
                 disableDefaultUI: true,
                 zoomControl: true,
                 gestureHandling: "cooperative",
@@ -138,7 +146,8 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
                 fillOpacity: 0.12,
             });
         }
-    }, [scriptLoaded, latitude, longitude, initialData]);
+    // 🚀 Loop Protection: Swapped [initialData] object with the primitive boolean [hasInitialData]
+    }, [scriptLoaded, latitude, longitude, hasInitialData]);
 
     const onSubmit = (data: LocationFormValues) => {
         const normalizedData: LocationListingData = {
