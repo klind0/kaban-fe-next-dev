@@ -193,7 +193,7 @@ const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function B
                                         as='select'
                                         labelText='Category *'
                                         options={propertyCategoryOptions}
-                                        placeholder='Residential, Commercial, Industrial'
+                                        placeholder='Select a property category'
                                         containerClass="w-full"
                                         {...field}
                                         onChange={(e) => {
