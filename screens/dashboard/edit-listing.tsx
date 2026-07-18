@@ -45,12 +45,6 @@ async function fetchGraphQL(query: string, variables: Record<string, any> = {}) 
 }
 
 export default function EditListingScreen() {
-    // 🛠️ DIAGNOSTIC TRACKER START: Tracks renders to catch active loops immediately
-    const renderCount = React.useRef(0);
-    renderCount.current++;
-    console.log(`🔄 [DIAGNOSTIC] EditListingScreen has rendered: ${renderCount.current} times.`);
-    // 🛠️ DIAGNOSTIC TRACKER END
-
 
     const searchParams = useSearchParams();
     const router = useRouter();
@@ -84,22 +78,50 @@ export default function EditListingScreen() {
             try {
                 setIsLoading(true);
 
-                // 2. Execute secure Server Action (authentication handled natively by Next.js!)
-                const result = await getListingForEditAction(listingId);
+                const query = `
+                    query GetListingForEdit($id: String!) {
+                        getListingForEdit(id: $id)
+                    }
+                `;
+                
+                const data = await fetchGraphQL(query, { id: listingId });
+                const rawListing = data?.getListingForEdit;
 
-                if (!result.success) {
-                    throw new Error(result.error);
+                if (!rawListing) {
+                    throw new Error("Listing payload empty or access denied.");
                 }
 
-                const listing = result.listing;
+                // 🚀 BREAK CIRCULAR LOOPS: Force-clean the object reference maps 
+                // by serializing only the essential flat keys we need for the forms.
+                const listing = {
+                    title: rawListing.title,
+                    description: rawListing.description,
+                    property_category: rawListing.property_category,
+                    property_type: rawListing.property_type,
+                    status: rawListing.status,
+                    price: rawListing.price,
+                    images: rawListing.images,
+                    cover_image: rawListing.cover_image,
+                    video: rawListing.video,
+                    video_url: rawListing.video_url,
+                    location: rawListing.location ? {
+                        address: rawListing.location.address || "",
+                        state: rawListing.location.state || "",
+                        city: rawListing.location.city || "",
+                        landmark: rawListing.location.landmark || "",
+                        coordinates: Array.isArray(rawListing.location.coordinates) 
+                            ? [...rawListing.location.coordinates] 
+                            : [5.0377, 7.9128]
+                    } : null
+                };
                 
-                // Map the prefill inputs
+                // Map fields from our cleaned copy into the step wizard form references
                 draftRef.current.basic = {
-                    title: listing.title,
+                    title: listing.title || "",
                     description: listing.description || "",
-                    property_category: listing.property_category,
-                    property_type: listing.property_type,
-                    status: listing.status,
+                    property_category: listing.property_category || "",
+                    property_type: listing.property_type || "",
+                    status: listing.status || "",
                     price: listing.price?.amount || listing.price || "",
                 } as any; 
 
@@ -109,19 +131,12 @@ export default function EditListingScreen() {
 
                 draftRef.current.media = {
                     images: mappedImages.length > 0 ? mappedImages : (listing.cover_image ? [listing.cover_image] : []),
-                    cover_index: listing.cover_index || 0,
+                    cover_index: rawListing.cover_index || 0,
                     video_url: listing.video || listing.video_url || "",
                 };
 
                 setLiveLocationData({
-                    // If no location exists, fallback to a pre-defined stable default object
-                    location: listing.location || { 
-                        address: "", 
-                        state: "", 
-                        city: "", 
-                        landmark: "", 
-                        coordinates: [5.0377, 7.9128] 
-                    }
+                    location: listing.location || { address: "", state: "", city: "", landmark: "", coordinates: [5.0377, 7.9128] }
                 });
 
             } catch (err: any) {

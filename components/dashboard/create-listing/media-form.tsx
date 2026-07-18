@@ -34,13 +34,6 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm(
     { onNext, onFormSubmit, onBack, isPending = false, initialData },
     ref
 ) {
-    // ----------------------------------------------------
-    // 🔍 DIAGNOSTIC RENDER TRACKER
-    // ----------------------------------------------------
-    const renderCount = React.useRef(0);
-    renderCount.current++;
-    console.log(`🔄 [RENDER] MediaForm has rendered ${renderCount.current} times.`);
-    // ----------------------------------------------------
 
     const MAX_IMAGES = 10;
 

@@ -36,10 +36,6 @@ type Props = {
 };
 
 export default function LocationForm({ onFormSubmit, isPending, onBack, externalErrors, initialData }: Props) {
-    // ⚙️ DIAGNOSTIC RENDER TRACKER
-    const renderCount = useRef(0);
-    renderCount.current++;
-    console.log(`🔄 [RENDER] LocationForm has rendered ${renderCount.current} times.`);
 
     const addressBlockRef = useRef<HTMLDivElement>(null);
     const stateBlockRef = useRef<HTMLDivElement>(null);
