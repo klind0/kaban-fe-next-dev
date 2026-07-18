@@ -38,7 +38,7 @@ export default function SearchForm({
 			location: '',
 			bedrooms: 0,
 			bathrooms: 0,
-			category: undefined,
+			category: '',
 			tab: '',
 			radius: 0,
 			property_type: '',

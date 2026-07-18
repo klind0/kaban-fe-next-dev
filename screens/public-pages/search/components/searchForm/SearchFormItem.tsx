@@ -4,15 +4,18 @@ import { useState } from 'react';
 import { Control, Controller, UseFormWatch } from 'react-hook-form';
 import FormControl from '@/components/universal/form-control';
 import { Checkbox } from '@/components/ui/checkbox';
-import { property_type, roomAndPrice, tabOptions } from '@/lib/selectOptions';
 import { IQueryParamsType } from '@/types/queryParamsType';
 
-interface SearchFormItemProps {
-	control: Control<IQueryParamsType, any, IQueryParamsType>;
-	watch: UseFormWatch<IQueryParamsType>;
-}
+// 💡 CHANGE: Import bathroom and bedroom arrays directly instead of roomAndPrice
+import { property_type, bathroom, bedroom, tabOptions } from '@/lib/selectOptions';
 
-export default function SearchFormItem({ control, watch }: SearchFormItemProps) {
+export default function SearchFormItem({
+	control,
+	watch
+}: {
+	control: Control<IQueryParamsType, any, IQueryParamsType>;
+	watch: UseFormWatch<IQueryParamsType>
+}) {
 	const [isEnabled, setIsEnabled] = useState(false);
 
 	const handleRadiusStatus = () => {
@@ -20,14 +23,12 @@ export default function SearchFormItem({ control, watch }: SearchFormItemProps) 
 	};
 
 	return (
-		<div className="grid sm:grid-cols-2 gap-2 lg:grid-cols-4">
-			{/* Radius Filter Toggle Slider */}
-			<div className="flex my-1 sm:col-span-2 lg:col-span-4 items-center gap-4">
-				<div className="flex items-center w-40 gap-2 shrink-0">
-					<Checkbox id="radius-toggle" checked={isEnabled} onCheckedChange={handleRadiusStatus} />
-					<label htmlFor="radius-toggle" className="text-sm font-medium cursor-pointer">
-						Radius {watch('radius') || 0}km
-					</label>
+		<div className="grid sm:grid-cols-2 gap-1 lg:grid-cols-4">
+			{/* Radius Filter row */}
+			<div className="flex my-1 sm:col-span-2 lg:col-span-4">
+				<div className="flex items-center w-40 gap-2">
+					<Checkbox checked={isEnabled} onCheckedChange={handleRadiusStatus} />
+					<output className="text-sm font-medium">Radius {watch('radius') || 0}km</output>
 				</div>
 				<Controller
 					name="radius"
@@ -41,13 +42,13 @@ export default function SearchFormItem({ control, watch }: SearchFormItemProps) 
 							step="1"
 							{...field}
 							disabled={!isEnabled}
-							containerClass="w-full flex items-center"
+							containerClass="w-full"
 						/>
 					)}
 				/>
 			</div>
 
-			{/* Location Query Input */}
+			{/* Location Field */}
 			<Controller
 				name="location"
 				control={control}
@@ -57,13 +58,14 @@ export default function SearchFormItem({ control, watch }: SearchFormItemProps) 
 						{...field}
 						type="search"
 						title="location"
-						placeholder="Location (e.g., Uyo)"
+						name="location"
+						placeholder="Location"
 						containerClass="sm:col-span-2"
 					/>
 				)}
 			/>
 
-			{/* Listing Status Dropdown (e.g., Buy, Rent) */}
+			{/* Status Dropdown */}
 			<Controller
 				name="status"
 				control={control}
@@ -79,7 +81,7 @@ export default function SearchFormItem({ control, watch }: SearchFormItemProps) 
 				)}
 			/>
 
-			{/* Property Type Dropdown (e.g., Flat, Self-contain, Commercial) */}
+			{/* Property Type Dropdown */}
 			<Controller
 				name="property_type"
 				control={control}
@@ -94,26 +96,34 @@ export default function SearchFormItem({ control, watch }: SearchFormItemProps) 
 				)}
 			/>
 
-			{/* Dynamic Select Filters (Bedrooms, Bathrooms, etc.) */}
-			{Object.entries(roomAndPrice).map(([key, val], id) => (
-				<Controller
-					key={key}
-					name={key as any}
-					control={control}
-					render={({ field }) => (
-						<FormControl
-							{...field}
-							key={id}
-							as="select"
-							title={key}
-							placeholder={key.replace('_', ' ')}
-							options={val.subItems}
-						/>
-					)}
-				/>
-			))}
+			{/* 💎 FIXED: Explicit, separate lowercase controllers for Bathrooms and Bedrooms */}
+			<Controller
+				name="bathrooms"
+				control={control}
+				render={({ field }) => (
+					<FormControl
+						{...field}
+						as="select"
+						placeholder="Bathrooms"
+						options={bathroom}
+					/>
+				)}
+			/>
 
-			{/* Min Price Field */}
+			<Controller
+				name="bedrooms"
+				control={control}
+				render={({ field }) => (
+					<FormControl
+						{...field}
+						as="select"
+						placeholder="Bedrooms"
+						options={bedroom}
+					/>
+				)}
+			/>
+
+			{/* Pricing Filter Blocks */}
 			<Controller
 				name="min_price"
 				control={control}
@@ -123,25 +133,22 @@ export default function SearchFormItem({ control, watch }: SearchFormItemProps) 
 						{...field}
 						title="Min Price"
 						placeholder="Min Price"
-						// 🛠️ FIXED: Replaced 'l' typo with standard fallback empty string
-						value={field.value === 0 || !field.value ? '' : field.value} 
+						value={field.value === 0 ? '' : field.value}
 						type="number"
 					/>
 				)}
 			/>
-
-			{/* Max Price Field */}
+			
 			<Controller
 				name="max_price"
 				control={control}
 				render={({ field }) => (
 					<FormControl
-						as="input"
 						{...field}
+						as="input"
 						title="Max Price"
+						value={field.value === 0 ? '' : field.value}
 						placeholder="Max Price"
-						// 🛠️ FIXED: Replaced 'l' typo with standard fallback empty string
-						value={field.value === 0 || !field.value ? '' : field.value} 
 						type="number"
 					/>
 				)}
