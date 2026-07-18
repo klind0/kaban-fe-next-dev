@@ -143,8 +143,14 @@ export default function EditListingScreen() {
                 });
 
             } catch (err: any) {
-                console.error("❌ Error running prefill execution:", err);
-                toast.error(err.message || "Failed to load listing configuration details.");
+                const errorMessage = 
+                    err?.message || 
+                    (typeof err === "string" ? err : "Failed to load listing configuration details.");
+
+                console.error("❌ Isolated Prefill Error Text:", errorMessage);
+                
+                // Safely alert the UI using only the flat text primitive
+                toast.error(errorMessage);
             } finally {
                 setIsLoading(false);
             }
