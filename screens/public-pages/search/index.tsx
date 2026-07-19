@@ -195,7 +195,13 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
                                         <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Bedrooms</label>
                                         <select 
                                             value={activeFilters.bedroom || ''}
-                                            onChange={(e) => setActiveFilters(p => ({ ...p, bedroom: e.target.value || undefined }))}
+                                            onChange={(e) => {
+                                                const val = e.target.value;
+                                                setActiveFilters(p => ({ 
+                                                    ...p, 
+                                                    bedroom: val ? Number(val) : undefined 
+                                                }));
+                                            }}
                                             className="w-full border border-slate-200 rounded-lg p-2.5 text-sm text-slate-700 bg-white outline-none focus:border-blue-500"
                                         >
                                             <option value="">Any</option>
