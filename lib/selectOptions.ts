@@ -3,10 +3,7 @@ export const propertyStatusOptions = [
   { name: "For Sale", value: "sale" },
 ];
 
-export const tabOptions = [
-  { name: "For rent", value: "rent" }, // Fixed mapping to match query keys
-  { name: "For Sale", value: "sale" },
-];
+
 
 export const propertyCategoryOptions = [
   { name: "Residential", value: "residential" },
@@ -41,6 +38,15 @@ export const propertyTypeByCategory: Record<string, { name: string; value: strin
     { name: "Showroom", value: "Showroom" },
   ],
 };
+
+// 🚀 Adjusted Data Bridge: Maps keys to 'name' and 'value' to perfectly match SelectOption type definitions
+export const propertyTypeGroupedOptions = Object.entries(propertyTypeByCategory).map(([category, items]) => ({
+  group: category.charAt(0).toUpperCase() + category.slice(1), // e.g. "Residential"
+  options: items.map(item => ({
+    name: item.name,    // ✨ FIXED: Changed 'label' to 'name' to satisfy SelectOption interface
+    value: item.value   // Keeps your backend database string
+  }))
+}));
 
 // Fallbacks matching their local page select maps to prevent component breakage
 export const property_type = [

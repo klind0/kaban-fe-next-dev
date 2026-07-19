@@ -5,9 +5,7 @@ import { Control, Controller, UseFormWatch } from 'react-hook-form';
 import FormControl from '@/components/universal/form-control';
 import { Checkbox } from '@/components/ui/checkbox';
 import { IQueryParamsType } from '@/types/queryParamsType';
-
-// 💡 CHANGE: Import bathroom and bedroom arrays directly instead of roomAndPrice
-import { property_type, bathroom, bedroom, tabOptions } from '@/lib/selectOptions';
+import { property_type, bathroom, bedroom, propertyStatusOptions } from '@/lib/selectOptions';
 
 export default function SearchFormItem({
 	control,
@@ -75,7 +73,7 @@ export default function SearchFormItem({
 						as="select"
 						title="status"
 						placeholder="Status"
-						options={tabOptions}
+						options={propertyStatusOptions}
 						className="border"
 					/>
 				)}
@@ -96,32 +94,36 @@ export default function SearchFormItem({
 				)}
 			/>
 
-			{/* 💎 FIXED: Explicit, separate lowercase controllers for Bathrooms and Bedrooms */}
-			<Controller
-				name="bathrooms"
-				control={control}
-				render={({ field }) => (
-					<FormControl
-						{...field}
-						as="select"
-						placeholder="Bathrooms"
-						options={bathroom}
-					/>
-				)}
-			/>
+			{/* 💎 FIXED: Accepting the direct string value from FormControl's custom onChange handler */}
+		<Controller
+			name="bathrooms"
+			control={control}
+			render={({ field }) => (
+				<FormControl
+					{...field}
+					as="select"
+					placeholder="Bathrooms"
+					options={bathroom}
+					value={field.value === 0 ? "" : String(field.value)}
+					onChange={(val: string) => field.onChange(Number(val) || 0)} // ✨ Read string directly
+				/>
+			)}
+		/>
 
-			<Controller
-				name="bedrooms"
-				control={control}
-				render={({ field }) => (
-					<FormControl
-						{...field}
-						as="select"
-						placeholder="Bedrooms"
-						options={bedroom}
-					/>
-				)}
-			/>
+		<Controller
+			name="bedrooms"
+			control={control}
+			render={({ field }) => (
+				<FormControl
+					{...field}
+					as="select"
+					placeholder="Bedrooms"
+					options={bedroom}
+					value={field.value === 0 ? "" : String(field.value)}
+					onChange={(val: string) => field.onChange(Number(val) || 0)} // ✨ Read string directly
+				/>
+			)}
+		/>
 
 			{/* Pricing Filter Blocks */}
 			<Controller
