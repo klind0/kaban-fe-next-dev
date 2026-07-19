@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useQuery } from '@tanstack/react-query';
-import { ChevronDown, ChevronUp, SlidersHorizontal, LayoutGrid, Rows, MapPin } from "lucide-react";
+import { ChevronDown, ChevronUp, SlidersHorizontal, LayoutGrid, Rows, MapPin, Check } from "lucide-react";
 
 // Core UI Components
 import Container from '@/components/universal/Container';
@@ -21,15 +21,105 @@ type ResultsProps = {
     initialSearchTerm?: string;
 };
 
+// Available Amenities Core Matrix Data
+const ALL_AMENITIES = [
+    "Swimming Pool", "Fitted Kitchen", "In-built Speaker", "En-suite",
+    "Boys Quarter", "Gym", "CCTV Cameras", "Security",
+    "Furnished", "Elevator", "24-hrs Electricity", "Pre-paid Meter",
+    "Installed Wardrobe", "Laundry Room", "Walk-in Closet", "Family Room"
+];
+
+// Custom Selection Dropdown Component for home page styling parity
+function CustomSelect({ 
+    label, 
+    value, 
+    options, 
+    onChange, 
+    placeholder = "Select..." 
+}: { 
+    label: string; 
+    value: string; 
+    options: { label: string; value: string; isHeader?: boolean }[]; 
+    onChange: (val: string) => void;
+    placeholder?: string;
+}) {
+    const [isOpen, setIsOpen] = useState(false);
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+                setIsOpen(false);
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    const selectedOption = options.find(o => o.value === value);
+
+    return (
+        <div ref={containerRef} className="relative space-y-1 w-full">
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">{label}</span>
+            <button
+                type="button"
+                onClick={() => setIsOpen(!isOpen)}
+                className={`w-full flex items-center justify-between border rounded-lg p-2.5 text-sm bg-white transition-all text-left font-medium ${
+                    isOpen ? 'border-[#006AFF] ring-1 ring-[#006AFF]/20 text-slate-800' : 'border-slate-200 text-slate-700'
+                }`}
+            >
+                <span className="truncate">{selectedOption ? selectedOption.label : placeholder}</span>
+                <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180 text-[#006AFF]' : ''}`} />
+            </button>
+
+            {isOpen && (
+                <div className="absolute z-30 left-0 right-0 mt-1 max-h-60 overflow-y-auto bg-white border border-slate-200 rounded-lg shadow-lg py-1 animate-fadeIn">
+                    {options.map((opt, i) => {
+                        if (opt.isHeader) {
+                            return (
+                                <div key={i} className="px-3 py-1.5 text-xs font-bold text-slate-400 bg-slate-50 uppercase tracking-wider">
+                                    {opt.label}
+                                </div>
+                            );
+                        }
+                        return (
+                            <button
+                                key={opt.value}
+                                type="button"
+                                onClick={() => {
+                                    onChange(opt.value);
+                                    setIsOpen(false);
+                                }}
+                                className={`w-full text-left px-4 py-2 text-sm flex items-center justify-between hover:bg-slate-50 transition-colors ${
+                                    value === opt.value ? 'text-[#006AFF] font-semibold bg-blue-50/40' : 'text-slate-600'
+                                }`}
+                            >
+                                <span>{opt.label}</span>
+                                {value === opt.value && <Check className="w-4 h-4 text-[#006AFF]" />}
+                            </button>
+                        );
+                    })}
+                </div>
+            )}
+        </div>
+    );
+}
+
 export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
     const [position, setPosition] = useState<'portrait' | 'landscape'>('portrait');
     const [stackOrder, setStackOrder] = useState<'listings' | 'map'>('listings');
     const [map, setMap] = useState(false);
     
-    // 💎 Advanced filter display panel visibility state
+    // UI Panel Control States
     const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
+    const [isRadiusActive, setIsRadiusActive] = useState(false);
+    const [radiusValue, setRadiusValue] = useState(0);
+    const [showOtherFeatures, setShowOtherFeatures] = useState(true);
 
-    // 💎 1. State tracker to manage all current active filter variables
+    // Active Amenities Checklist State Array
+    const [selectedAmenities, setSelectedAmenities] = useState<string[]>(ALL_AMENITIES);
+
+    // Filter Variables State Tracker
     const [activeFilters, setActiveFilters] = useState<Partial<IQueryParamsType>>({
         search: initialSearchTerm || "",
         status: undefined,
@@ -37,14 +127,17 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
         bedroom: undefined,
     });
 
-    // Sync initial search string if it updates via route changes
+    const [bathroomValue, setBathroomValue] = useState("");
+    const [minPrice, setMinPrice] = useState("");
+    const [maxPrice, setMaxPrice] = useState("");
+
     useEffect(() => {
         if (initialSearchTerm) {
             setActiveFilters(prev => ({ ...prev, search: initialSearchTerm }));
         }
     }, [initialSearchTerm]);
 
-    // 💎 2. Pass dynamic filters directly into the query execution engine
+    // Query Execution Pipeline
     const { data: searchData, isLoading } = useQuery({
         queryKey: [QUERY_KEY.PUBLIC_LISTINGS, activeFilters],
         queryFn: () =>
@@ -71,6 +164,23 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
 
     const toggleMap = () => setMap(!map);
 
+    // Select-all check/uncheck management
+    const handleSelectAllChange = (checked: boolean) => {
+        if (checked) {
+            setSelectedAmenities(ALL_AMENITIES);
+        } else {
+            setSelectedAmenities([]);
+        }
+    };
+
+    const handleAmenityToggle = (amenity: string) => {
+        setSelectedAmenities(prev => 
+            prev.includes(amenity) 
+                ? prev.filter(a => a !== amenity) 
+                : [...prev, amenity]
+        );
+    };
+
     const listingsPage = stackOrder === 'listings' ? 'relative' : 'fixed w-0 overflow-hidden md:relative md:w-full md:overflow-auto';
     const order = position === 'portrait' ? 'grid-cols-[repeat(auto-fit,minmax(19rem,1fr))]' : 'grid-cols-[repeat(auto-fit,minmax(30rem,1fr))]';
     const mapPage = stackOrder === 'map' && mediasize === 'mobile' ? 'fixed top-[11rem] left-0 w-full' : '';
@@ -89,13 +199,13 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
             <div className="w-full space-y-5">
                 <div className={`${stackOrder === 'map' && mediasize === 'mobile' && 'p-[3%] bg-neutral-100 fixed inset-x-0 top-0 max-h-[11.8rem] pt-20 w-screen z-10'}`}>
                     <div className="text-sm text-slate-400 mb-1 font-medium">
-                        <Link href={'/'} className="text-blue-600 hover:underline">Home</Link>
+                        <Link href={'/'} className="text-[#006AFF] hover:underline">Home</Link>
                         <span> / Search</span>
                     </div>
 
                     <h3 className="text-2xl font-bold tracking-tight text-slate-800 mb-4">Available Properties</h3>
                     
-                    {/* 💎 3. White Control Bar Container Box */}
+                    {/* Floating Controls Row */}
                     <div className="flex items-center justify-between bg-white border border-slate-200 rounded-xl p-3.5 shadow-sm w-full mb-4">
                         <span className="text-sm font-semibold text-slate-600">
                             {totalResults} {totalResults === 1 ? 'Result' : 'Results'} Found
@@ -114,19 +224,19 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
                             <div className="flex items-center border border-slate-200 rounded-lg p-1 bg-slate-50">
                                 <button 
                                     onClick={() => setPosition('landscape')}
-                                    className={`p-1.5 rounded-md transition-colors ${position === 'landscape' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                                    className={`p-1.5 rounded-md transition-colors ${position === 'landscape' ? 'bg-white text-[#006AFF] shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
                                 >
                                     <Rows className="w-4 h-4" />
                                 </button>
                                 <button 
                                     onClick={() => setPosition('portrait')}
-                                    className={`p-1.5 rounded-md transition-colors ${position === 'portrait' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                                    className={`p-1.5 rounded-md transition-colors ${position === 'portrait' ? 'bg-white text-[#006AFF] shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
                                 >
                                     <LayoutGrid className="w-4 h-4" />
                                 </button>
                                 <button 
                                     onClick={toggleMap}
-                                    className={`p-1.5 rounded-md transition-colors ml-1 border-l border-slate-200 pl-2 ${map ? 'text-blue-600 font-semibold' : 'text-slate-400 hover:text-slate-600'}`}
+                                    className={`p-1.5 rounded-md transition-colors ml-1 border-l border-slate-200 pl-2 ${map ? 'text-[#006AFF] font-semibold' : 'text-slate-400 hover:text-slate-600'}`}
                                 >
                                     <MapPin className="w-4 h-4" />
                                 </button>
@@ -134,7 +244,7 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
                         </div>
                     </div>
                     
-                    {/* 💎 1 & 2. Interactive Advanced Dropdown Filter Accordion Component */}
+                    {/* Accordion Filter Dashboard */}
                     <div className={`w-full bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden mb-6 ${stackOrder === 'map' && mediasize === 'mobile' ? 'opacity-0 invisible max-h-0' : ''}`}>
                         <button 
                             type="button"
@@ -147,147 +257,207 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
 
                         {isAdvancedOpen && (
                             <div className="p-5 border-t border-slate-100 bg-white space-y-6 transition-all duration-200">
-                                {/* Radius Filter Row */}
-                                <div className="space-y-2">
-                                    <div className="flex justify-between items-center">
-                                        <label className="text-sm font-semibold text-slate-700">Radius Filter</label>
-                                        <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded-full">0km</span>
+                                
+                                {/* 💎 Restored Custom Slider Container */}
+                                <div className="space-y-3">
+                                    <div className="flex items-center gap-3">
+                                        <button 
+                                            type="button"
+                                            onClick={() => setIsRadiusActive(!isRadiusActive)}
+                                            className={`w-4 h-4 rounded-full border flex items-center justify-center transition-all ${
+                                                isRadiusActive ? 'border-[#006AFF] bg-[#006AFF]' : 'border-slate-300 bg-white'
+                                            }`}
+                                        >
+                                            {isRadiusActive && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                                        </button>
+                                        <label 
+                                            onClick={() => setIsRadiusActive(!isRadiusActive)}
+                                            className="text-sm font-semibold text-slate-700 cursor-pointer select-none"
+                                        >
+                                            Radius Filter
+                                        </label>
+                                        <span className="ml-auto text-xs font-bold text-[#006AFF] bg-blue-50 px-2.5 py-0.5 rounded-full">
+                                            {radiusValue}km
+                                        </span>
                                     </div>
-                                    <input type="range" min="0" max="100" className="w-full accent-blue-600 h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer" />
+                                    <input 
+                                        type="range" 
+                                        min="0" 
+                                        max="100" 
+                                        disabled={!isRadiusActive}
+                                        value={radiusValue}
+                                        onChange={(e) => setRadiusValue(Number(e.target.value))}
+                                        className={`w-full h-1 rounded-lg appearance-none cursor-pointer transition-opacity ${
+                                            isRadiusActive ? 'accent-[#006AFF] bg-slate-200' : 'accent-slate-300 bg-slate-100 opacity-50 pointer-events-none'
+                                        }`} 
+                                    />
                                 </div>
 
-                                {/* Row 1: Core Filters Grid */}
+                                {/* Custom Selection Filter Matrix Row 1 */}
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                                     <div className="space-y-1">
-                                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Location</label>
+                                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Location</span>
                                         <input 
                                             type="text" 
                                             value={activeFilters.search || ''}
                                             onChange={(e) => setActiveFilters(p => ({ ...p, search: e.target.value }))}
                                             placeholder="Enter location..." 
-                                            className="w-full border border-slate-200 rounded-lg p-2.5 text-sm text-slate-800 outline-none focus:border-blue-500 bg-slate-50/30" 
+                                            className="w-full border border-slate-200 rounded-lg p-2.5 text-sm text-slate-800 outline-none focus:border-[#006AFF] focus:ring-1 focus:ring-[#006AFF]/20 bg-white font-medium" 
                                         />
                                     </div>
-                                    <div className="space-y-1">
-                                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Property Status</label>
-                                        <select 
-                                            value={activeFilters.status || ''} 
-                                            onChange={(e) => setActiveFilters(p => ({ ...p, status: e.target.value || undefined }))}
-                                            className="w-full border border-slate-200 rounded-lg p-2.5 text-sm text-slate-700 bg-white outline-none focus:border-blue-500"
-                                        >
-                                            <option value="">All Statuses</option>
-                                            <option value="RENT">Rent</option>
-                                            <option value="SALE">Sale</option>
-                                        </select>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Property Type</label>
-                                        <select 
-                                            value={activeFilters.property_type || ''}
-                                            onChange={(e) => setActiveFilters(p => ({ ...p, property_type: e.target.value || undefined }))}
-                                            className="w-full border border-slate-200 rounded-lg p-2.5 text-sm text-slate-700 bg-white outline-none focus:border-blue-500"
-                                        >
-                                            <option value="">Select type...</option>
-                                            <option value="APARTMENT">Apartment</option>
-                                            <option value="HOUSE">House</option>
-                                            <option value="COMMERCIAL">Commercial</option>
-                                        </select>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Bedrooms</label>
-                                        <select 
-                                            value={activeFilters.bedroom || ''}
-                                            onChange={(e) => {
-                                                const val = e.target.value;
-                                                setActiveFilters(p => ({ ...p, bedroom: val ? Number(val) : undefined }));
-                                            }}
-                                            className="w-full border border-slate-200 rounded-lg p-2.5 text-sm text-slate-700 bg-white outline-none focus:border-blue-500"
-                                        >
-                                            <option value="">Any</option>
-                                            <option value="1">1 Bedroom</option>
-                                            <option value="2">2 Bedrooms</option>
-                                            <option value="3">3 Bedrooms</option>
-                                            <option value="4">4+ Bedrooms</option>
-                                        </select>
-                                    </div>
+                                    
+                                    <CustomSelect 
+                                        label="Property Status"
+                                        value={activeFilters.status || ''}
+                                        placeholder="All Statuses"
+                                        options={[
+                                            { label: "All Statuses", value: "" },
+                                            { label: "Rent", value: "RENT" },
+                                            { label: "Sale", value: "SALE" }
+                                        ]}
+                                        onChange={(val) => setActiveFilters(p => ({ ...p, status: val || undefined }))}
+                                    />
+
+                                    <CustomSelect 
+                                        label="Property Type"
+                                        value={activeFilters.property_type || ''}
+                                        placeholder="Select type..."
+                                        options={[
+                                            { label: "Select type...", value: "" },
+                                            { label: "Residential", value: "RESIDENTIAL_HDR", isHeader: true },
+                                            { label: "Self Contain", value: "SELF_CONTAIN" },
+                                            { label: "Apartment", value: "APARTMENT" },
+                                            { label: "Detached House", value: "DETACHED" },
+                                            { label: "Terrace House", value: "TERRACE" },
+                                            { label: "Semi-detached House", value: "SEMI_DETACHED" },
+                                            { label: "Commercial", value: "COMMERCIAL_HDR", isHeader: true },
+                                            { label: "Commercial", value: "COMMERCIAL" }
+                                        ]}
+                                        onChange={(val) => setActiveFilters(p => ({ ...p, property_type: val || undefined }))}
+                                    />
+
+                                    <CustomSelect 
+                                        label="Bedrooms"
+                                        value={activeFilters.bedroom?.toString() || ''}
+                                        placeholder="Any"
+                                        options={[
+                                            { label: "Any", value: "" },
+                                            { label: "1 Bedroom", value: "1" },
+                                            { label: "2 Bedrooms", value: "2" },
+                                            { label: "3 Bedrooms", value: "3" },
+                                            { label: "4+ Bedrooms", value: "4" }
+                                        ]}
+                                        onChange={(val) => setActiveFilters(p => ({ ...p, bedroom: val ? Number(val) : undefined }))}
+                                    />
                                 </div>
 
-                                {/* ✨ Row 2: Restored Bathroom & Price Filters Grid */}
+                                {/* Custom Selection Filter Matrix Row 2 */}
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                                    <CustomSelect 
+                                        label="Bathrooms"
+                                        value={bathroomValue}
+                                        placeholder="Any"
+                                        options={[
+                                            { label: "Any", value: "" },
+                                            { label: "1 Bathroom", value: "1" },
+                                            { label: "2 Bathrooms", value: "2" },
+                                            { label: "3+ Bathrooms", value: "3" }
+                                        ]}
+                                        onChange={(val) => setBathroomValue(val)}
+                                    />
+
                                     <div className="space-y-1">
-                                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Bathrooms</label>
-                                        <select 
-                                            className="w-full border border-slate-200 rounded-lg p-2.5 text-sm text-slate-700 bg-white outline-none focus:border-blue-500"
-                                        >
-                                            <option value="">Any</option>
-                                            <option value="1">1 Bathroom</option>
-                                            <option value="2">2 Bathrooms</option>
-                                            <option value="3">3+ Bathrooms</option>
-                                        </select>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Min Price</label>
+                                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Min Price</span>
                                         <input 
                                             type="number" 
+                                            value={minPrice}
+                                            onChange={(e) => setMinPrice(e.target.value)}
                                             placeholder="Min Price" 
-                                            className="w-full border border-slate-200 rounded-lg p-2.5 text-sm text-slate-800 outline-none focus:border-blue-500 bg-slate-50/30" 
+                                            className="w-full border border-slate-200 rounded-lg p-2.5 text-sm text-slate-800 outline-none focus:border-[#006AFF] focus:ring-1 focus:ring-[#006AFF]/20 bg-white font-medium" 
                                         />
                                     </div>
                                     <div className="space-y-1">
-                                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Max Price</label>
+                                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Max Price</span>
                                         <input 
                                             type="number" 
+                                            value={maxPrice}
+                                            onChange={(e) => setMaxPrice(e.target.value)}
                                             placeholder="Max Price" 
-                                            className="w-full border border-slate-200 rounded-lg p-2.5 text-sm text-slate-800 outline-none focus:border-blue-500 bg-slate-50/30" 
+                                            className="w-full border border-slate-200 rounded-lg p-2.5 text-sm text-slate-800 outline-none focus:border-[#006AFF] focus:ring-1 focus:ring-[#006AFF]/20 bg-white font-medium" 
                                         />
                                     </div>
                                     <div className="flex items-end pb-1">
-                                        {/* Empty block to balance the 4-column alignment row */}
+                                        {/* Blank cell block */}
                                     </div>
                                 </div>
 
-                                {/* ✨ Section 3: Restored Other Features & Amenities Grid */}
+                                {/* 💎 Interactive Amenities Section With Correct Show/Hide Toggle */}
                                 <div className="pt-2 border-t border-slate-100 space-y-4">
-                                    <div className="flex items-center gap-2 text-slate-700 font-semibold text-sm">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowOtherFeatures(!showOtherFeatures)}
+                                        className="flex items-center gap-2 text-slate-700 font-bold text-sm select-none hover:text-[#006AFF] transition-colors"
+                                    >
+                                        <span className="flex items-center justify-center border border-slate-300 rounded w-4 h-4 text-xs font-bold bg-white text-slate-500">
+                                            {showOtherFeatures ? '−' : '+'}
+                                        </span>
                                         <span>Other Features</span>
-                                    </div>
+                                    </button>
 
-                                    <div className="flex items-center gap-2 pb-2">
-                                        <input type="checkbox" id="select-all" className="rounded border-slate-300 accent-blue-600 h-4 w-4 cursor-pointer" defaultChecked />
-                                        <label htmlFor="select-all" className="text-sm font-semibold text-blue-600 cursor-pointer">Select all amenities</label>
-                                    </div>
-
-                                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                                        {[
-                                            "Swimming Pool", "Fitted Kitchen", "In-built Speaker", "En-suite",
-                                            "Boys Quarter", "Gym", "CCTV Cameras", "Security",
-                                            "Furnished", "Elevator", "24-hrs Electricity", "Pre-paid Meter",
-                                            "Installed Wardrobe", "Laundry Room", "Walk-in Closet", "Family Room"
-                                        ].map((amenity) => (
-                                            <div key={amenity} className="flex items-center gap-2.5 py-1">
+                                    {showOtherFeatures && (
+                                        <div className="space-y-4 animate-fadeIn">
+                                            <div className="flex items-center gap-2 pb-1">
                                                 <input 
                                                     type="checkbox" 
-                                                    id={amenity.toLowerCase().replace(/\s+/g, '-')} 
-                                                    className="rounded border-slate-300 accent-blue-600 h-4 w-4 cursor-pointer"
-                                                    defaultChecked
+                                                    id="select-all" 
+                                                    checked={selectedAmenities.length === ALL_AMENITIES.length}
+                                                    onChange={(e) => handleSelectAllChange(e.target.checked)}
+                                                    className="rounded border-slate-300 accent-[#006AFF] h-4 w-4 cursor-pointer" 
                                                 />
-                                                <label 
-                                                    htmlFor={amenity.toLowerCase().replace(/\s+/g, '-')} 
-                                                    className="text-sm text-slate-600 font-medium cursor-pointer hover:text-slate-800 transition-colors"
-                                                >
-                                                    {amenity}
+                                                <label htmlFor="select-all" className="text-sm font-semibold text-[#006AFF] cursor-pointer select-none">
+                                                    Select all amenities
                                                 </label>
                                             </div>
-                                        ))}
-                                    </div>
+
+                                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                                                {ALL_AMENITIES.map((amenity) => {
+                                                    const domId = amenity.toLowerCase().replace(/\s+/g, '-');
+                                                    const isChecked = selectedAmenities.includes(amenity);
+                                                    return (
+                                                        <div key={amenity} className="flex items-center gap-2.5 py-1">
+                                                            <input 
+                                                                type="checkbox" 
+                                                                id={domId} 
+                                                                checked={isChecked}
+                                                                onChange={() => handleAmenityToggle(amenity)}
+                                                                className="rounded border-slate-300 accent-[#006AFF] h-4 w-4 cursor-pointer"
+                                                            />
+                                                            <label 
+                                                                htmlFor={domId} 
+                                                                className="text-sm text-slate-600 font-medium cursor-pointer hover:text-slate-800 transition-colors select-none"
+                                                            >
+                                                                {amenity}
+                                                            </label>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
 
-                                {/* Filter Action Buttons */}
+                                {/* Bottom Form Control Actions */}
                                 <div className="pt-4 border-t border-slate-100 flex justify-end gap-3">
                                     <button 
                                         type="button"
                                         onClick={() => {
                                             setActiveFilters({ search: "", status: undefined, property_type: undefined, bedroom: undefined });
+                                            setBathroomValue("");
+                                            setMinPrice("");
+                                            setMaxPrice("");
+                                            setIsRadiusActive(false);
+                                            setRadiusValue(0);
+                                            setSelectedAmenities([]);
                                         }}
                                         className="px-5 py-2.5 rounded-lg border border-slate-200 text-slate-600 font-semibold text-sm hover:bg-slate-50 transition-colors"
                                     >
@@ -295,7 +465,7 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
                                     </button>
                                     <button 
                                         type="submit" 
-                                        className="bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm px-6 py-2.5 rounded-lg transition-colors shadow-sm shadow-blue-100"
+                                        className="bg-[#006AFF] hover:bg-[#0057D3] text-white font-semibold text-sm px-6 py-2.5 rounded-lg transition-colors shadow-sm shadow-blue-100"
                                     >
                                         Apply Filters
                                     </button>
