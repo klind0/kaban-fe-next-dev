@@ -146,7 +146,8 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
                         </button>
 
                         {isAdvancedOpen && (
-                            <div className="p-5 border-t border-slate-100 bg-white space-y-5 transition-all duration-200">
+                            <div className="p-5 border-t border-slate-100 bg-white space-y-6 transition-all duration-200">
+                                {/* Radius Filter Row */}
                                 <div className="space-y-2">
                                     <div className="flex justify-between items-center">
                                         <label className="text-sm font-semibold text-slate-700">Radius Filter</label>
@@ -155,6 +156,7 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
                                     <input type="range" min="0" max="100" className="w-full accent-blue-600 h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer" />
                                 </div>
 
+                                {/* Row 1: Core Filters Grid */}
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                                     <div className="space-y-1">
                                         <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Location</label>
@@ -197,10 +199,7 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
                                             value={activeFilters.bedroom || ''}
                                             onChange={(e) => {
                                                 const val = e.target.value;
-                                                setActiveFilters(p => ({ 
-                                                    ...p, 
-                                                    bedroom: val ? Number(val) : undefined 
-                                                }));
+                                                setActiveFilters(p => ({ ...p, bedroom: val ? Number(val) : undefined }));
                                             }}
                                             className="w-full border border-slate-200 rounded-lg p-2.5 text-sm text-slate-700 bg-white outline-none focus:border-blue-500"
                                         >
@@ -211,6 +210,95 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
                                             <option value="4">4+ Bedrooms</option>
                                         </select>
                                     </div>
+                                </div>
+
+                                {/* ✨ Row 2: Restored Bathroom & Price Filters Grid */}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Bathrooms</label>
+                                        <select 
+                                            className="w-full border border-slate-200 rounded-lg p-2.5 text-sm text-slate-700 bg-white outline-none focus:border-blue-500"
+                                        >
+                                            <option value="">Any</option>
+                                            <option value="1">1 Bathroom</option>
+                                            <option value="2">2 Bathrooms</option>
+                                            <option value="3">3+ Bathrooms</option>
+                                        </select>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Min Price</label>
+                                        <input 
+                                            type="number" 
+                                            placeholder="Min Price" 
+                                            className="w-full border border-slate-200 rounded-lg p-2.5 text-sm text-slate-800 outline-none focus:border-blue-500 bg-slate-50/30" 
+                                        />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Max Price</label>
+                                        <input 
+                                            type="number" 
+                                            placeholder="Max Price" 
+                                            className="w-full border border-slate-200 rounded-lg p-2.5 text-sm text-slate-800 outline-none focus:border-blue-500 bg-slate-50/30" 
+                                        />
+                                    </div>
+                                    <div className="flex items-end pb-1">
+                                        {/* Empty block to balance the 4-column alignment row */}
+                                    </div>
+                                </div>
+
+                                {/* ✨ Section 3: Restored Other Features & Amenities Grid */}
+                                <div className="pt-2 border-t border-slate-100 space-y-4">
+                                    <div className="flex items-center gap-2 text-slate-700 font-semibold text-sm">
+                                        <span>Other Features</span>
+                                    </div>
+
+                                    <div className="flex items-center gap-2 pb-2">
+                                        <input type="checkbox" id="select-all" className="rounded border-slate-300 accent-blue-600 h-4 w-4 cursor-pointer" defaultChecked />
+                                        <label htmlFor="select-all" className="text-sm font-semibold text-blue-600 cursor-pointer">Select all amenities</label>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                                        {[
+                                            "Swimming Pool", "Fitted Kitchen", "In-built Speaker", "En-suite",
+                                            "Boys Quarter", "Gym", "CCTV Cameras", "Security",
+                                            "Furnished", "Elevator", "24-hrs Electricity", "Pre-paid Meter",
+                                            "Installed Wardrobe", "Laundry Room", "Walk-in Closet", "Family Room"
+                                        ].map((amenity) => (
+                                            <div key={amenity} className="flex items-center gap-2.5 py-1">
+                                                <input 
+                                                    type="checkbox" 
+                                                    id={amenity.toLowerCase().replace(/\s+/g, '-')} 
+                                                    className="rounded border-slate-300 accent-blue-600 h-4 w-4 cursor-pointer"
+                                                    defaultChecked
+                                                />
+                                                <label 
+                                                    htmlFor={amenity.toLowerCase().replace(/\s+/g, '-')} 
+                                                    className="text-sm text-slate-600 font-medium cursor-pointer hover:text-slate-800 transition-colors"
+                                                >
+                                                    {amenity}
+                                                </label>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Filter Action Buttons */}
+                                <div className="pt-4 border-t border-slate-100 flex justify-end gap-3">
+                                    <button 
+                                        type="button"
+                                        onClick={() => {
+                                            setActiveFilters({ search: "", status: undefined, property_type: undefined, bedroom: undefined });
+                                        }}
+                                        className="px-5 py-2.5 rounded-lg border border-slate-200 text-slate-600 font-semibold text-sm hover:bg-slate-50 transition-colors"
+                                    >
+                                        Reset
+                                    </button>
+                                    <button 
+                                        type="submit" 
+                                        className="bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm px-6 py-2.5 rounded-lg transition-colors shadow-sm shadow-blue-100"
+                                    >
+                                        Apply Filters
+                                    </button>
                                 </div>
                             </div>
                         )}
