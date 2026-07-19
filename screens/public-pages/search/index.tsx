@@ -60,7 +60,7 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
     });
 
     const listings = searchData?.publicListings?.data ?? [];
-    const totalResults = searchData?.publicListings?.total ?? 0;
+    const totalResults = listings.length;
     const { mediasize } = useResponsiveNav({});
 
     useEffect(() => {
