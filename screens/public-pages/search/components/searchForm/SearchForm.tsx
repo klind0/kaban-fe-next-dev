@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form'; // Added Controller
 import SearchFormItem from './SearchFormItem';
 import CheckboxGroup from './CheckboxGroup';
 import { Button } from '@/components/ui/button';
@@ -38,7 +38,7 @@ export default function SearchForm({
 			location: '',
 			bedrooms: 0,
 			bathrooms: 0,
-			category: '',
+			category: 'rent',
 			tab: '',
 			radius: 0,
 			property_type: '',
@@ -46,13 +46,13 @@ export default function SearchForm({
 			price: '',
 			min_price: 0,
 			max_price: 0,
-			...defaultValues, // Allow overriding with incoming initial parameters
+			features: [], // Ensure this aligns with the field name in your IQueryParamsType schema
+			...defaultValues, 
 		},
 		mode: 'all',
 	});
 
 	const onSubmit = (data: IQueryParamsType) => {
-		// 🚀 Connected: Send the form state back to the parent component
 		onSearchSubmit(data);
 	};
 
@@ -72,10 +72,8 @@ export default function SearchForm({
 			/>
 			
 			<div className="flex gap-3 flex-col mt-2">
-				{/* Core selection nodes (Location, Search input, etc.) */}
 				<SearchFormItem watch={watch} control={control} />
 				
-				{/* Amenities Expandable Section */}
 				<div className="flex items-center gap-2 py-1">
 					<Button
 						type="button"
@@ -89,7 +87,18 @@ export default function SearchForm({
 				</div>
 				
 				<div className={`transition-all duration-200 overflow-hidden ${!otherItems ? 'max-h-0 opacity-0' : 'max-h-96 opacity-100'}`}>
-					<CheckboxGroup className="p-1" />
+					{/* 💎 FIXED: Using Controller to supply required selectedFeatures and onChange props */}
+					<Controller
+						name="features" // Replace this with your exact IQueryParamsType key name for features (e.g. amenities, features)
+						control={control}
+						render={({ field }) => (
+							<CheckboxGroup 
+								className="p-1" 
+								selectedFeatures={field.value || []} 
+								onChange={field.onChange} 
+							/>
+						)}
+					/>
 				</div>
 				
 				<Button
