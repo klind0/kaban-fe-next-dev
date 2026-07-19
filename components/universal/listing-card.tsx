@@ -19,8 +19,8 @@ interface ListingCardProps {
 }
 
 const listingTypeConfig = {
-    sale: { label: "For sale" },
-    rent: { label: "For rent" },
+    sale: { label: "Sale" },
+    rent: { label: "Rent" },
     shortlet: { label: "Shortlet" },
 };
 

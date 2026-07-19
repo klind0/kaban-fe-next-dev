@@ -108,7 +108,7 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
 				>
 					<div className="text-sm text-neutral-500 mb-1">
 						<Link href={'/'} className="text-primary hover:underline">Home</Link>
-						<span> / For Rent</span>
+						<span> / Rent</span>
 					</div>
 
 					<h3 className="text-2xl font-semibold capitalize mb-2">Available Rental Listings</h3>

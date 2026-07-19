@@ -1,8 +1,7 @@
 export const propertyStatusOptions = [
-  { name: "For Rent", value: "rent" },
-  { name: "For Sale", value: "sale" },
+  { name: "Rent", value: "rent" },
+  { name: "Sale", value: "sale" },
 ];
-
 
 
 export const propertyCategoryOptions = [

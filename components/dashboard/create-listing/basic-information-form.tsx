@@ -172,7 +172,7 @@ const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function B
                                         as='select'
                                         labelText='Status *'
                                         options={propertyStatusOptions}
-                                        placeholder='For sale, for rent'
+                                        placeholder='Sale, Rent'
                                         containerClass="w-full"
                                         {...field}
                                         disabled={isPending}

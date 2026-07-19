@@ -105,7 +105,7 @@ export default function SearchFormItem({
 					placeholder="Bathrooms"
 					options={bathroom}
 					value={field.value === 0 ? "" : String(field.value)}
-					onChange={(val: string) => field.onChange(Number(val) || 0)} // ✨ Read string directly
+					onChange={(val: any) => field.onChange(Number(val) || 0)} // ✨ FIXED: Explicit parameter bypass
 				/>
 			)}
 		/>
@@ -120,7 +120,7 @@ export default function SearchFormItem({
 					placeholder="Bedrooms"
 					options={bedroom}
 					value={field.value === 0 ? "" : String(field.value)}
-					onChange={(val: string) => field.onChange(Number(val) || 0)} // ✨ Read string directly
+					onChange={(val: any) => field.onChange(Number(val) || 0)} // ✨ FIXED: Explicit parameter bypass
 				/>
 			)}
 		/>
