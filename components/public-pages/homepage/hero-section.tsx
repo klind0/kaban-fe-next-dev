@@ -40,8 +40,8 @@ export default function HeroSection() {
                         <CustomSelect
                             placeholder="Bedroom"
                             options={bedroomOptions}
-                            value={filters.bedrooms?.toString()}
-                            onChange={(val) => handleQueryParamsChange('bedrooms', val)}
+                            value={filters.bedroom?.toString()}
+                            onChange={(val) => handleQueryParamsChange('bedroom', val)}
                         />
                         <CustomSelect
                             placeholder="Property Type"

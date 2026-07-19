@@ -36,7 +36,7 @@ export default function SearchForm({
 			limit: 10,
 			search: '',
 			location: '',
-			bedrooms: 0,
+			bedroom: 0,
 			bathrooms: 0,
 			category: 'rent',
 			tab: '',

@@ -319,7 +319,7 @@ const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function B
                                     as='select'
                                     labelText='Bedrooms'
                                     options={bedroomOptions}
-                                    placeholder='Select number of bedrooms'
+                                    placeholder='Select number of bedroom'
                                     containerClass="w-full"
                                     {...field}
                                     value={String(field.value ?? '')}

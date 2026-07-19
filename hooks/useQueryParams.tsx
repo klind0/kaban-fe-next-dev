@@ -18,7 +18,7 @@ export function useQueryParams() {
         limit: parseInt(searchParams.get('limit') || '10'),
         search: searchParams.get('search') || undefined,
         location: searchParams.get('location') || undefined,
-        bedrooms: parseInt(searchParams.get('bedrooms') || '0') || undefined,
+        bedroom: parseInt(searchParams.get('bedroom') || '0') || undefined,
         bathrooms: parseInt(searchParams.get('bathrooms') || '0') || undefined,
         priceMin: parseInt(searchParams.get('priceMin') || '0') || undefined,
         priceMax: parseInt(searchParams.get('priceMax') || '0') || undefined,

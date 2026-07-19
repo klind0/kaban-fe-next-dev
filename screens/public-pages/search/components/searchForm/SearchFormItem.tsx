@@ -111,7 +111,7 @@ export default function SearchFormItem({
 		/>
 
 		<Controller
-			name="bedrooms"
+			name="bedroom"
 			control={control}
 			render={({ field }) => (
 				<FormControl

@@ -6,7 +6,7 @@ export interface IQueryParamsType {
   limit?: number;
   search?: string;
   location?: string;
-  bedrooms?: number;
+  bedroom?: number;
   bathrooms?: number;
   priceMin?: number;
   priceMax?: number;
