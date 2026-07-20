@@ -258,7 +258,7 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
                             <Controller
                                 name="location.landmark"
                                 control={control}
-                                rules={{ required: "A nearby target landmark identification is required" }}
+                                rules={{ required: "Nearest landmark is required" }}
                                 render={({ field }) => (
                                     <LandmarkAutocomplete
                                         value={field.value || ""}

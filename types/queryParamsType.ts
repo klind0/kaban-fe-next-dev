@@ -1,5 +1,9 @@
+import { PropertyCategory, PropertyType, Status } from '@/types/listingTypes';
+
 export interface IQueryParamsType {
-  status?: string;
+  status?: Status | 'rent' | 'sale';
+  category?: PropertyCategory;
+  property_type?: PropertyType | string;
   startDate?: string;
   endDate?: string;
   page?: number;
@@ -10,13 +14,11 @@ export interface IQueryParamsType {
   bathrooms?: number;
   priceMin?: number;
   priceMax?: number;
-  category?: "rent" | "sale";
   tab?: string;
-  radius?: number,
-  property_type?: string,
-  roomNo?: string,
-  price?: string,
-  min_price?: number,
-  max_price?: number,
-  features?: string[],
+  radius?: number;
+  roomNo?: string;
+  price?: string;
+  min_price?: number;
+  max_price?: number;
+  features?: string[];
 }

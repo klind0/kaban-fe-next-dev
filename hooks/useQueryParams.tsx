@@ -1,4 +1,5 @@
 import { IQueryParamsType } from '@/types/queryParamsType';
+import { PropertyCategory, Status } from '@/types/listingTypes';
 import { useRouter, useSearchParams } from 'next/navigation';
 import React from 'react';
 
@@ -11,7 +12,7 @@ export function useQueryParams() {
     const router = useRouter();
 
     const [filters, setFilters] = React.useState<IQueryParamsType>({
-        status: searchParams.get('status') || undefined,
+        status: (searchParams.get('status') as Status) || undefined,
         startDate: searchParams.get('startDate') || undefined,
         endDate: searchParams.get('endDate') || undefined,
         page: parseInt(searchParams.get('page') || '1'),
@@ -22,7 +23,7 @@ export function useQueryParams() {
         bathrooms: parseInt(searchParams.get('bathrooms') || '0') || undefined,
         priceMin: parseInt(searchParams.get('priceMin') || '0') || undefined,
         priceMax: parseInt(searchParams.get('priceMax') || '0') || undefined,
-        category: (searchParams.get('category') as 'rent' | 'sale') || undefined,
+        category: (searchParams.get('category') as PropertyCategory) || undefined, // 👈 Corrected domain type
     });
 
     const [pendingFilters, setPendingFilters] = React.useState<IQueryParamsType | null>(null);

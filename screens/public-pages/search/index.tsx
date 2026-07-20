@@ -14,7 +14,7 @@ import MobileMapControl from './components/MobileMapControl';
 import { QUERY_KEY } from '@/enum/queryKeys';
 import { gqlRequest } from '@/network/graphql-client';
 import { PUBLIC_LISTINGS_QUERY } from '@/network/gql/listings.ql'; 
-import { IListingResponse } from '@/types/listingTypes';
+import { IListingResponse, PropertyCategory, PropertyType, Status } from '@/types/listingTypes';
 import useResponsiveNav from '@/hooks/useResponsiveNav';
 import { IQueryParamsType } from '@/types/queryParamsType';
 
@@ -142,7 +142,7 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
     const [minPrice, setMinPrice] = useState("");
     const [maxPrice, setMaxPrice] = useState("");
 
-    // 🚀 Sync URL parameters with activeFilters state on page load/navigation
+    // 🚀 Sync URL parameters (Status, Location, Bedroom, Property Type, PriceMax) on page load/navigation
     useEffect(() => {
         const rawLocation = searchParams.get('location') || searchParams.get('search') || initialSearchTerm || "";
         const rawStatus = searchParams.get('status');
@@ -153,9 +153,9 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
 
         setActiveFilters({
             search: rawLocation,
-            status: rawStatus ? rawStatus.toLowerCase() : undefined,      // e.g. "rent" | "sale"
-            category: rawCategory ? rawCategory.toLowerCase() : undefined,  // e.g. "residential" | "commercial"
-            property_type: rawPropertyType || undefined,
+            status: rawStatus ? (rawStatus.toLowerCase() as Status) : undefined,
+            category: rawCategory ? (rawCategory.toLowerCase() as PropertyCategory) : undefined,
+            property_type: rawPropertyType ? (rawPropertyType as PropertyType) : undefined,
             bedroom: rawBedroom ? Number(rawBedroom) : undefined,
         });
 
@@ -343,10 +343,10 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
                                             placeholder="Status"
                                             options={[
                                                 { label: "All Statuses", value: "" },
-                                                { label: "Rent", value: "RENT" },
-                                                { label: "Sale", value: "SALE" }
+                                                { label: "Rent", value: "rent" },
+                                                { label: "Sale", value: "sale" }
                                             ]}
-                                            onChange={(val) => setActiveFilters(p => ({ ...p, status: val || undefined }))}
+                                            onChange={(val) => setActiveFilters(p => ({ ...p, status: (val as Status) || undefined }))}
                                         />
                                     </div>
 
@@ -357,15 +357,17 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
                                             options={[
                                                 { label: "Select type...", value: "" },
                                                 { label: "Residential", value: "RESIDENTIAL_HDR", isHeader: true },
-                                                { label: "Self Contain", value: "SELF_CONTAIN" },
-                                                { label: "Apartment", value: "APARTMENT" },
-                                                { label: "Detached House", value: "DETACHED" },
-                                                { label: "Terrace House", value: "TERRACE" },
-                                                { label: "Semi-detached House", value: "SEMI_DETACHED" },
+                                                { label: "Self Contain", value: "Self Contain" },
+                                                { label: "Apartment", value: "Apartment" },
+                                                { label: "Detached House", value: "Detached House" },
+                                                { label: "Terrace House", value: "Terrace house" },
+                                                { label: "Semi-detached House", value: "Semi-detached House" },
                                                 { label: "Commercial", value: "COMMERCIAL_HDR", isHeader: true },
-                                                { label: "Commercial", value: "COMMERCIAL" }
+                                                { label: "Shop", value: "Shop" },
+                                                { label: "Office", value: "Office" },
+                                                { label: "Hotel", value: "Hotel" },
                                             ]}
-                                            onChange={(val) => setActiveFilters(p => ({ ...p, property_type: val || undefined }))}
+                                            onChange={(val) => setActiveFilters(p => ({ ...p, property_type: (val as PropertyType) || undefined }))}
                                         />
                                     </div>
 
