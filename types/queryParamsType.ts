@@ -1,7 +1,8 @@
-import { PropertyCategory, PropertyType, Status } from '@/types/listingTypes';
+import { ListingState, PropertyCategory, PropertyType, Status } from '@/types/listingTypes';
 
 export interface IQueryParamsType {
   status?: Status | 'rent' | 'sale';
+  listing_state?: ListingState;
   category?: PropertyCategory;
   property_type?: PropertyType | string;
   startDate?: string;
