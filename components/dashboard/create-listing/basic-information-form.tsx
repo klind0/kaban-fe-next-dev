@@ -1,9 +1,10 @@
 "use client";
 
+import React from "react";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import FormControl from "@/components/universal/form-control";
 import { getErrorMessage } from "@/lib/getErrorMessage";
-import { IListing } from "@/types/listingTypes";
-import { Controller, useForm, useWatch } from "react-hook-form";
+import { IListing, PropertyCategory, PropertyType, Status } from "@/types/listingTypes";
 import FormCard from "./form-card";
 import { 
     bedroomOptions, 
@@ -16,14 +17,13 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { BasicListingData } from "@/network/listings";
-import React from "react";
 
 type Props = {
-    onFormSubmit: (data: BasicListingData) => void; // Aligned naming with wizard state engine callbacks
-    initialData?: Partial<IListing> | null;        // Injected polymorphic hydration state layer
-    onBack?: () => void;                           // Navigation safety escape fallback line
-    isPending?: boolean;                           // Layout locking state flag
-    externalErrors?: any;                          // Centralized validation errors injected from parent
+    onFormSubmit: (data: BasicListingData) => void;
+    initialData?: Partial<IListing> | null;
+    onBack?: () => void;
+    isPending?: boolean;
+    externalErrors?: any;
 };
 
 export type BasicFormHandle = {
@@ -45,8 +45,6 @@ const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function B
     { onFormSubmit, initialData, onBack, isPending, externalErrors }, 
     ref
 ) {
-
-    // DOM references for custom components that bypass browser auto-focus mechanisms
     const statusRef = React.useRef<HTMLDivElement>(null);
     const categoryRef = React.useRef<HTMLDivElement>(null);
     const typeRef = React.useRef<HTMLDivElement>(null);
@@ -58,12 +56,11 @@ const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function B
         setValue, 
         getValues 
     } = useForm<IListing>({
-        // Hydrate defaults gracefully from existing database entry values if in edit mode
         defaultValues: {
             title: initialData?.title || '',
-            status: initialData?.status || 'rent',
-            property_category: initialData?.property_category || '',
-            property_type: initialData?.property_type || '',
+            status: (initialData?.status || 'rent') as Status,
+            property_category: (initialData?.property_category || '') as PropertyCategory,
+            property_type: (initialData?.property_type || '') as PropertyType,
             description: initialData?.description || '',
             price: {
                 amount: initialData?.price?.amount ?? 0,
@@ -97,7 +94,6 @@ const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function B
         });
     };
 
-    // Scans React Hook Form errors arrays sequentially when standard onSubmit is rejected
     const onFormError = (formErrors: typeof errors) => {
         if (formErrors.status) {
             statusRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -124,7 +120,9 @@ const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function B
     }));
 
     const selectedCategory = useWatch({ control, name: 'property_category' });
-    const propertyTypeOptions = propertyTypeByCategory[selectedCategory] ?? [];
+    const propertyTypeOptions = selectedCategory && propertyTypeByCategory[selectedCategory] 
+        ? propertyTypeByCategory[selectedCategory] 
+        : [];
 
     return (
         <form onSubmit={handleSubmit(onSubmit, onFormError)} className='space-y-4 md:space-y-7.5 mt-8'>
@@ -198,7 +196,7 @@ const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function B
                                         {...field}
                                         onChange={(e) => {
                                             field.onChange(e);
-                                            setValue('property_type', '', { shouldValidate: true });
+                                            setValue('property_type', '' as PropertyType, { shouldValidate: true });
                                         }}
                                         disabled={isPending}
                                         error={getErrorMessage(externalErrors?.property_category || errors.property_category)}
