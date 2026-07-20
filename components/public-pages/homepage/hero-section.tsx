@@ -18,20 +18,42 @@ export default function HeroSection() {
     const router = useRouter();
     const { filters, handleQueryParamsChange } = useQueryParams();
 
-    // Default tab state (rent or sale)
+    // 1. Default tab state to 'rent'
     const [activeTab, setActiveTab] = React.useState<string>(filters.category || 'rent');
+    const [locationError, setLocationError] = React.useState<boolean>(false);
+
+    // Sync default 'rent' status on initial load if none exists in URL
+    React.useEffect(() => {
+        if (!filters.category) {
+            handleQueryParamsChange('category', 'rent');
+        }
+    }, [filters.category, handleQueryParamsChange]);
 
     const handleTabChange = (value: string) => {
         setActiveTab(value);
         handleQueryParamsChange('category', value as 'rent' | 'sale');
     };
 
-    // 🚀 When Search is clicked, build query string and navigate to /search
+    const handleLocationChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        if (locationError && event.target.value.trim()) {
+            setLocationError(false);
+        }
+        handleQueryParamsChange('location', event.target.value);
+    };
+
+    // 🚀 Execute search only when compulsory fields pass validation
     const handleSearch = () => {
+        // 2. Validate compulsory location field
+        if (!filters.location || !filters.location.trim()) {
+            setLocationError(true);
+            return;
+        }
+
         const params = new URLSearchParams();
 
-        if (filters.search) params.set('search', filters.search);
-        if (filters.category) params.set('category', filters.category);
+        params.set('location', filters.location.trim());
+        // Default category to 'rent' if absent
+        params.set('category', filters.category || 'rent');
         if (filters.bedroom) params.set('bedroom', filters.bedroom.toString());
         if (filters.priceMax) params.set('priceMax', filters.priceMax.toString());
         if (filters.status) params.set('status', filters.status);
@@ -53,10 +75,21 @@ export default function HeroSection() {
                         activeTab={activeTab}
                         onTabChange={handleTabChange}
                     />
-                    <div className="w-full flex flex-col mt-8 lg:flex-row gap-4">
-                        <SearchInput
-                            onChange={(event) => handleQueryParamsChange('location', event.target.value)}
-                        />
+                    <div className="w-full flex flex-col mt-8 lg:flex-row gap-4 items-start">
+                        <div className="w-full flex-1">
+                            <SearchInput
+                                value={filters.location || ''}
+                                placeholder="Enter location (required)..."
+                                onChange={handleLocationChange}
+                                className={locationError ? "border-red-500 focus:border-red-500" : ""}
+                            />
+                            {locationError && (
+                                <p className="text-red-500 text-xs font-semibold mt-1 ml-1">
+                                    Location is required to search.
+                                </p>
+                            )}
+                        </div>
+
                         <CustomSelect
                             placeholder="Bedroom"
                             options={bedroomOptions}
@@ -77,7 +110,7 @@ export default function HeroSection() {
                         />
                         <Button 
                             onClick={handleSearch} 
-                            className="md:min-w-40 bg-[#006AFF] hover:bg-[#0057D3] transition-colors text-white" 
+                            className="w-full lg:w-auto md:min-w-40 bg-[#006AFF] hover:bg-[#0057D3] transition-colors text-white" 
                             size={'lg'}
                         >
                             Search
