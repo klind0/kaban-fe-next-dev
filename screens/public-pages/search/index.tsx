@@ -3,10 +3,10 @@
 import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useSearchParams } from 'next/navigation'; // 👈 1. Import searchParams
 import { useQuery } from '@tanstack/react-query';
 import { ChevronDown, ChevronUp, SlidersHorizontal, LayoutGrid, Rows, MapPin, Check } from "lucide-react";
 
-// Core UI Components
 import Container from '@/components/universal/Container';
 import ListingCard from '@/components/universal/listing-card';
 import MobileMapControl from './components/MobileMapControl';
@@ -21,7 +21,6 @@ type ResultsProps = {
     initialSearchTerm?: string;
 };
 
-// Available Amenities Core Matrix Data
 const ALL_AMENITIES = [
     "Swimming Pool", "Fitted Kitchen", "In-built Speaker", "En-suite",
     "Boys Quarter", "Gym", "CCTV Cameras", "Security",
@@ -29,7 +28,6 @@ const ALL_AMENITIES = [
     "Installed Wardrobe", "Laundry Room", "Walk-in Closet", "Family Room"
 ];
 
-// Custom Selection Dropdown Component for home page styling parity
 function CustomSelect({ 
     label, 
     value, 
@@ -37,7 +35,7 @@ function CustomSelect({
     onChange, 
     placeholder = "Select..." 
 }: { 
-    label?: string; // 💎 Made optional by adding '?'
+    label?: string;
     value: string; 
     options: { label: string; value: string; isHeader?: boolean }[]; 
     onChange: (val: string) => void;
@@ -60,7 +58,6 @@ function CustomSelect({
 
     return (
         <div ref={containerRef} className="relative space-y-1 w-full">
-            {/* Render label header only if a label prop is explicitly passed */}
             {label && (
                 <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
                     {label}
@@ -114,17 +111,16 @@ function CustomSelect({
 }
 
 export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
+    const searchParams = useSearchParams(); // 👈 2. Access Next.js URL query params
     const [position, setPosition] = useState<'portrait' | 'landscape'>('portrait');
     const [stackOrder, setStackOrder] = useState<'listings' | 'map'>('listings');
     const [map, setMap] = useState(false);
     
-    // UI Panel Control States
     const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
     const [isRadiusActive, setIsRadiusActive] = useState(false);
     const [radiusValue, setRadiusValue] = useState(0);
     const [showOtherFeatures, setShowOtherFeatures] = useState(false);
 
-    // Active Amenities Checklist State Array
     const [selectedAmenities, setSelectedAmenities] = useState<string[]>(ALL_AMENITIES);
 
     // Filter Variables State Tracker
@@ -139,22 +135,40 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
     const [minPrice, setMinPrice] = useState("");
     const [maxPrice, setMaxPrice] = useState("");
 
+    // 👈 3. Sync incoming URL parameters with activeFilters state on load / parameter change
     useEffect(() => {
-        if (initialSearchTerm) {
-            setActiveFilters(prev => ({ ...prev, search: initialSearchTerm }));
+        const urlLocation = searchParams.get('location') || searchParams.get('search') || initialSearchTerm || "";
+        const rawCategory = searchParams.get('category') || searchParams.get('status');
+        const urlStatus = rawCategory ? rawCategory.toUpperCase() : undefined;
+        const urlPropertyType = searchParams.get('property_type') || undefined;
+        const urlBedroom = searchParams.get('bedroom') || searchParams.get('bedrooms');
+        const urlPriceMax = searchParams.get('priceMax');
+
+        setActiveFilters({
+            search: urlLocation,
+            status: urlStatus,
+            property_type: urlPropertyType,
+            bedroom: urlBedroom ? Number(urlBedroom) : undefined,
+        });
+
+        if (urlPriceMax) {
+            setMaxPrice(urlPriceMax);
         }
-    }, [initialSearchTerm]);
+    }, [searchParams, initialSearchTerm]);
 
     // Query Execution Pipeline
     const { data: searchData, isLoading } = useQuery({
-        queryKey: [QUERY_KEY.PUBLIC_LISTINGS, activeFilters],
+        queryKey: [QUERY_KEY.PUBLIC_LISTINGS, activeFilters, maxPrice, minPrice],
         queryFn: () =>
             gqlRequest<{ publicListings: IListingResponse }>(PUBLIC_LISTINGS_QUERY, {
                 filter: {
-                    search: activeFilters.search || "",
+                    ...(activeFilters.search && { search: activeFilters.search }),
                     status: "APPROVED", 
+                    ...(activeFilters.status && { listing_type: activeFilters.status }), // 'RENT' or 'SALE'
                     ...(activeFilters.property_type && { property_type: activeFilters.property_type }),
                     ...(activeFilters.bedroom && { "details.bedroom": Number(activeFilters.bedroom) }),
+                    ...(maxPrice && { max_price: Number(maxPrice) }),
+                    ...(minPrice && { min_price: Number(minPrice) }),
                 },
                 limit: 20,
             }),
@@ -172,7 +186,6 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
 
     const toggleMap = () => setMap(!map);
 
-    // Select-all check/uncheck management
     const handleSelectAllChange = (checked: boolean) => {
         if (checked) {
             setSelectedAmenities(ALL_AMENITIES);
@@ -213,14 +226,12 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
 
                     <h3 className="text-2xl font-bold tracking-tight text-slate-800 mb-4">Available Properties</h3>
                     
-                    {/* Floating Controls Row */}
                     <div className="flex items-center justify-between bg-white border border-slate-200 rounded-xl p-3.5 shadow-sm w-full mb-4">
                         <span className="text-sm font-semibold text-slate-600">
                             {totalResults} {totalResults === 1 ? 'Result' : 'Results'} Found
                         </span>
 
                         <div className="flex items-center gap-3">
-                            {/* Sort Order Selector */}
                             <div className="flex items-center gap-2 border border-slate-200 rounded-lg px-3 py-1.5 bg-white">
                                 <SlidersHorizontal className="w-4 h-4 text-slate-400" />
                                 <select className="text-sm font-semibold text-slate-700 bg-transparent outline-none cursor-pointer">
@@ -230,7 +241,6 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
                                 </select>
                             </div>
 
-                            {/* 💎 View Switcher Buttons Container: Hidden on mobile, visible on desktop/tablet (md+) */}
                             <div className="hidden md:flex items-center border border-slate-200 rounded-lg p-1 bg-slate-50">
                                 <button 
                                     type="button"
@@ -260,7 +270,6 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
                         </div>
                     </div>
                     
-                    {/* Accordion Filter Dashboard */}
                     <div className={`w-full bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden mb-6 ${stackOrder === 'map' && mediasize === 'mobile' ? 'opacity-0 invisible max-h-0' : ''}`}>
                         <button 
                             type="button"
@@ -273,8 +282,6 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
 
                         {isAdvancedOpen && (
                             <div className="p-5 border-t border-slate-100 bg-white space-y-6 transition-all duration-200">
-                                
-                                {/* 💎 Restored Custom Slider Container */}
                                 <div className="space-y-3">
                                     <div className="flex items-center gap-3">
                                         <button 
@@ -309,9 +316,7 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
                                     />
                                 </div>
 
-                                {/* Grid Layout Matching Exact Desktop & Mobile Mockups */}
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-                                    {/* Row 1 / Location: Spans 2 cols on mobile and 2 cols on desktop */}
                                     <div className="col-span-2 md:col-span-2">
                                         <input 
                                             type="text" 
@@ -322,7 +327,6 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
                                         />
                                     </div>
                                     
-                                    {/* Property Status */}
                                     <div className="col-span-1 md:col-span-1">
                                         <CustomSelect 
                                             value={activeFilters.status || ''}
@@ -336,7 +340,6 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
                                         />
                                     </div>
 
-                                    {/* Property Type */}
                                     <div className="col-span-1 md:col-span-1">
                                         <CustomSelect 
                                             value={activeFilters.property_type || ''}
@@ -356,7 +359,6 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
                                         />
                                     </div>
 
-                                    {/* Row 2 / Bedrooms */}
                                     <div className="col-span-1 md:col-span-1">
                                         <CustomSelect 
                                             value={activeFilters.bedroom?.toString() || ''}
@@ -372,7 +374,6 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
                                         />
                                     </div>
 
-                                    {/* Bathrooms */}
                                     <div className="col-span-1 md:col-span-1">
                                         <CustomSelect 
                                             value={bathroomValue}
@@ -387,7 +388,6 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
                                         />
                                     </div>
 
-                                    {/* Min Price */}
                                     <div className="col-span-1 md:col-span-1">
                                         <input 
                                             type="number" 
@@ -398,7 +398,6 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
                                         />
                                     </div>
 
-                                    {/* Max Price */}
                                     <div className="col-span-1 md:col-span-1">
                                         <input 
                                             type="number" 
@@ -410,7 +409,6 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
                                     </div>
                                 </div>
 
-                                {/* Collapsible Other Features Header */}
                                 <div className="pt-2 space-y-4">
                                     <button
                                         type="button"
@@ -465,7 +463,6 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
                                     )}
                                 </div>
 
-                                {/* Bottom Form Control Actions */}
                                 <div className="pt-4 border-t border-slate-100 flex justify-end gap-3">
                                     <button 
                                         type="button"

@@ -79,7 +79,7 @@ export default function HeroSection() {
                         <div className="w-full flex-1">
                             <SearchInput
                                 value={filters.location || ''}
-                                placeholder="Enter location (required)..."
+                                placeholder="Search location..."
                                 onChange={handleLocationChange}
                                 className={locationError ? "border-red-500 focus:border-red-500" : ""}
                             />
