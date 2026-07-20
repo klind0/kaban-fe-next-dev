@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import React from "react";
 import { useRouter } from "next/navigation";
@@ -52,6 +52,13 @@ export default function HeroSection() {
         params.set('location', filters.location.trim());
         params.set('status', filters.status || 'rent');
         
+        // Ensure category is strictly handled (only valid categories like residential, commercial, industrial)
+        if (filters.category && filters.category !== ('rent' as any) && filters.category !== ('sale' as any)) {
+            params.set('category', filters.category);
+        } else {
+            params.delete('category'); // 👈 Explicitly remove invalid 'rent'/'sale' category parameters
+        }
+
         // Pass property_type directly when selected from grouped dropdown
         if (filters.property_type) params.set('property_type', filters.property_type);
         if (filters.bedroom) params.set('bedroom', filters.bedroom.toString());
