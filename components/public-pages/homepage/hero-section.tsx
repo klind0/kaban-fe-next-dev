@@ -1,24 +1,44 @@
 "use client"
+
+import React from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import CustomSelect from "@/components/universal/custom-select";
 import CustomTab from "@/components/universal/custom-tab";
 import SearchInput from "@/components/universal/search-input";
 import { useQueryParams } from "@/hooks/useQueryParams";
-import { bedroomOptions, maxPriceOptions, propertyStatusOptions, propertyTypeGroupedOptions } from "@/lib/selectOptions";
-import { useSearchParams } from "next/navigation";
-import React from "react";
+import { 
+  bedroomOptions, 
+  maxPriceOptions, 
+  propertyStatusOptions, 
+  propertyTypeGroupedOptions 
+} from "@/lib/selectOptions";
 
 export default function HeroSection() {
-    const searchParams = useSearchParams();
+    const router = useRouter();
+    const { filters, handleQueryParamsChange } = useQueryParams();
 
-    const [activeTab, setActiveTab] = React.useState<string>(searchParams.get('tab') || 'for-rent')
-
-    const { handleQueryParamsChange, filters } = useQueryParams()
+    // Default tab state (rent or sale)
+    const [activeTab, setActiveTab] = React.useState<string>(filters.category || 'rent');
 
     const handleTabChange = (value: string) => {
-        setActiveTab(value)
-        handleQueryParamsChange('tab', value)
-    }
+        setActiveTab(value);
+        handleQueryParamsChange('category', value as 'rent' | 'sale');
+    };
+
+    // 🚀 When Search is clicked, build query string and navigate to /search
+    const handleSearch = () => {
+        const params = new URLSearchParams();
+
+        if (filters.search) params.set('search', filters.search);
+        if (filters.category) params.set('category', filters.category);
+        if (filters.bedroom) params.set('bedroom', filters.bedroom.toString());
+        if (filters.priceMax) params.set('priceMax', filters.priceMax.toString());
+        if (filters.status) params.set('status', filters.status);
+
+        const queryString = params.toString();
+        router.push(`/search${queryString ? `?${queryString}` : ''}`);
+    };
 
     return (
         <section className='min-h-screen flex items-center justify-center bg-[#00000051] mt-18'>
@@ -27,7 +47,7 @@ export default function HeroSection() {
                     <p className='text-white text-center h2'>Discover your customized fit with ease</p>
                     <h1 className='text-white text-center'>Smartest way to scout real estate</h1>
                 </div>
-                <div className="bg-white p-4 rounded-3xl sm:p-8 xl:p-16">
+                <div className="bg-white p-4 rounded-3xl sm:p-8 xl:p-16 shadow-lg border border-slate-100">
                     <CustomTab
                         items={propertyStatusOptions}
                         activeTab={activeTab}
@@ -46,8 +66,8 @@ export default function HeroSection() {
                         <CustomSelect
                             placeholder="Property Type"
                             groups={propertyTypeGroupedOptions}
-                            value={filters.category}
-                            onChange={(val) => handleQueryParamsChange('category', val)}
+                            value={filters.status}
+                            onChange={(val) => handleQueryParamsChange('status', val)}
                         />
                         <CustomSelect
                             placeholder="Max Price"
@@ -55,10 +75,16 @@ export default function HeroSection() {
                             value={filters.priceMax?.toString()}
                             onChange={(val) => handleQueryParamsChange('priceMax', val)}
                         />
-                        <Button className="md:min-w-40" size={'lg'}>Search</Button>
+                        <Button 
+                            onClick={handleSearch} 
+                            className="md:min-w-40 bg-[#006AFF] hover:bg-[#0057D3] transition-colors text-white" 
+                            size={'lg'}
+                        >
+                            Search
+                        </Button>
                     </div>
                 </div>
             </div>
         </section>
-    )
+    );
 }
