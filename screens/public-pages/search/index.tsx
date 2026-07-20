@@ -122,7 +122,7 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
     const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
     const [isRadiusActive, setIsRadiusActive] = useState(false);
     const [radiusValue, setRadiusValue] = useState(0);
-    const [showOtherFeatures, setShowOtherFeatures] = useState(true);
+    const [showOtherFeatures, setShowOtherFeatures] = useState(false);
 
     // Active Amenities Checklist State Array
     const [selectedAmenities, setSelectedAmenities] = useState<string[]>(ALL_AMENITIES);
@@ -301,33 +301,35 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
                                     />
                                 </div>
 
-                                {/* Custom Selection Filter Matrix Row 1 */}
-                                {/* Row 1 & 2 Filter Options Matrix */}
-                                <div className="space-y-4">
-                                    {/* First Grid Row: Location (Full Width on Mobile) + Status, Type, Bedrooms (2 Columns on Mobile) */}
-                                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                                        {/* Location: Spans 2 columns on mobile (full width), 1 column on desktop */}
-                                        <div className="col-span-2 lg:col-span-1">
-                                            <input 
-                                                type="text" 
-                                                value={activeFilters.search || ''}
-                                                onChange={(e) => setActiveFilters(p => ({ ...p, search: e.target.value }))}
-                                                placeholder="Enter location..." 
-                                                className="w-full border border-slate-200 rounded-lg p-2.5 text-sm text-slate-800 outline-none focus:border-[#006AFF] focus:ring-1 focus:ring-[#006AFF]/20 bg-white font-medium placeholder:text-slate-400" 
-                                            />
-                                        </div>
-                                        
+                                {/* Grid Layout Matching Exact Desktop & Mobile Mockups */}
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+                                    {/* Row 1 / Location: Spans 2 cols on mobile and 2 cols on desktop */}
+                                    <div className="col-span-2 md:col-span-2">
+                                        <input 
+                                            type="text" 
+                                            value={activeFilters.search || ''}
+                                            onChange={(e) => setActiveFilters(p => ({ ...p, search: e.target.value }))}
+                                            placeholder="location" 
+                                            className="w-full border border-slate-200 rounded-lg p-2.5 text-sm text-slate-800 outline-none focus:border-[#006AFF] focus:ring-1 focus:ring-[#006AFF]/20 bg-white font-medium placeholder:text-slate-400" 
+                                        />
+                                    </div>
+                                    
+                                    {/* Property Status */}
+                                    <div className="col-span-1 md:col-span-1">
                                         <CustomSelect 
                                             value={activeFilters.status || ''}
-                                            placeholder="Property Status"
+                                            placeholder="For Rent"
                                             options={[
                                                 { label: "All Statuses", value: "" },
-                                                { label: "Rent", value: "RENT" },
-                                                { label: "Sale", value: "SALE" }
+                                                { label: "For Rent", value: "RENT" },
+                                                { label: "For Sale", value: "SALE" }
                                             ]}
                                             onChange={(val) => setActiveFilters(p => ({ ...p, status: val || undefined }))}
                                         />
+                                    </div>
 
+                                    {/* Property Type */}
+                                    <div className="col-span-1 md:col-span-1">
                                         <CustomSelect 
                                             value={activeFilters.property_type || ''}
                                             placeholder="Property Type"
@@ -344,12 +346,15 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
                                             ]}
                                             onChange={(val) => setActiveFilters(p => ({ ...p, property_type: val || undefined }))}
                                         />
+                                    </div>
 
+                                    {/* Row 2 / Bedrooms */}
+                                    <div className="col-span-1 md:col-span-1">
                                         <CustomSelect 
                                             value={activeFilters.bedroom?.toString() || ''}
-                                            placeholder="Bedrooms"
+                                            placeholder="Bedroom"
                                             options={[
-                                                { label: "Any Bedrooms", value: "" },
+                                                { label: "Any Bedroom", value: "" },
                                                 { label: "1 Bedroom", value: "1" },
                                                 { label: "2 Bedrooms", value: "2" },
                                                 { label: "3 Bedrooms", value: "3" },
@@ -359,60 +364,59 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
                                         />
                                     </div>
 
-                                    {/* Second Grid Row: Bathrooms, Min Price, Max Price (2 Columns on Mobile, 4 Columns on Desktop) */}
-                                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                                    {/* Bathrooms */}
+                                    <div className="col-span-1 md:col-span-1">
                                         <CustomSelect 
                                             value={bathroomValue}
-                                            placeholder="Bathrooms"
+                                            placeholder="Bathroom"
                                             options={[
-                                                { label: "Any Bathrooms", value: "" },
+                                                { label: "Any Bathroom", value: "" },
                                                 { label: "1 Bathroom", value: "1" },
                                                 { label: "2 Bathrooms", value: "2" },
                                                 { label: "3+ Bathrooms", value: "3" }
                                             ]}
                                             onChange={(val) => setBathroomValue(val)}
                                         />
+                                    </div>
 
-                                        <div>
-                                            <input 
-                                                type="number" 
-                                                value={minPrice}
-                                                onChange={(e) => setMinPrice(e.target.value)}
-                                                placeholder="Min Price" 
-                                                className="w-full border border-slate-200 rounded-lg p-2.5 text-sm text-slate-800 outline-none focus:border-[#006AFF] focus:ring-1 focus:ring-[#006AFF]/20 bg-white font-medium placeholder:text-slate-400" 
-                                            />
-                                        </div>
+                                    {/* Min Price */}
+                                    <div className="col-span-1 md:col-span-1">
+                                        <input 
+                                            type="number" 
+                                            value={minPrice}
+                                            onChange={(e) => setMinPrice(e.target.value)}
+                                            placeholder="Min.price" 
+                                            className="w-full border border-slate-200 rounded-lg p-2.5 text-sm text-slate-800 outline-none focus:border-[#006AFF] focus:ring-1 focus:ring-[#006AFF]/20 bg-white font-medium placeholder:text-slate-400" 
+                                        />
+                                    </div>
 
-                                        <div>
-                                            <input 
-                                                type="number" 
-                                                value={maxPrice}
-                                                onChange={(e) => setMaxPrice(e.target.value)}
-                                                placeholder="Max Price" 
-                                                className="w-full border border-slate-200 rounded-lg p-2.5 text-sm text-slate-800 outline-none focus:border-[#006AFF] focus:ring-1 focus:ring-[#006AFF]/20 bg-white font-medium placeholder:text-slate-400" 
-                                            />
-                                        </div>
-
-                                        {/* Empty cell on desktop (lg:block) to balance the 4-column row */}
-                                        <div className="hidden lg:block"></div>
+                                    {/* Max Price */}
+                                    <div className="col-span-1 md:col-span-1">
+                                        <input 
+                                            type="number" 
+                                            value={maxPrice}
+                                            onChange={(e) => setMaxPrice(e.target.value)}
+                                            placeholder="Max.price" 
+                                            className="w-full border border-slate-200 rounded-lg p-2.5 text-sm text-slate-800 outline-none focus:border-[#006AFF] focus:ring-1 focus:ring-[#006AFF]/20 bg-white font-medium placeholder:text-slate-400" 
+                                        />
                                     </div>
                                 </div>
 
-                                {/* 💎 Interactive Amenities Section With Correct Show/Hide Toggle */}
-                                <div className="pt-2 border-t border-slate-100 space-y-4">
+                                {/* Collapsible Other Features Header */}
+                                <div className="pt-2 space-y-4">
                                     <button
                                         type="button"
                                         onClick={() => setShowOtherFeatures(!showOtherFeatures)}
-                                        className="flex items-center gap-2 text-slate-700 font-bold text-sm select-none hover:text-[#006AFF] transition-colors"
+                                        className="flex items-center gap-2 text-slate-700 font-medium text-sm select-none hover:text-[#006AFF] transition-colors"
                                     >
-                                        <span className="flex items-center justify-center border border-slate-300 rounded w-4 h-4 text-xs font-bold bg-white text-slate-500">
+                                        <span className="flex items-center justify-center border border-slate-300 rounded-md w-5 h-5 text-xs font-bold bg-white text-slate-600">
                                             {showOtherFeatures ? '−' : '+'}
                                         </span>
-                                        <span>Other Features</span>
+                                        <span>other features</span>
                                     </button>
 
                                     {showOtherFeatures && (
-                                        <div className="space-y-4 animate-fadeIn">
+                                        <div className="space-y-4 pt-2 border-t border-slate-100 animate-fadeIn">
                                             <div className="flex items-center gap-2 pb-1">
                                                 <input 
                                                     type="checkbox" 
