@@ -37,7 +37,7 @@ function CustomSelect({
     onChange, 
     placeholder = "Select..." 
 }: { 
-    label: string; 
+    label?: string; // 💎 Made optional by adding '?'
     value: string; 
     options: { label: string; value: string; isHeader?: boolean }[]; 
     onChange: (val: string) => void;
@@ -60,7 +60,13 @@ function CustomSelect({
 
     return (
         <div ref={containerRef} className="relative space-y-1 w-full">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">{label}</span>
+            {/* Render label header only if a label prop is explicitly passed */}
+            {label && (
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                    {label}
+                </span>
+            )}
+
             <button
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
@@ -68,7 +74,9 @@ function CustomSelect({
                     isOpen ? 'border-[#006AFF] ring-1 ring-[#006AFF]/20 text-slate-800' : 'border-slate-200 text-slate-700'
                 }`}
             >
-                <span className="truncate">{selectedOption ? selectedOption.label : placeholder}</span>
+                <span className="truncate">
+                    {selectedOption && selectedOption.value !== "" ? selectedOption.label : placeholder}
+                </span>
                 <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180 text-[#006AFF]' : ''}`} />
             </button>
 
@@ -294,100 +302,99 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
                                 </div>
 
                                 {/* Custom Selection Filter Matrix Row 1 */}
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                                    <div className="space-y-1">
-                                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Location</span>
-                                        <input 
-                                            type="text" 
-                                            value={activeFilters.search || ''}
-                                            onChange={(e) => setActiveFilters(p => ({ ...p, search: e.target.value }))}
-                                            placeholder="Enter location..." 
-                                            className="w-full border border-slate-200 rounded-lg p-2.5 text-sm text-slate-800 outline-none focus:border-[#006AFF] focus:ring-1 focus:ring-[#006AFF]/20 bg-white font-medium" 
+                                {/* Row 1 & 2 Filter Options Matrix */}
+                                <div className="space-y-4">
+                                    {/* First Grid Row: Location (Full Width on Mobile) + Status, Type, Bedrooms (2 Columns on Mobile) */}
+                                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                                        {/* Location: Spans 2 columns on mobile (full width), 1 column on desktop */}
+                                        <div className="col-span-2 lg:col-span-1">
+                                            <input 
+                                                type="text" 
+                                                value={activeFilters.search || ''}
+                                                onChange={(e) => setActiveFilters(p => ({ ...p, search: e.target.value }))}
+                                                placeholder="Enter location..." 
+                                                className="w-full border border-slate-200 rounded-lg p-2.5 text-sm text-slate-800 outline-none focus:border-[#006AFF] focus:ring-1 focus:ring-[#006AFF]/20 bg-white font-medium placeholder:text-slate-400" 
+                                            />
+                                        </div>
+                                        
+                                        <CustomSelect 
+                                            value={activeFilters.status || ''}
+                                            placeholder="Property Status"
+                                            options={[
+                                                { label: "All Statuses", value: "" },
+                                                { label: "Rent", value: "RENT" },
+                                                { label: "Sale", value: "SALE" }
+                                            ]}
+                                            onChange={(val) => setActiveFilters(p => ({ ...p, status: val || undefined }))}
+                                        />
+
+                                        <CustomSelect 
+                                            value={activeFilters.property_type || ''}
+                                            placeholder="Property Type"
+                                            options={[
+                                                { label: "Select type...", value: "" },
+                                                { label: "Residential", value: "RESIDENTIAL_HDR", isHeader: true },
+                                                { label: "Self Contain", value: "SELF_CONTAIN" },
+                                                { label: "Apartment", value: "APARTMENT" },
+                                                { label: "Detached House", value: "DETACHED" },
+                                                { label: "Terrace House", value: "TERRACE" },
+                                                { label: "Semi-detached House", value: "SEMI_DETACHED" },
+                                                { label: "Commercial", value: "COMMERCIAL_HDR", isHeader: true },
+                                                { label: "Commercial", value: "COMMERCIAL" }
+                                            ]}
+                                            onChange={(val) => setActiveFilters(p => ({ ...p, property_type: val || undefined }))}
+                                        />
+
+                                        <CustomSelect 
+                                            value={activeFilters.bedroom?.toString() || ''}
+                                            placeholder="Bedrooms"
+                                            options={[
+                                                { label: "Any Bedrooms", value: "" },
+                                                { label: "1 Bedroom", value: "1" },
+                                                { label: "2 Bedrooms", value: "2" },
+                                                { label: "3 Bedrooms", value: "3" },
+                                                { label: "4+ Bedrooms", value: "4" }
+                                            ]}
+                                            onChange={(val) => setActiveFilters(p => ({ ...p, bedroom: val ? Number(val) : undefined }))}
                                         />
                                     </div>
-                                    
-                                    <CustomSelect 
-                                        label="Property Status"
-                                        value={activeFilters.status || ''}
-                                        placeholder="All Statuses"
-                                        options={[
-                                            { label: "All Statuses", value: "" },
-                                            { label: "Rent", value: "RENT" },
-                                            { label: "Sale", value: "SALE" }
-                                        ]}
-                                        onChange={(val) => setActiveFilters(p => ({ ...p, status: val || undefined }))}
-                                    />
 
-                                    <CustomSelect 
-                                        label="Property Type"
-                                        value={activeFilters.property_type || ''}
-                                        placeholder="Select type..."
-                                        options={[
-                                            { label: "Select type...", value: "" },
-                                            { label: "Residential", value: "RESIDENTIAL_HDR", isHeader: true },
-                                            { label: "Self Contain", value: "SELF_CONTAIN" },
-                                            { label: "Apartment", value: "APARTMENT" },
-                                            { label: "Detached House", value: "DETACHED" },
-                                            { label: "Terrace House", value: "TERRACE" },
-                                            { label: "Semi-detached House", value: "SEMI_DETACHED" },
-                                            { label: "Commercial", value: "COMMERCIAL_HDR", isHeader: true },
-                                            { label: "Commercial", value: "COMMERCIAL" }
-                                        ]}
-                                        onChange={(val) => setActiveFilters(p => ({ ...p, property_type: val || undefined }))}
-                                    />
-
-                                    <CustomSelect 
-                                        label="Bedrooms"
-                                        value={activeFilters.bedroom?.toString() || ''}
-                                        placeholder="Any"
-                                        options={[
-                                            { label: "Any", value: "" },
-                                            { label: "1 Bedroom", value: "1" },
-                                            { label: "2 Bedrooms", value: "2" },
-                                            { label: "3 Bedrooms", value: "3" },
-                                            { label: "4+ Bedrooms", value: "4" }
-                                        ]}
-                                        onChange={(val) => setActiveFilters(p => ({ ...p, bedroom: val ? Number(val) : undefined }))}
-                                    />
-                                </div>
-
-                                {/* Custom Selection Filter Matrix Row 2 */}
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                                    <CustomSelect 
-                                        label="Bathrooms"
-                                        value={bathroomValue}
-                                        placeholder="Any"
-                                        options={[
-                                            { label: "Any", value: "" },
-                                            { label: "1 Bathroom", value: "1" },
-                                            { label: "2 Bathrooms", value: "2" },
-                                            { label: "3+ Bathrooms", value: "3" }
-                                        ]}
-                                        onChange={(val) => setBathroomValue(val)}
-                                    />
-
-                                    <div className="space-y-1">
-                                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Min Price</span>
-                                        <input 
-                                            type="number" 
-                                            value={minPrice}
-                                            onChange={(e) => setMinPrice(e.target.value)}
-                                            placeholder="Min Price" 
-                                            className="w-full border border-slate-200 rounded-lg p-2.5 text-sm text-slate-800 outline-none focus:border-[#006AFF] focus:ring-1 focus:ring-[#006AFF]/20 bg-white font-medium" 
+                                    {/* Second Grid Row: Bathrooms, Min Price, Max Price (2 Columns on Mobile, 4 Columns on Desktop) */}
+                                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                                        <CustomSelect 
+                                            value={bathroomValue}
+                                            placeholder="Bathrooms"
+                                            options={[
+                                                { label: "Any Bathrooms", value: "" },
+                                                { label: "1 Bathroom", value: "1" },
+                                                { label: "2 Bathrooms", value: "2" },
+                                                { label: "3+ Bathrooms", value: "3" }
+                                            ]}
+                                            onChange={(val) => setBathroomValue(val)}
                                         />
-                                    </div>
-                                    <div className="space-y-1">
-                                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Max Price</span>
-                                        <input 
-                                            type="number" 
-                                            value={maxPrice}
-                                            onChange={(e) => setMaxPrice(e.target.value)}
-                                            placeholder="Max Price" 
-                                            className="w-full border border-slate-200 rounded-lg p-2.5 text-sm text-slate-800 outline-none focus:border-[#006AFF] focus:ring-1 focus:ring-[#006AFF]/20 bg-white font-medium" 
-                                        />
-                                    </div>
-                                    <div className="flex items-end pb-1">
-                                        {/* Blank cell block */}
+
+                                        <div>
+                                            <input 
+                                                type="number" 
+                                                value={minPrice}
+                                                onChange={(e) => setMinPrice(e.target.value)}
+                                                placeholder="Min Price" 
+                                                className="w-full border border-slate-200 rounded-lg p-2.5 text-sm text-slate-800 outline-none focus:border-[#006AFF] focus:ring-1 focus:ring-[#006AFF]/20 bg-white font-medium placeholder:text-slate-400" 
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <input 
+                                                type="number" 
+                                                value={maxPrice}
+                                                onChange={(e) => setMaxPrice(e.target.value)}
+                                                placeholder="Max Price" 
+                                                className="w-full border border-slate-200 rounded-lg p-2.5 text-sm text-slate-800 outline-none focus:border-[#006AFF] focus:ring-1 focus:ring-[#006AFF]/20 bg-white font-medium placeholder:text-slate-400" 
+                                            />
+                                        </div>
+
+                                        {/* Empty cell on desktop (lg:block) to balance the 4-column row */}
+                                        <div className="hidden lg:block"></div>
                                     </div>
                                 </div>
 
