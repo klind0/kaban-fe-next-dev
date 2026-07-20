@@ -214,14 +214,14 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
                     <h3 className="text-2xl font-bold tracking-tight text-slate-800 mb-4">Available Properties</h3>
                     
                     {/* Floating Controls Row */}
-                    <div className="flex items-center justify-between bg-white border border-slate-200 rounded-xl p-3.5 shadow-sm w-full mb-4">
+                    <div className="flex items-center justify-between bg-white border border-slate-200/80 rounded-2xl p-3.5 shadow-sm/50 w-full mb-4">
                         <span className="text-sm font-semibold text-slate-600">
                             {totalResults} {totalResults === 1 ? 'Result' : 'Results'} Found
                         </span>
 
                         <div className="flex items-center gap-3">
                             {/* Sort Order Selector */}
-                            <div className="flex items-center gap-2 border border-slate-200 rounded-lg px-3 py-1.5 bg-white">
+                            <div className="flex items-center gap-2 border border-slate-200/80 rounded-lg px-3 py-1.5 bg-white">
                                 <SlidersHorizontal className="w-4 h-4 text-slate-400" />
                                 <select className="text-sm font-semibold text-slate-700 bg-transparent outline-none cursor-pointer">
                                     <option>Default order</option>
@@ -229,9 +229,8 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
                                     <option>Price: High to Low</option>
                                 </select>
                             </div>
-
                             {/* 💎 View Switcher Buttons Container: Hidden on mobile, visible on desktop/tablet (md+) */}
-                            <div className="hidden md:flex items-center border border-slate-200 rounded-lg p-1 bg-slate-50">
+                            <div className="hidden md:flex items-center border border-slate-200/80 rounded-lg p-1 bg-slate-50/50">
                                 <button 
                                     type="button"
                                     onClick={() => setPosition('landscape')}
@@ -251,7 +250,7 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
                                 <button 
                                     type="button"
                                     onClick={toggleMap}
-                                    className={`p-1.5 rounded-md transition-colors ml-1 border-l border-slate-200 pl-2 ${map ? 'text-[#006AFF] font-semibold' : 'text-slate-400 hover:text-slate-600'}`}
+                                    className={`p-1.5 rounded-md transition-colors ml-1 border-l border-slate-200/80 pl-2 ${map ? 'text-[#006AFF] font-semibold' : 'text-slate-400 hover:text-slate-600'}`}
                                     title="Toggle Map"
                                 >
                                     <MapPin className="w-4 h-4" />
@@ -261,7 +260,7 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
                     </div>
                     
                     {/* Accordion Filter Dashboard */}
-                    <div className={`w-full bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden mb-6 ${stackOrder === 'map' && mediasize === 'mobile' ? 'opacity-0 invisible max-h-0' : ''}`}>
+                    <div className={`w-full bg-white border border-slate-200/80 rounded-2xl shadow-sm/50 overflow-hidden mb-6 ${stackOrder === 'map' && mediasize === 'mobile' ? 'opacity-0 invisible max-h-0' : ''}`}>
                         <button 
                             type="button"
                             onClick={() => setIsAdvancedOpen(!isAdvancedOpen)}
@@ -272,8 +271,7 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
                         </button>
 
                         {isAdvancedOpen && (
-                            <div className="p-5 border-t border-slate-100 bg-white space-y-6 transition-all duration-200">
-                                
+                            <div className="p-5 border-t border-slate-100 bg-white space-y-6 transition-all duration-200">                                
                                 {/* 💎 Restored Custom Slider Container */}
                                 <div className="space-y-3">
                                     <div className="flex items-center gap-3">
@@ -495,11 +493,11 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
                 </div>
 
                 {isLoading ? (
-                    <div className="py-16 text-center text-sm font-semibold text-slate-500 bg-white rounded-xl border border-slate-100 shadow-sm">
+                    <div className="py-16 text-center text-sm font-semibold text-slate-500 bg-white rounded-2xl border border-slate-200/80 shadow-sm/50">
                         Loading properties matching your search...
                     </div>
                 ) : listings.length === 0 ? (
-                    <div className="py-16 text-center text-sm font-semibold text-slate-500 bg-white rounded-xl border border-slate-100 shadow-sm">
+                    <div className="py-16 text-center text-sm font-semibold text-slate-500 bg-white rounded-2xl border border-slate-200/80 shadow-sm/50">
                         No properties found matching those search criteria.
                     </div>
                 ) : (
