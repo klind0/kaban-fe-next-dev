@@ -3,10 +3,11 @@
 import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useSearchParams } from 'next/navigation'; // 👈 1. Import searchParams
+import { useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { ChevronDown, ChevronUp, SlidersHorizontal, LayoutGrid, Rows, MapPin, Check } from "lucide-react";
 
+// Core UI Components
 import Container from '@/components/universal/Container';
 import ListingCard from '@/components/universal/listing-card';
 import MobileMapControl from './components/MobileMapControl';
@@ -21,6 +22,7 @@ type ResultsProps = {
     initialSearchTerm?: string;
 };
 
+// Available Amenities Core Matrix Data
 const ALL_AMENITIES = [
     "Swimming Pool", "Fitted Kitchen", "In-built Speaker", "En-suite",
     "Boys Quarter", "Gym", "CCTV Cameras", "Security",
@@ -28,6 +30,7 @@ const ALL_AMENITIES = [
     "Installed Wardrobe", "Laundry Room", "Walk-in Closet", "Family Room"
 ];
 
+// Custom Selection Dropdown Component with Primary Theme Integration
 function CustomSelect({ 
     label, 
     value, 
@@ -35,7 +38,7 @@ function CustomSelect({
     onChange, 
     placeholder = "Select..." 
 }: { 
-    label?: string;
+    label?: string; 
     value: string; 
     options: { label: string; value: string; isHeader?: boolean }[]; 
     onChange: (val: string) => void;
@@ -59,7 +62,7 @@ function CustomSelect({
     return (
         <div ref={containerRef} className="relative space-y-1 w-full">
             {label && (
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                <span className="text-xs font-bold text-gray-50 uppercase tracking-wider">
                     {label}
                 </span>
             )}
@@ -67,22 +70,22 @@ function CustomSelect({
             <button
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
-                className={`w-full flex items-center justify-between border rounded-lg p-2.5 text-sm bg-white transition-all text-left font-medium ${
-                    isOpen ? 'border-[#006AFF] ring-1 ring-[#006AFF]/20 text-slate-800' : 'border-slate-200 text-slate-700'
+                className={`w-full flex items-center justify-between border rounded-lg p-2.5 text-sm bg-card transition-all text-left font-medium ${
+                    isOpen ? 'border-primary ring-1 ring-primary/20 text-foreground' : 'border-border text-foreground'
                 }`}
             >
                 <span className="truncate">
                     {selectedOption && selectedOption.value !== "" ? selectedOption.label : placeholder}
                 </span>
-                <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180 text-[#006AFF]' : ''}`} />
+                <ChevronDown className={`w-4 h-4 text-gray-25 transition-transform duration-200 ${isOpen ? 'rotate-180 text-primary' : ''}`} />
             </button>
 
             {isOpen && (
-                <div className="absolute z-30 left-0 right-0 mt-1 max-h-60 overflow-y-auto bg-white border border-slate-200 rounded-lg shadow-lg py-1 animate-fadeIn">
+                <div className="absolute z-30 left-0 right-0 mt-1 max-h-60 overflow-y-auto bg-card border border-border rounded-lg shadow-lg py-1 animate-fadeIn">
                     {options.map((opt, i) => {
                         if (opt.isHeader) {
                             return (
-                                <div key={i} className="px-3 py-1.5 text-xs font-bold text-slate-400 bg-slate-50 uppercase tracking-wider">
+                                <div key={i} className="px-3 py-1.5 text-xs font-bold text-gray-25 bg-neutral-100 uppercase tracking-wider">
                                     {opt.label}
                                 </div>
                             );
@@ -95,12 +98,12 @@ function CustomSelect({
                                     onChange(opt.value);
                                     setIsOpen(false);
                                 }}
-                                className={`w-full text-left px-4 py-2 text-sm flex items-center justify-between hover:bg-slate-50 transition-colors ${
-                                    value === opt.value ? 'text-[#006AFF] font-semibold bg-blue-50/40' : 'text-slate-600'
+                                className={`w-full text-left px-4 py-2 text-sm flex items-center justify-between hover:bg-neutral-100 transition-colors ${
+                                    value === opt.value ? 'text-primary font-semibold bg-primary/10' : 'text-gray-50'
                                 }`}
                             >
                                 <span>{opt.label}</span>
-                                {value === opt.value && <Check className="w-4 h-4 text-[#006AFF]" />}
+                                {value === opt.value && <Check className="w-4 h-4 text-primary" />}
                             </button>
                         );
                     })}
@@ -111,22 +114,26 @@ function CustomSelect({
 }
 
 export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
-    const searchParams = useSearchParams(); // 👈 2. Access Next.js URL query params
+    const searchParams = useSearchParams();
+
     const [position, setPosition] = useState<'portrait' | 'landscape'>('portrait');
     const [stackOrder, setStackOrder] = useState<'listings' | 'map'>('listings');
     const [map, setMap] = useState(false);
     
+    // UI Panel Control States
     const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
     const [isRadiusActive, setIsRadiusActive] = useState(false);
     const [radiusValue, setRadiusValue] = useState(0);
     const [showOtherFeatures, setShowOtherFeatures] = useState(false);
 
+    // Active Amenities Checklist State Array
     const [selectedAmenities, setSelectedAmenities] = useState<string[]>(ALL_AMENITIES);
 
     // Filter Variables State Tracker
     const [activeFilters, setActiveFilters] = useState<Partial<IQueryParamsType>>({
         search: initialSearchTerm || "",
         status: undefined,
+        category: undefined,
         property_type: undefined,
         bedroom: undefined,
     });
@@ -135,40 +142,40 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
     const [minPrice, setMinPrice] = useState("");
     const [maxPrice, setMaxPrice] = useState("");
 
-    // 👈 3. Sync incoming URL parameters with activeFilters state on load / parameter change
+    // 🚀 Sync URL parameters with activeFilters state on page load/navigation
     useEffect(() => {
-        const urlLocation = searchParams.get('location') || searchParams.get('search') || initialSearchTerm || "";
-        const rawCategory = searchParams.get('category') || searchParams.get('status');
-        const urlStatus = rawCategory ? rawCategory.toUpperCase() : undefined;
-        const urlPropertyType = searchParams.get('property_type') || undefined;
-        const urlBedroom = searchParams.get('bedroom') || searchParams.get('bedrooms');
-        const urlPriceMax = searchParams.get('priceMax');
+        const rawLocation = searchParams.get('location') || searchParams.get('search') || initialSearchTerm || "";
+        const rawStatus = searchParams.get('status');
+        const rawCategory = searchParams.get('category');
+        const rawBedroom = searchParams.get('bedroom') || searchParams.get('bedrooms');
+        const rawPropertyType = searchParams.get('property_type');
+        const rawPriceMax = searchParams.get('priceMax') || searchParams.get('max_price');
 
         setActiveFilters({
-            search: urlLocation,
-            status: urlStatus,
-            property_type: urlPropertyType,
-            bedroom: urlBedroom ? Number(urlBedroom) : undefined,
+            search: rawLocation,
+            status: rawStatus ? rawStatus.toLowerCase() : undefined,      // e.g. "rent" | "sale"
+            category: rawCategory ? rawCategory.toLowerCase() : undefined,  // e.g. "residential" | "commercial"
+            property_type: rawPropertyType || undefined,
+            bedroom: rawBedroom ? Number(rawBedroom) : undefined,
         });
 
-        if (urlPriceMax) {
-            setMaxPrice(urlPriceMax);
+        if (rawPriceMax) {
+            setMaxPrice(rawPriceMax);
         }
     }, [searchParams, initialSearchTerm]);
 
     // Query Execution Pipeline
     const { data: searchData, isLoading } = useQuery({
-        queryKey: [QUERY_KEY.PUBLIC_LISTINGS, activeFilters, maxPrice, minPrice],
+        queryKey: [QUERY_KEY.PUBLIC_LISTINGS, activeFilters, maxPrice],
         queryFn: () =>
             gqlRequest<{ publicListings: IListingResponse }>(PUBLIC_LISTINGS_QUERY, {
                 filter: {
                     ...(activeFilters.search && { search: activeFilters.search }),
-                    status: "APPROVED", 
-                    ...(activeFilters.status && { listing_type: activeFilters.status }), // 'RENT' or 'SALE'
+                    ...(activeFilters.status && { status: activeFilters.status }),
+                    ...(activeFilters.category && { category: activeFilters.category }),
                     ...(activeFilters.property_type && { property_type: activeFilters.property_type }),
                     ...(activeFilters.bedroom && { "details.bedroom": Number(activeFilters.bedroom) }),
                     ...(maxPrice && { max_price: Number(maxPrice) }),
-                    ...(minPrice && { min_price: Number(minPrice) }),
                 },
                 limit: 20,
             }),
@@ -208,10 +215,10 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
     const renderMap = !map ? 'w-[60%]' : 'w-0 opacity-0';
 
     return (
-        <Container element="section" className={`flex w-full min-h-screen bg-neutral-50/50 pb-12 ${!map ? 'md:gap-6 xl:pe-16' : 'md:gap-0 md:px-16'}`}>
+        <Container element="section" className={`flex w-full min-h-screen bg-background pb-12 ${!map ? 'md:gap-6 xl:pe-16' : 'md:gap-0 md:px-16'}`}>
             <div className={`transition-all delay-100 ${renderMap} ${mapPage}`}>
                 <div className={'h-[95vh] top-4 sticky'}>
-                    <Image src={'https://images.unsplash.com/photo-1524661135339-9140b00787e3?auto=format&fit=crop&w=800&q=80'} width={800} height={1000} className="w-full rounded-xl h-full object-cover object-top border border-slate-200" alt="Search map view" priority />
+                    <Image src={'https://images.unsplash.com/photo-1524661135339-9140b00787e3?auto=format&fit=crop&w=800&q=80'} width={800} height={1000} className="w-full rounded-xl h-full object-cover object-top border border-border" alt="Search map view" priority />
                 </div>
             </div>
 
@@ -219,33 +226,34 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
 
             <div className="w-full space-y-5">
                 <div className={`${stackOrder === 'map' && mediasize === 'mobile' && 'p-[3%] bg-neutral-100 fixed inset-x-0 top-0 max-h-[11.8rem] pt-20 w-screen z-10'}`}>
-                    <div className="text-sm text-slate-400 mb-1 font-medium">
-                        <Link href={'/'} className="text-[#006AFF] hover:underline">Home</Link>
+                    <div className="text-sm text-gray-25 mb-1 font-medium">
+                        <Link href={'/'} className="text-primary hover:underline">Home</Link>
                         <span> / Search</span>
                     </div>
 
-                    <h3 className="text-2xl font-bold tracking-tight text-slate-800 mb-4">Available Properties</h3>
+                    <h3 className="text-2xl font-bold tracking-tight text-foreground mb-4">Available Properties</h3>
                     
-                    <div className="flex items-center justify-between bg-white border border-slate-200 rounded-xl p-3.5 shadow-sm w-full mb-4">
-                        <span className="text-sm font-semibold text-slate-600">
+                    {/* Floating Controls Row */}
+                    <div className="flex items-center justify-between bg-card border border-border rounded-xl p-3.5 shadow-sm w-full mb-4">
+                        <span className="text-sm font-semibold text-gray-50">
                             {totalResults} {totalResults === 1 ? 'Result' : 'Results'} Found
                         </span>
 
                         <div className="flex items-center gap-3">
-                            <div className="flex items-center gap-2 border border-slate-200 rounded-lg px-3 py-1.5 bg-white">
-                                <SlidersHorizontal className="w-4 h-4 text-slate-400" />
-                                <select className="text-sm font-semibold text-slate-700 bg-transparent outline-none cursor-pointer">
+                            <div className="flex items-center gap-2 border border-border rounded-lg px-3 py-1.5 bg-card">
+                                <SlidersHorizontal className="w-4 h-4 text-gray-25" />
+                                <select className="text-sm font-semibold text-foreground bg-transparent outline-none cursor-pointer">
                                     <option>Default order</option>
                                     <option>Price: Low to High</option>
                                     <option>Price: High to Low</option>
                                 </select>
                             </div>
 
-                            <div className="hidden md:flex items-center border border-slate-200 rounded-lg p-1 bg-slate-50">
+                            <div className="hidden md:flex items-center border border-border rounded-lg p-1 bg-neutral-100">
                                 <button 
                                     type="button"
                                     onClick={() => setPosition('landscape')}
-                                    className={`p-1.5 rounded-md transition-colors ${position === 'landscape' ? 'bg-white text-[#006AFF] shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                                    className={`p-1.5 rounded-md transition-colors ${position === 'landscape' ? 'bg-card text-primary shadow-sm' : 'text-gray-25 hover:text-foreground'}`}
                                     title="Landscape View"
                                 >
                                     <Rows className="w-4 h-4" />
@@ -253,7 +261,7 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
                                 <button 
                                     type="button"
                                     onClick={() => setPosition('portrait')}
-                                    className={`p-1.5 rounded-md transition-colors ${position === 'portrait' ? 'bg-white text-[#006AFF] shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                                    className={`p-1.5 rounded-md transition-colors ${position === 'portrait' ? 'bg-card text-primary shadow-sm' : 'text-gray-25 hover:text-foreground'}`}
                                     title="Grid View"
                                 >
                                     <LayoutGrid className="w-4 h-4" />
@@ -261,7 +269,7 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
                                 <button 
                                     type="button"
                                     onClick={toggleMap}
-                                    className={`p-1.5 rounded-md transition-colors ml-1 border-l border-slate-200 pl-2 ${map ? 'text-[#006AFF] font-semibold' : 'text-slate-400 hover:text-slate-600'}`}
+                                    className={`p-1.5 rounded-md transition-colors ml-1 border-l border-border pl-2 ${map ? 'text-primary font-semibold' : 'text-gray-25 hover:text-foreground'}`}
                                     title="Toggle Map"
                                 >
                                     <MapPin className="w-4 h-4" />
@@ -270,36 +278,38 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
                         </div>
                     </div>
                     
-                    <div className={`w-full bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden mb-6 ${stackOrder === 'map' && mediasize === 'mobile' ? 'opacity-0 invisible max-h-0' : ''}`}>
+                    {/* Accordion Filter Dashboard */}
+                    <div className={`w-full bg-card border border-border rounded-xl shadow-sm overflow-hidden mb-6 ${stackOrder === 'map' && mediasize === 'mobile' ? 'opacity-0 invisible max-h-0' : ''}`}>
                         <button 
                             type="button"
                             onClick={() => setIsAdvancedOpen(!isAdvancedOpen)}
-                            className="w-full flex items-center justify-between p-4 bg-white hover:bg-slate-50/40 transition-colors text-left font-semibold text-sm text-slate-700"
+                            className="w-full flex items-center justify-between p-4 bg-card hover:bg-neutral-100/50 transition-colors text-left font-semibold text-sm text-foreground"
                         >
                             <span>Advanced Filter Options</span>
-                            {isAdvancedOpen ? <ChevronUp className="w-4 h-4 text-slate-500" /> : <ChevronDown className="w-4 h-4 text-slate-500" />}
+                            {isAdvancedOpen ? <ChevronUp className="w-4 h-4 text-gray-50" /> : <ChevronDown className="w-4 h-4 text-gray-50" />}
                         </button>
 
                         {isAdvancedOpen && (
-                            <div className="p-5 border-t border-slate-100 bg-white space-y-6 transition-all duration-200">
+                            <div className="p-5 border-t border-border bg-card space-y-6 transition-all duration-200">
+                                
                                 <div className="space-y-3">
                                     <div className="flex items-center gap-3">
                                         <button 
                                             type="button"
                                             onClick={() => setIsRadiusActive(!isRadiusActive)}
                                             className={`w-4 h-4 rounded-full border flex items-center justify-center transition-all ${
-                                                isRadiusActive ? 'border-[#006AFF] bg-[#006AFF]' : 'border-slate-300 bg-white'
+                                                isRadiusActive ? 'border-primary bg-primary' : 'border-border bg-card'
                                             }`}
                                         >
-                                            {isRadiusActive && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                                            {isRadiusActive && <div className="w-1.5 h-1.5 rounded-full bg-primary-foreground" />}
                                         </button>
                                         <label 
                                             onClick={() => setIsRadiusActive(!isRadiusActive)}
-                                            className="text-sm font-semibold text-slate-700 cursor-pointer select-none"
+                                            className="text-sm font-semibold text-foreground cursor-pointer select-none"
                                         >
                                             Radius Filter
                                         </label>
-                                        <span className="ml-auto text-xs font-bold text-[#006AFF] bg-blue-50 px-2.5 py-0.5 rounded-full">
+                                        <span className="ml-auto text-xs font-bold text-primary bg-primary/10 px-2.5 py-0.5 rounded-full">
                                             {radiusValue}km
                                         </span>
                                     </div>
@@ -311,7 +321,7 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
                                         value={radiusValue}
                                         onChange={(e) => setRadiusValue(Number(e.target.value))}
                                         className={`w-full h-1 rounded-lg appearance-none cursor-pointer transition-opacity ${
-                                            isRadiusActive ? 'accent-[#006AFF] bg-slate-200' : 'accent-slate-300 bg-slate-100 opacity-50 pointer-events-none'
+                                            isRadiusActive ? 'accent-primary bg-neutral-200' : 'accent-neutral-300 bg-neutral-100 opacity-50 pointer-events-none'
                                         }`} 
                                     />
                                 </div>
@@ -322,8 +332,8 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
                                             type="text" 
                                             value={activeFilters.search || ''}
                                             onChange={(e) => setActiveFilters(p => ({ ...p, search: e.target.value }))}
-                                            placeholder="location" 
-                                            className="w-full border border-slate-200 rounded-lg p-2.5 text-sm text-slate-800 outline-none focus:border-[#006AFF] focus:ring-1 focus:ring-[#006AFF]/20 bg-white font-medium placeholder:text-slate-400" 
+                                            placeholder="Location..." 
+                                            className="w-full border border-border rounded-lg p-2.5 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 bg-card font-medium placeholder:text-gray-25" 
                                         />
                                     </div>
                                     
@@ -393,8 +403,8 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
                                             type="number" 
                                             value={minPrice}
                                             onChange={(e) => setMinPrice(e.target.value)}
-                                            placeholder="Min.price" 
-                                            className="w-full border border-slate-200 rounded-lg p-2.5 text-sm text-slate-800 outline-none focus:border-[#006AFF] focus:ring-1 focus:ring-[#006AFF]/20 bg-white font-medium placeholder:text-slate-400" 
+                                            placeholder="Min. price" 
+                                            className="w-full border border-border rounded-lg p-2.5 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 bg-card font-medium placeholder:text-gray-25" 
                                         />
                                     </div>
 
@@ -403,8 +413,8 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
                                             type="number" 
                                             value={maxPrice}
                                             onChange={(e) => setMaxPrice(e.target.value)}
-                                            placeholder="Max.price" 
-                                            className="w-full border border-slate-200 rounded-lg p-2.5 text-sm text-slate-800 outline-none focus:border-[#006AFF] focus:ring-1 focus:ring-[#006AFF]/20 bg-white font-medium placeholder:text-slate-400" 
+                                            placeholder="Max. price" 
+                                            className="w-full border border-border rounded-lg p-2.5 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 bg-card font-medium placeholder:text-gray-25" 
                                         />
                                     </div>
                                 </div>
@@ -413,25 +423,25 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
                                     <button
                                         type="button"
                                         onClick={() => setShowOtherFeatures(!showOtherFeatures)}
-                                        className="flex items-center gap-2 text-slate-700 font-medium text-sm select-none hover:text-[#006AFF] transition-colors"
+                                        className="flex items-center gap-2 text-gray-50 font-medium text-sm select-none hover:text-primary transition-colors"
                                     >
-                                        <span className="flex items-center justify-center border border-slate-300 rounded-md w-5 h-5 text-xs font-bold bg-white text-slate-600">
+                                        <span className="flex items-center justify-center border border-border rounded-md w-5 h-5 text-xs font-bold bg-card text-gray-50">
                                             {showOtherFeatures ? '−' : '+'}
                                         </span>
                                         <span>other features</span>
                                     </button>
 
                                     {showOtherFeatures && (
-                                        <div className="space-y-4 pt-2 border-t border-slate-100 animate-fadeIn">
+                                        <div className="space-y-4 pt-2 border-t border-border animate-fadeIn">
                                             <div className="flex items-center gap-2 pb-1">
                                                 <input 
                                                     type="checkbox" 
                                                     id="select-all" 
                                                     checked={selectedAmenities.length === ALL_AMENITIES.length}
                                                     onChange={(e) => handleSelectAllChange(e.target.checked)}
-                                                    className="rounded border-slate-300 accent-[#006AFF] h-4 w-4 cursor-pointer" 
+                                                    className="rounded border-border accent-primary h-4 w-4 cursor-pointer" 
                                                 />
-                                                <label htmlFor="select-all" className="text-sm font-semibold text-[#006AFF] cursor-pointer select-none">
+                                                <label htmlFor="select-all" className="text-sm font-semibold text-primary cursor-pointer select-none">
                                                     Select all amenities
                                                 </label>
                                             </div>
@@ -447,11 +457,11 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
                                                                 id={domId} 
                                                                 checked={isChecked}
                                                                 onChange={() => handleAmenityToggle(amenity)}
-                                                                className="rounded border-slate-300 accent-[#006AFF] h-4 w-4 cursor-pointer"
+                                                                className="rounded border-border accent-primary h-4 w-4 cursor-pointer"
                                                             />
                                                             <label 
                                                                 htmlFor={domId} 
-                                                                className="text-sm text-slate-600 font-medium cursor-pointer hover:text-slate-800 transition-colors select-none"
+                                                                className="text-sm text-gray-50 font-medium cursor-pointer hover:text-foreground transition-colors select-none"
                                                             >
                                                                 {amenity}
                                                             </label>
@@ -463,11 +473,11 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
                                     )}
                                 </div>
 
-                                <div className="pt-4 border-t border-slate-100 flex justify-end gap-3">
+                                <div className="pt-4 border-t border-border flex justify-end gap-3">
                                     <button 
                                         type="button"
                                         onClick={() => {
-                                            setActiveFilters({ search: "", status: undefined, property_type: undefined, bedroom: undefined });
+                                            setActiveFilters({ search: "", status: undefined, category: undefined, property_type: undefined, bedroom: undefined });
                                             setBathroomValue("");
                                             setMinPrice("");
                                             setMaxPrice("");
@@ -475,13 +485,13 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
                                             setRadiusValue(0);
                                             setSelectedAmenities([]);
                                         }}
-                                        className="px-5 py-2.5 rounded-lg border border-slate-200 text-slate-600 font-semibold text-sm hover:bg-slate-50 transition-colors"
+                                        className="px-5 py-2.5 rounded-lg border border-border text-gray-50 font-semibold text-sm hover:bg-neutral-100 transition-colors"
                                     >
                                         Reset
                                     </button>
                                     <button 
                                         type="submit" 
-                                        className="bg-[#006AFF] hover:bg-[#0057D3] text-white font-semibold text-sm px-6 py-2.5 rounded-lg transition-colors shadow-sm shadow-blue-100"
+                                        className="bg-primary hover:opacity-90 text-primary-foreground font-semibold text-sm px-6 py-2.5 rounded-lg transition-all shadow-sm"
                                     >
                                         Apply Filters
                                     </button>
@@ -492,11 +502,11 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
                 </div>
 
                 {isLoading ? (
-                    <div className="py-16 text-center text-sm font-semibold text-slate-500 bg-white rounded-xl border border-slate-100 shadow-sm">
+                    <div className="py-16 text-center text-sm font-semibold text-gray-25 bg-card rounded-xl border border-border shadow-sm">
                         Loading properties matching your search...
                     </div>
                 ) : listings.length === 0 ? (
-                    <div className="py-16 text-center text-sm font-semibold text-slate-500 bg-white rounded-xl border border-slate-100 shadow-sm">
+                    <div className="py-16 text-center text-sm font-semibold text-gray-25 bg-card rounded-xl border border-border shadow-sm">
                         No properties found matching those search criteria.
                     </div>
                 ) : (

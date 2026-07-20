@@ -19,19 +19,19 @@ export default function HeroSection() {
     const { filters, handleQueryParamsChange } = useQueryParams();
 
     // 1. Default tab state to 'rent'
-    const [activeTab, setActiveTab] = React.useState<string>(filters.category || 'rent');
+    const [activeTab, setActiveTab] = React.useState<string>(filters.status || 'rent');
     const [locationError, setLocationError] = React.useState<boolean>(false);
 
     // Sync default 'rent' status on initial load if none exists in URL
     React.useEffect(() => {
-        if (!filters.category) {
-            handleQueryParamsChange('category', 'rent');
+        if (!filters.status) {
+            handleQueryParamsChange('status', 'rent');
         }
-    }, [filters.category, handleQueryParamsChange]);
+    }, [filters.status, handleQueryParamsChange]);
 
     const handleTabChange = (value: string) => {
         setActiveTab(value);
-        handleQueryParamsChange('category', value as 'rent' | 'sale');
+        handleQueryParamsChange('status', value as 'rent' | 'sale');
     };
 
     const handleLocationChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -41,9 +41,7 @@ export default function HeroSection() {
         handleQueryParamsChange('location', event.target.value);
     };
 
-    // 🚀 Execute search only when compulsory fields pass validation
     const handleSearch = () => {
-        // 2. Validate compulsory location field
         if (!filters.location || !filters.location.trim()) {
             setLocationError(true);
             return;
@@ -52,11 +50,12 @@ export default function HeroSection() {
         const params = new URLSearchParams();
 
         params.set('location', filters.location.trim());
-        // Default category to 'rent' if absent
-        params.set('category', filters.category || 'rent');
+        params.set('status', filters.status || 'rent');
+        
+        // Pass property_type directly when selected from grouped dropdown
+        if (filters.property_type) params.set('property_type', filters.property_type);
         if (filters.bedroom) params.set('bedroom', filters.bedroom.toString());
         if (filters.priceMax) params.set('priceMax', filters.priceMax.toString());
-        if (filters.status) params.set('status', filters.status);
 
         const queryString = params.toString();
         router.push(`/search${queryString ? `?${queryString}` : ''}`);
@@ -69,7 +68,7 @@ export default function HeroSection() {
                     <p className='text-white text-center h2'>Discover your customized fit with ease</p>
                     <h1 className='text-white text-center'>Smartest way to scout real estate</h1>
                 </div>
-                <div className="bg-white p-4 rounded-3xl sm:p-8 xl:p-16 shadow-lg border border-slate-100">
+                <div className="bg-card p-4 rounded-3xl sm:p-8 xl:p-16 shadow-lg border border-border">
                     <CustomTab
                         items={propertyStatusOptions}
                         activeTab={activeTab}
@@ -81,10 +80,10 @@ export default function HeroSection() {
                                 value={filters.location || ''}
                                 placeholder="Search location..."
                                 onChange={handleLocationChange}
-                                className={locationError ? "border-red-500 focus:border-red-500" : ""}
+                                className={locationError ? "border-destructive focus:border-destructive" : ""}
                             />
                             {locationError && (
-                                <p className="text-red-500 text-xs font-semibold mt-1 ml-1">
+                                <p className="text-destructive text-xs font-semibold mt-1 ml-1">
                                     Location is required to search.
                                 </p>
                             )}
@@ -96,21 +95,25 @@ export default function HeroSection() {
                             value={filters.bedroom?.toString()}
                             onChange={(val) => handleQueryParamsChange('bedroom', val)}
                         />
+
+                        {/* Property Type Grouped Dropdown (Residential, Commercial, Industrial) */}
                         <CustomSelect
                             placeholder="Property Type"
                             groups={propertyTypeGroupedOptions}
-                            value={filters.status}
-                            onChange={(val) => handleQueryParamsChange('status', val)}
+                            value={filters.property_type}
+                            onChange={(val) => handleQueryParamsChange('property_type', val)}
                         />
+
                         <CustomSelect
                             placeholder="Max Price"
                             options={maxPriceOptions}
                             value={filters.priceMax?.toString()}
                             onChange={(val) => handleQueryParamsChange('priceMax', val)}
                         />
+
                         <Button 
                             onClick={handleSearch} 
-                            className="w-full lg:w-auto md:min-w-40 bg-[#006AFF] hover:bg-[#0057D3] transition-colors text-white" 
+                            className="w-full lg:w-auto md:min-w-40 bg-primary hover:opacity-90 transition-all text-primary-foreground font-semibold" 
                             size={'lg'}
                         >
                             Search
