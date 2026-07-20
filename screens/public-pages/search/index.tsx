@@ -220,6 +220,7 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
                         </span>
 
                         <div className="flex items-center gap-3">
+                            {/* Sort Order Selector */}
                             <div className="flex items-center gap-2 border border-slate-200 rounded-lg px-3 py-1.5 bg-white">
                                 <SlidersHorizontal className="w-4 h-4 text-slate-400" />
                                 <select className="text-sm font-semibold text-slate-700 bg-transparent outline-none cursor-pointer">
@@ -229,22 +230,29 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
                                 </select>
                             </div>
 
-                            <div className="flex items-center border border-slate-200 rounded-lg p-1 bg-slate-50">
+                            {/* 💎 View Switcher Buttons Container: Hidden on mobile, visible on desktop/tablet (md+) */}
+                            <div className="hidden md:flex items-center border border-slate-200 rounded-lg p-1 bg-slate-50">
                                 <button 
+                                    type="button"
                                     onClick={() => setPosition('landscape')}
                                     className={`p-1.5 rounded-md transition-colors ${position === 'landscape' ? 'bg-white text-[#006AFF] shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                                    title="Landscape View"
                                 >
                                     <Rows className="w-4 h-4" />
                                 </button>
                                 <button 
+                                    type="button"
                                     onClick={() => setPosition('portrait')}
                                     className={`p-1.5 rounded-md transition-colors ${position === 'portrait' ? 'bg-white text-[#006AFF] shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                                    title="Grid View"
                                 >
                                     <LayoutGrid className="w-4 h-4" />
                                 </button>
                                 <button 
+                                    type="button"
                                     onClick={toggleMap}
                                     className={`p-1.5 rounded-md transition-colors ml-1 border-l border-slate-200 pl-2 ${map ? 'text-[#006AFF] font-semibold' : 'text-slate-400 hover:text-slate-600'}`}
+                                    title="Toggle Map"
                                 >
                                     <MapPin className="w-4 h-4" />
                                 </button>
