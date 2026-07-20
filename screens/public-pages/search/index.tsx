@@ -326,11 +326,11 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
                                     <div className="col-span-1 md:col-span-1">
                                         <CustomSelect 
                                             value={activeFilters.status || ''}
-                                            placeholder="For Rent"
+                                            placeholder="Status"
                                             options={[
                                                 { label: "All Statuses", value: "" },
-                                                { label: "For Rent", value: "RENT" },
-                                                { label: "For Sale", value: "SALE" }
+                                                { label: "Rent", value: "RENT" },
+                                                { label: "Sale", value: "SALE" }
                                             ]}
                                             onChange={(val) => setActiveFilters(p => ({ ...p, status: val || undefined }))}
                                         />

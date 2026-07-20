@@ -55,7 +55,7 @@ export default function HeroSection() {
                     />
                     <div className="w-full flex flex-col mt-8 lg:flex-row gap-4">
                         <SearchInput
-                            onChange={(event) => handleQueryParamsChange('search', event.target.value)}
+                            onChange={(event) => handleQueryParamsChange('location', event.target.value)}
                         />
                         <CustomSelect
                             placeholder="Bedroom"
