@@ -29,19 +29,27 @@ export function generateListingSlug(listing: IListing): string {
   return `${slug}-${identifier}`;
 }
 
+// lib/manageSlug.ts
+
 export function extractIdFromSlug(slug: string): string {
   if (!slug) return "";
-  
-  // 2. Extracts everything after the final hyphen (works for both property_id and DB id)
+
+  // 1. Matches backend IDs like "KID-1784201455352" or 24-char MongoDB ObjectIds at the end of the slug
+  const match = slug.match(/(KID-\d+|[a-f0-9]{24})$/i);
+  if (match) return match[1];
+
+  // 2. Fallback for any other custom single-part ID format
   const lastHyphenIndex = slug.lastIndexOf("-");
   if (lastHyphenIndex === -1) return slug;
   return slug.slice(lastHyphenIndex + 1);
 }
 
 export function slugToTitle(slug: string): string {
-  const lastHyphenIndex = slug.lastIndexOf("-");
-  const base = lastHyphenIndex !== -1 ? slug.slice(0, lastHyphenIndex) : slug;
-  return base
+  if (!slug) return "";
+  
+  // Strip out KID-xxxx or 24-char hex ID from the end before converting to title
+  const cleanSlug = slug.replace(/-(KID-\d+|[a-f0-9]{24})$/i, "");
+  return cleanSlug
     .replace(/-/g, " ")
     .replace(/\b\w/g, (c) => c.toUpperCase());
 }
