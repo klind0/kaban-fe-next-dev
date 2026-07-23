@@ -7,7 +7,8 @@ export function generateListingSlug(listing: IListing): string {
   const address = listing.location?.address ?? "";
   const city = listing.location?.city ?? "";
   const state = listing.location?.state ?? "";
-  const id = listing.id ?? "";
+  // 1. Switched to property_id with a fallback to id
+  const identifier = listing.property_id || listing.id || "";
 
   const statusLabel = status === "rent" ? "for-rent" : "for-sale";
 
@@ -25,20 +26,21 @@ export function generateListingSlug(listing: IListing): string {
     .replace(/-+/g, "-")
     .replace(/^-|-$/g, "");
 
-  return `${slug}-${id}`;
+  return `${slug}-${identifier}`;
 }
 
 export function extractIdFromSlug(slug: string): string {
-  const match = slug.match(/([a-f0-9]{24})$/);
-  if (match) return match[1];
+  if (!slug) return "";
+  
+  // 2. Extracts everything after the final hyphen (works for both property_id and DB id)
   const lastHyphenIndex = slug.lastIndexOf("-");
   if (lastHyphenIndex === -1) return slug;
   return slug.slice(lastHyphenIndex + 1);
 }
 
 export function slugToTitle(slug: string): string {
-  const match = slug.match(/^(.+)-[a-f0-9]{24}$/);
-  const base = match ? match[1] : slug;
+  const lastHyphenIndex = slug.lastIndexOf("-");
+  const base = lastHyphenIndex !== -1 ? slug.slice(0, lastHyphenIndex) : slug;
   return base
     .replace(/-/g, " ")
     .replace(/\b\w/g, (c) => c.toUpperCase());

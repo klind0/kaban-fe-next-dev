@@ -12,6 +12,7 @@ import { SendSqaure2 } from '@/components/icons/send-sqaure-2';
 import { formatPrice } from '@/lib/formatPrice';
 import ListingStateBadge from '@/components/dashboard/listing-state-badge';
 import { IListing } from '@/types/listingTypes';
+import { generateListingSlug } from '@/lib/manageSlug';
 
 interface ListingCardProps {
   listing: IListing;
@@ -86,6 +87,10 @@ export default function ListingCard({
   const formattedLocation =
     addressParts.length > 0 ? addressParts.join(', ') : 'Location not provided';
 
+  // Compute SEO slug URL
+  const propertySlug = listing ? generateListingSlug(listing) : '';
+  const propertyHref = `/property/${propertySlug}`;
+
   return (
     <div className="py-3 px-6 border-b border-neutral-600 last:border-0 flex max-sm:flex-col md:max-lg:flex-col gap-4">
       {/* Image Container */}
@@ -132,9 +137,9 @@ export default function ListingCard({
               </div>
             </div>
 
-            {/* Title with conditional public preview link */}
+            {/* Title with dynamic SEO slug link */}
             <Link
-              href={`/listings/${listing?.id}`}
+              href={propertyHref}
               onClick={handleTitleClick}
               className="text-lg truncate text-primary font-semibold hover:underline w-fit"
             >
