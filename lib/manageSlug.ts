@@ -7,7 +7,6 @@ export function generateListingSlug(listing: IListing): string {
   const address = listing.location?.address ?? "";
   const city = listing.location?.city ?? "";
   const state = listing.location?.state ?? "";
-  // 1. Switched to property_id with a fallback to id
   const identifier = listing.property_id || listing.id || "";
 
   const statusLabel = status === "rent" ? "for-rent" : "for-sale";
@@ -29,16 +28,18 @@ export function generateListingSlug(listing: IListing): string {
   return `${slug}-${identifier}`;
 }
 
-// lib/manageSlug.ts
-
 export function extractIdFromSlug(slug: string): string {
   if (!slug) return "";
 
-  // 1. Matches backend IDs like "KID-1784201455352" or 24-char MongoDB ObjectIds at the end of the slug
-  const match = slug.match(/(KID-\d+|[a-f0-9]{24})$/i);
-  if (match) return match[1];
+  // 1. First, check if the slug ends with a KID-xxxx pattern (case-insensitive)
+  const kidMatch = slug.match(/(KID-\d+)$/i);
+  if (kidMatch) return kidMatch[1];
 
-  // 2. Fallback for any other custom single-part ID format
+  // 2. Check for a standard 24-char MongoDB ObjectId or 36-char UUID
+  const hexMatch = slug.match(/([a-f0-9]{24}|[a-f0-9-]{36})$/i);
+  if (hexMatch) return hexMatch[1];
+
+  // 3. Fallback: return everything after the last hyphen
   const lastHyphenIndex = slug.lastIndexOf("-");
   if (lastHyphenIndex === -1) return slug;
   return slug.slice(lastHyphenIndex + 1);
@@ -47,7 +48,7 @@ export function extractIdFromSlug(slug: string): string {
 export function slugToTitle(slug: string): string {
   if (!slug) return "";
   
-  // Strip out KID-xxxx or 24-char hex ID from the end before converting to title
+  // Clean off KID-xxxx or MongoDB IDs before building title
   const cleanSlug = slug.replace(/-(KID-\d+|[a-f0-9]{24})$/i, "");
   return cleanSlug
     .replace(/-/g, " ")
