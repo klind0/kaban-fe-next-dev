@@ -93,12 +93,14 @@ export interface IListing {
     url: string;
   }[];
   cover_image: string;
+  video?: string;
   location: Location;
   street_view: boolean;
   isFeatured: boolean;
   isPublished: boolean;
   createdAt: string;
-  expiresAt: string;
+  publishedAt: string | null;
+  expiresAt: string | null;
   realtor: {
     id: string;
     mobile_number: string | null;
