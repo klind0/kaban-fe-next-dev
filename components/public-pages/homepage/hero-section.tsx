@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import CustomSelect from "@/components/universal/custom-select";
 import CustomTab from "@/components/universal/custom-tab";
-import SearchInput from "@/components/universal/search-input";
+import LocationSearchAutocomplete from "@/components/universal/location-search-autocomplete";
 import { useQueryParams } from "@/hooks/useQueryParams";
 import { 
   bedroomOptions, 
@@ -18,11 +18,9 @@ export default function HeroSection() {
     const router = useRouter();
     const { filters, handleQueryParamsChange } = useQueryParams();
 
-    // 1. Default tab state to 'rent'
     const [activeTab, setActiveTab] = React.useState<string>(filters.status || 'rent');
     const [locationError, setLocationError] = React.useState<boolean>(false);
 
-    // Sync default 'rent' status on initial load if none exists in URL
     React.useEffect(() => {
         if (!filters.status) {
             handleQueryParamsChange('status', 'rent');
@@ -34,11 +32,11 @@ export default function HeroSection() {
         handleQueryParamsChange('status', value as 'rent' | 'sale');
     };
 
-    const handleLocationChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        if (locationError && event.target.value.trim()) {
+    const handleLocationChange = (val: string) => {
+        if (locationError && val.trim()) {
             setLocationError(false);
         }
-        handleQueryParamsChange('location', event.target.value);
+        handleQueryParamsChange('location', val);
     };
 
     const handleSearch = () => {
@@ -52,14 +50,12 @@ export default function HeroSection() {
         params.set('location', filters.location.trim());
         params.set('status', filters.status || 'rent');
         
-        // Ensure category is strictly handled (only valid categories like residential, commercial, industrial)
         if (filters.category && filters.category !== ('rent' as any) && filters.category !== ('sale' as any)) {
             params.set('category', filters.category);
         } else {
-            params.delete('category'); // 👈 Explicitly remove invalid 'rent'/'sale' category parameters
+            params.delete('category');
         }
 
-        // Pass property_type directly when selected from grouped dropdown
         if (filters.property_type) params.set('property_type', filters.property_type);
         if (filters.bedroom) params.set('bedroom', filters.bedroom.toString());
         if (filters.priceMax) params.set('priceMax', filters.priceMax.toString());
@@ -83,11 +79,13 @@ export default function HeroSection() {
                     />
                     <div className="w-full flex flex-col mt-8 lg:flex-row gap-4 items-start">
                         <div className="w-full flex-1">
-                            <SearchInput
+                            {/* Google Places Location Search Autocomplete */}
+                            <LocationSearchAutocomplete
                                 value={filters.location || ''}
-                                placeholder="Search location..."
+                                placeholder="Search location or Property ID..."
                                 onChange={handleLocationChange}
-                                className={locationError ? "border-destructive focus:border-destructive" : ""}
+                                onSelectLocation={(term) => handleQueryParamsChange('location', term)}
+                                error={locationError}
                             />
                             {locationError && (
                                 <p className="text-destructive text-xs font-semibold mt-1 ml-1">
@@ -103,7 +101,6 @@ export default function HeroSection() {
                             onChange={(val) => handleQueryParamsChange('bedroom', val)}
                         />
 
-                        {/* Property Type Grouped Dropdown (Residential, Commercial, Industrial) */}
                         <CustomSelect
                             placeholder="Property Type"
                             groups={propertyTypeGroupedOptions}
@@ -120,7 +117,7 @@ export default function HeroSection() {
 
                         <Button 
                             onClick={handleSearch} 
-                            className="w-full lg:w-auto md:min-w-40 bg-primary hover:opacity-90 transition-all text-primary-foreground font-semibold" 
+                            className="w-full lg:w-auto md:min-w-40 bg-primary hover:opacity-90 transition-all text-primary-foreground font-semibold h-11" 
                             size={'lg'}
                         >
                             Search
