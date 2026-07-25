@@ -62,20 +62,20 @@ export default function Navbar() {
                 { name: 'Commercial', link: '/search?category=commercial', icon: House2 },
             ]
         },
-        {/*{
+        /*{
             name: 'Realtors', href: '#', subMenu: [
                 { name: 'Agents', link: '/realtors/agents', icon: ProfileUser },
                 { name: 'Agencies', link: '/realtors/agencies', icon: People },
             ]
-        }*/},
-        {/*{
+        }*/,
+        /*{
             name: 'Company', href: '#', subMenu: [
                 { name: 'About us', link: '/company/about-us', icon: Clipboard },
                 { name: 'Contact us', link: '/company/contact-us', icon: Messages },
                 { name: 'FAQs', link: '/company/faqs', icon: MessageQuestion },
             ]
-        }*/},
-        {/*{ name: 'Blog', href: '/blog' }*/},
+        }*/,
+        /*{ name: 'Blog', href: '/blog' }*/,
     ];
 
     const handleLogout = () => {
