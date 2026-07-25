@@ -56,7 +56,7 @@ export default function ExploreCitiesSection() {
         const router = useRouter();
 
         return (
-            <div onClick={() => router.push(`/search?city=${name}`)}
+            <div onClick={() => router.push(`/search?location=${name}`)}
                 className={cn(
                     "w-full h-full min-h-65 bg-gray-50 rounded-3xl overflow-hidden",
                     className
