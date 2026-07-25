@@ -1,4 +1,4 @@
-// components/universal/location-search-autocomplete.tsx
+
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";

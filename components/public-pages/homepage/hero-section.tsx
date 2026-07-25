@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import CustomSelect from "@/components/universal/custom-select";
 import CustomTab from "@/components/universal/custom-tab";
-import LocationSearchAutocomplete from "@/components/universal/location-search-autocomplete";
+import LocationSearchAutocomplete from "@/components/universal/components/universal/LocationSearchAutocomplete.tsx
 import { useQueryParams } from "@/hooks/useQueryParams";
 import { 
   bedroomOptions, 
