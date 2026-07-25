@@ -222,7 +222,7 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
     };
 
     const listingsPage = stackOrder === 'listings' ? 'relative' : 'fixed w-0 overflow-hidden md:relative md:w-full md:overflow-auto';
-    const order = position === 'portrait' ? 'grid-cols-[repeat(auto-fit,minmax(19rem,1fr))]' : 'grid-cols-[repeat(auto-fit,minmax(30rem,1fr))]';
+    const order = position === 'portrait' ? 'grid-cols-[repeat(auto-fit,minmax(22rem,1fr))]' : 'grid-cols-[repeat(auto-fit,minmax(30rem,1fr))]';
     const mapPage = stackOrder === 'map' && mediasize === 'mobile' ? 'fixed top-[11rem] left-0 w-full' : '';
     const renderMap = !map ? 'w-[60%]' : 'w-0 opacity-0';
 
