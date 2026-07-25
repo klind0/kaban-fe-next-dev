@@ -95,11 +95,11 @@ export default function ListingCard({
                     </div>
                     <div>
                         <div className="flex">
-                            <span className="text-sm font-medium truncate">{toTitleCase(title || '')}</span>
+                            <span className="text-lg truncate text-primary font-semibold">{toTitleCase(title || '')}</span>
                         </div>
                         <div className="flex items-center gap-1 mt-1">
                             <Location className="text-primary flex-shrink-0" />
-                            <span className="text-sm font-medium truncate text-neutral-800" title={toTitleCase(propertyLocation)}>
+                            <span className="text-sm font-medium truncate text-neutral-900" title={toTitleCase(propertyLocation)}>
                                 {toTitleCase(propertyLocation)}
                             </span>
                         </div>
