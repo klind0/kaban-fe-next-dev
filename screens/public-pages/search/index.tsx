@@ -166,7 +166,15 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
 
     // Query Execution Pipeline
     const { data: searchData, isLoading } = useQuery({
-        queryKey: [QUERY_KEY.PUBLIC_LISTINGS, activeFilters, maxPrice],
+        queryKey: [
+            QUERY_KEY.PUBLIC_LISTINGS,
+            activeFilters,
+            minPrice,
+            maxPrice,
+            bathroomValue,
+            selectedAmenities,
+            isRadiusActive ? radiusValue : null
+        ],
         queryFn: () =>
             gqlRequest<{ publicListings: IListingResponse }>(PUBLIC_LISTINGS_QUERY, {
                 filter: {
@@ -175,7 +183,11 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
                     ...(activeFilters.category && { category: activeFilters.category }),
                     ...(activeFilters.property_type && { property_type: activeFilters.property_type }),
                     ...(activeFilters.bedroom && { "details.bedroom": Number(activeFilters.bedroom) }),
+                    ...(bathroomValue && { "details.bathroom": Number(bathroomValue) }),
+                    ...(minPrice && { min_price: Number(minPrice) }),
                     ...(maxPrice && { max_price: Number(maxPrice) }),
+                    ...(selectedAmenities.length > 0 && { amenities: selectedAmenities }),
+                    ...(isRadiusActive && radiusValue > 0 && { radius: radiusValue }),
                 },
                 limit: 20,
             }),
