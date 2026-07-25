@@ -127,7 +127,7 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
     const [showOtherFeatures, setShowOtherFeatures] = useState(false);
 
     // Active Amenities Checklist State Array
-    const [selectedAmenities, setSelectedAmenities] = useState<string[]>(ALL_AMENITIES);
+    const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
 
     // Filter Variables State Tracker
     const [activeFilters, setActiveFilters] = useState<Partial<IQueryParamsType>>({
