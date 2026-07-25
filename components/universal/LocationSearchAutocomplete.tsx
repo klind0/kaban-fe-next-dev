@@ -106,9 +106,10 @@ export default function LocationSearchAutocomplete({
 
     const mapsObj = (window as any).google?.maps;
     if (!mapsObj) {
-      setInputValue(s.mainText);
-      onChange(s.mainText);
-      onSelectLocation(s.mainText);
+      const fallbackName = s.mainText || s.description;
+      setInputValue(fallbackName);
+      onChange(fallbackName);
+      onSelectLocation(fallbackName);
       return;
     }
 
@@ -116,7 +117,6 @@ export default function LocationSearchAutocomplete({
       geocoderRef.current = new mapsObj.Geocoder();
     }
 
-    // Geocode placeId to isolate specific city or state for NestJS backend matching
     geocoderRef.current.geocode({ placeId: s.placeId }, (results: any[], status: string) => {
       if (status === "OK" && results?.[0]?.address_components) {
         const components = results[0].address_components;
@@ -135,16 +135,19 @@ export default function LocationSearchAutocomplete({
           }
         });
 
-        // Pick cleanest term (e.g., "Uyo", "Akwa Ibom", or "Aka Road")
-        const bestSearchTerm = city || state || route || s.mainText;
+        // ✨ PRIORITY ORDER FIX:
+        // 1. If user picked a street/route ("Nwaniba Road"), use that or mainText.
+        // 2. Otherwise fall back to City ("Uyo") or State ("Akwa Ibom").
+        const bestSearchTerm = s.mainText || route || city || state || s.description;
 
         setInputValue(bestSearchTerm);
         onChange(bestSearchTerm);
         onSelectLocation(bestSearchTerm);
       } else {
-        setInputValue(s.mainText);
-        onChange(s.mainText);
-        onSelectLocation(s.mainText);
+        const fallback = s.mainText || s.description;
+        setInputValue(fallback);
+        onChange(fallback);
+        onSelectLocation(fallback);
       }
     });
   };
