@@ -124,7 +124,7 @@ export default function Navbar() {
                     ))}
                     {isUserLoggedIn ? (
                         <div className="flex items-center gap-8">
-                            <Link href={'/dashboard'}>
+                            <Link href={'/dashboard/create-listing'}>
                                 <Button>Create Listing</Button>
                             </Link>
                             <Popover>
