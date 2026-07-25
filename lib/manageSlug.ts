@@ -1,5 +1,9 @@
 import { IListing } from "@/types/listingTypes";
 
+/**
+ * Generates an SEO-friendly canonical slug for property detail URLs.
+ * Format: [bedrooms-bedroom]-[propertyType]-[statusLabel]-[address]-[city]-[state]-[identifier]
+ */
 export function generateListingSlug(listing: IListing): string {
   const bedrooms = listing.details?.bedroom;
   const propertyType = listing.property_type ?? "";
@@ -7,7 +11,9 @@ export function generateListingSlug(listing: IListing): string {
   const address = listing.location?.address ?? "";
   const city = listing.location?.city ?? "";
   const state = listing.location?.state ?? "";
-  const identifier = listing.property_id || listing.id || "";
+  
+  // Prefer custom property_id (e.g., KID-1784201455352), with fallbacks for MongoDB id
+  const identifier = listing.property_id || listing.id || (listing as any)._id || "";
 
   const statusLabel = status === "rent" ? "for-rent" : "for-sale";
 
@@ -28,14 +34,18 @@ export function generateListingSlug(listing: IListing): string {
   return `${slug}-${identifier}`;
 }
 
+/**
+ * Extracts the identifier (property_id or MongoDB ObjectId) from a slug string.
+ * Handles hyphens inside KID- prefixed IDs safely.
+ */
 export function extractIdFromSlug(slug: string): string {
   if (!slug) return "";
 
-  // 1. First, check if the slug ends with a KID-xxxx pattern (case-insensitive)
+  // 1. Matches KID-xxxx property IDs at the end of the slug (case-insensitive)
   const kidMatch = slug.match(/(KID-\d+)$/i);
   if (kidMatch) return kidMatch[1];
 
-  // 2. Check for a standard 24-char MongoDB ObjectId or 36-char UUID
+  // 2. Matches 24-char MongoDB ObjectIds or 36-char UUIDs at the end
   const hexMatch = slug.match(/([a-f0-9]{24}|[a-f0-9-]{36})$/i);
   if (hexMatch) return hexMatch[1];
 
@@ -45,11 +55,16 @@ export function extractIdFromSlug(slug: string): string {
   return slug.slice(lastHyphenIndex + 1);
 }
 
+/**
+ * Converts a raw slug string back into a human-readable Title Case string
+ * after stripping the trailing unique ID.
+ */
 export function slugToTitle(slug: string): string {
   if (!slug) return "";
-  
-  // Clean off KID-xxxx or MongoDB IDs before building title
-  const cleanSlug = slug.replace(/-(KID-\d+|[a-f0-9]{24})$/i, "");
+
+  // Remove trailing KID-xxxx, 24-char MongoDB ObjectId, or UUID
+  const cleanSlug = slug.replace(/-(KID-\d+|[a-f0-9]{24}|[a-f0-9-]{36})$/i, "");
+
   return cleanSlug
     .replace(/-/g, " ")
     .replace(/\b\w/g, (c) => c.toUpperCase());
