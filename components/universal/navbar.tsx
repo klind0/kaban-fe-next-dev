@@ -62,20 +62,26 @@ export default function Navbar() {
                 { name: 'Commercial', link: '/search?category=commercial', icon: House2 },
             ]
         },
-        /*{
+        /*
+        {
             name: 'Realtors', href: '#', subMenu: [
                 { name: 'Agents', link: '/realtors/agents', icon: ProfileUser },
                 { name: 'Agencies', link: '/realtors/agencies', icon: People },
             ]
-        }*/,
-        /*{
+        },
+        */
+        /*
+        {
             name: 'Company', href: '#', subMenu: [
                 { name: 'About us', link: '/company/about-us', icon: Clipboard },
                 { name: 'Contact us', link: '/company/contact-us', icon: Messages },
                 { name: 'FAQs', link: '/company/faqs', icon: MessageQuestion },
             ]
-        }*/,
-        /*{ name: 'Blog', href: '/blog' }*/,
+        },
+        */
+        /*
+        { name: 'Blog', href: '/blog' },
+        */
     ];
 
     const handleLogout = () => {
@@ -186,7 +192,7 @@ export default function Navbar() {
 
             {mobileOpen && (
                 <div className="fixed inset-0 z-50 bg-white max-h-dvh w-full animate-in fade-in-0">
-                    <div className="container mx-auto px-4  flex flex-col pb-8 animate-in fade-in-0">
+                    <div className="container mx-auto px-4 flex flex-col pb-8 animate-in fade-in-0">
                         <div className="flex items-center justify-between py-4">
                             <Link href="/">
                                 <Logo className="text-primary" />
