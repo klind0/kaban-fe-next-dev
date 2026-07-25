@@ -228,13 +228,19 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
 
     return (
         <Container element="section" className={`flex w-full min-h-screen bg-background pb-12 ${!map ? 'md:gap-6 xl:pe-16' : 'md:gap-0 md:px-16'}`}>
+            {/* MAP SECTION COMMENTED OUT */}
+            {/*
             <div className={`transition-all delay-100 ${renderMap} ${mapPage}`}>
                 <div className={'h-[95vh] top-4 sticky'}>
                     <Image src={'https://images.unsplash.com/photo-1524661135339-9140b00787e3?auto=format&fit=crop&w=800&q=80'} width={800} height={1000} className="w-full rounded-xl h-full object-cover object-top border border-border" alt="Search map view" priority />
                 </div>
             </div>
+            */}
 
+            {/* MOBILE MAP CONTROL COMMENTED OUT */}
+            {/*
             <MobileMapControl setMap={setMap} stackOrder={stackOrder} setStackOrder={setStackOrder} />
+            */}
 
             <div className="w-full space-y-5">
                 <div className={`${stackOrder === 'map' && mediasize === 'mobile' && 'p-[3%] bg-neutral-100 fixed inset-x-0 top-0 max-h-[11.8rem] pt-20 w-screen z-10'}`}>
@@ -261,6 +267,8 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
                                 </select>
                             </div>
 
+                            {/* VIEW TOGGLE DIV COMMENTED OUT */}
+                            {/*
                             <div className="hidden md:flex items-center border border-border rounded-lg p-1 bg-neutral-100">
                                 <button 
                                     type="button"
@@ -287,10 +295,12 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
                                     <MapPin className="w-4 h-4" />
                                 </button>
                             </div>
+                            */}
                         </div>
                     </div>
                     
-                    {/* Accordion Filter Dashboard */}
+                    {/* ACCORDION FILTER DASHBOARD COMMENTED OUT */}
+                    {/*
                     <div className={`w-full bg-card border border-border rounded-xl shadow-sm overflow-hidden mb-6 ${stackOrder === 'map' && mediasize === 'mobile' ? 'opacity-0 invisible max-h-0' : ''}`}>
                         <button 
                             type="button"
@@ -514,6 +524,7 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
                         )}
                     </div>
                 </div>
+                */}
 
                 {isLoading ? (
                     <div className="py-16 text-center text-sm font-semibold text-gray-25 bg-card rounded-xl border border-border shadow-sm">
