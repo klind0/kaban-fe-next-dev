@@ -12,7 +12,7 @@ export default function FeaturedListingSection() {
 
     const { data: featuredListingData, isLoading } = useQuery({
         queryKey: [QUERY_KEY.FEATURED_LISTINGS],
-        queryFn: () => gqlRequest<{ featuredListings: IListingResponse }>(FEATURED_LISTINGS_QUERY, { limit: 5 }),
+        queryFn: () => gqlRequest<{ featuredListings: IListingResponse }>(FEATURED_LISTINGS_QUERY),
     })
 
     const listings = featuredListingData?.featuredListings?.data ?? [];

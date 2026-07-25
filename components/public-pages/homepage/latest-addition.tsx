@@ -5,16 +5,18 @@ import ListingCard, { ListingCardSkeleton } from '@/components/universal/listing
 import { useQuery } from '@tanstack/react-query'
 import { QUERY_KEY } from '@/enum/queryKeys'
 import { gqlRequest } from '@/network/graphql-client'
-import { IListing, IListingResponse } from '@/types/listingTypes'
-import { FEATURED_LISTINGS_QUERY } from '@/network/gql/listings.ql'
+import { IListingResponse } from '@/types/listingTypes'
+import { PUBLIC_LISTINGS_QUERY } from '@/network/gql/listings.ql' // 👈 Use public listings query
 
 export default function LatestAddition() {
-    const { data: featuredListingData, isLoading } = useQuery({
-        queryKey: [QUERY_KEY.FEATURED_LISTINGS],
-        queryFn: () => gqlRequest<{ featuredListings: IListingResponse }>(FEATURED_LISTINGS_QUERY, { limit: 5 }),
+    const { data: publicListingData, isLoading } = useQuery({
+        queryKey: [QUERY_KEY.PUBLIC_LISTINGS, { limit: 10 }],
+        queryFn: () => gqlRequest<{ publicListings: IListingResponse }>(PUBLIC_LISTINGS_QUERY, { 
+            filter: { limit: 6, page: 1 } 
+        }),
     })
 
-    const listings = featuredListingData?.featuredListings?.data ?? [];
+    const listings = publicListingData?.publicListings?.data ?? [];
 
     const slides = (listings ?? []).filter(Boolean).map((listing) => (
         <ListingCard key={listing?.id} listingData={listing} />

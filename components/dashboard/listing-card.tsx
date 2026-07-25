@@ -227,7 +227,7 @@ export default function ListingCard({
               </button>
             )}
 
-            {isLive && !isFeaturedAlready && (
+            {/*{isLive && !isFeaturedAlready && (
               <button
                 onClick={() => onUpgrade(listing.id)}
                 disabled={isPending}
@@ -240,7 +240,7 @@ export default function ListingCard({
               >
                 <SendSqaure2 />
               </button>
-            )}
+            )}*/}
           </div>
         </div>
       </div>
