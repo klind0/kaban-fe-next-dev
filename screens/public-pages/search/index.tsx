@@ -523,8 +523,8 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
                             </div>
                         )}
                     </div>
+                    */}
                 </div>
-                */}
 
                 {isLoading ? (
                     <div className="py-16 text-center text-sm font-semibold text-gray-25 bg-card rounded-xl border border-border shadow-sm">
