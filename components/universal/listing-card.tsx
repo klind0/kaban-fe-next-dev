@@ -84,7 +84,7 @@ export default function ListingCard({
                 <div className="space-y-3">
                     <div className="space-y-2">
                         {/* 🛠 Transformed property type toTitleCase as well */}
-                        <span className="text-xs font-semibold text-neutral-500 capitalize">{toTitleCase(property_type || '')}</span>
+                        <span className="text-xs font-semibold text-neutral-900 capitalize">{toTitleCase(property_type || '')}</span>
                         <div className="flex items-center justify-between">
                             <h3 className="text-xl font-bold text-[#272D37] whitespace-nowrap">{formatPrice(price?.amount)}</h3>
                             <div className="flex items-center gap-2">
@@ -99,7 +99,7 @@ export default function ListingCard({
                         </div>
                         <div className="flex items-center gap-1 mt-1">
                             <Location className="text-primary flex-shrink-0" />
-                            <span className="text-sm font-medium truncate text-neutral-600" title={toTitleCase(propertyLocation)}>
+                            <span className="text-sm font-medium truncate text-neutral-800" title={toTitleCase(propertyLocation)}>
                                 {toTitleCase(propertyLocation)}
                             </span>
                         </div>
