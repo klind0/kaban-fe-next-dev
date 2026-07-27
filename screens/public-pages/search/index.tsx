@@ -30,6 +30,13 @@ const ALL_AMENITIES = [
     "Installed Wardrobe", "Laundry Room", "Walk-in Closet", "Family Room"
 ];
 
+// Sort Options Matrix
+const SORT_OPTIONS = [
+    { label: "Default order", value: "default" },
+    { label: "Price: Low to High", value: "price_asc" },
+    { label: "Price: High to Low", value: "price_desc" },
+];
+
 // Custom Selection Dropdown Component with Primary Theme Integration
 function CustomSelect({ 
     label, 
@@ -119,6 +126,9 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
     const [position, setPosition] = useState<'portrait' | 'landscape'>('portrait');
     const [stackOrder, setStackOrder] = useState<'listings' | 'map'>('listings');
     const [map, setMap] = useState(false);
+
+    // Sort State
+    const [sortOrder, setSortOrder] = useState<string>('default');
     
     // UI Panel Control States
     const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
@@ -194,6 +204,19 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
     });
 
     const listings = searchData?.publicListings?.data ?? [];
+    
+    // Client-side sorting logic
+    const listings = useMemo(() => {
+        const sorted = [...rawListings];
+        if (sortOrder === 'price_asc') {
+            return sorted.sort((a, b) => Number(a.price || 0) - Number(b.price || 0));
+        }
+        if (sortOrder === 'price_desc') {
+            return sorted.sort((a, b) => Number(b.price || 0) - Number(a.price || 0));
+        }
+        return sorted;
+    }, [rawListings, sortOrder]);
+
     const totalResults = listings.length;
     const { mediasize } = useResponsiveNav({});
 
@@ -259,12 +282,12 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
 
                         <div className="flex items-center gap-3">
                             <div className="flex items-center gap-2 border border-border rounded-lg px-3 py-1.5 bg-card">
-                                <SlidersHorizontal className="w-4 h-4 text-gray-25" />
-                                <select className="text-sm font-semibold text-foreground bg-transparent outline-none cursor-pointer">
-                                    <option>Default order</option>
-                                    <option>Price: Low to High</option>
-                                    <option>Price: High to Low</option>
-                                </select>
+                                <CustomSelect 
+                                    value={sortOrder}
+                                    options={SORT_OPTIONS}
+                                    onChange={(val) => setSortOrder(val)}
+                                    icon={SlidersHorizontal}
+                                />
                             </div>
 
                             {/* VIEW TOGGLE DIV COMMENTED OUT */}
