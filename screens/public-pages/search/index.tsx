@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
@@ -43,13 +43,15 @@ function CustomSelect({
     value, 
     options, 
     onChange, 
-    placeholder = "Select..." 
+    placeholder = "Select...",
+    icon: Icon
 }: { 
     label?: string; 
     value: string; 
     options: { label: string; value: string; isHeader?: boolean }[]; 
     onChange: (val: string) => void;
     placeholder?: string;
+    icon?: React.ElementType;
 }) {
     const [isOpen, setIsOpen] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
@@ -67,7 +69,7 @@ function CustomSelect({
     const selectedOption = options.find(o => o.value === value);
 
     return (
-        <div ref={containerRef} className="relative space-y-1 w-full">
+        <div ref={containerRef} className="relative space-y-1 w-full min-w-[160px]">
             {label && (
                 <span className="text-xs font-bold text-gray-50 uppercase tracking-wider">
                     {label}
@@ -77,18 +79,21 @@ function CustomSelect({
             <button
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
-                className={`w-full flex items-center justify-between border rounded-lg p-2.5 text-sm bg-card transition-all text-left font-medium ${
+                className={`w-full flex items-center justify-between gap-2 border rounded-lg px-3 py-2 text-sm bg-card transition-all text-left font-medium ${
                     isOpen ? 'border-primary ring-1 ring-primary/20 text-foreground' : 'border-border text-foreground'
                 }`}
             >
-                <span className="truncate">
-                    {selectedOption && selectedOption.value !== "" ? selectedOption.label : placeholder}
-                </span>
-                <ChevronDown className={`w-4 h-4 text-gray-25 transition-transform duration-200 ${isOpen ? 'rotate-180 text-primary' : ''}`} />
+                <div className="flex items-center gap-2 truncate">
+                    {Icon && <Icon className="w-4 h-4 text-gray-25 shrink-0" />}
+                    <span className="truncate">
+                        {selectedOption && selectedOption.value !== "" ? selectedOption.label : placeholder}
+                    </span>
+                </div>
+                <ChevronDown className={`w-4 h-4 text-gray-25 transition-transform duration-200 shrink-0 ${isOpen ? 'rotate-180 text-primary' : ''}`} />
             </button>
 
             {isOpen && (
-                <div className="absolute z-30 left-0 right-0 mt-1 max-h-60 overflow-y-auto bg-card border border-border rounded-lg shadow-lg py-1 animate-fadeIn">
+                <div className="absolute z-30 right-0 mt-1 min-w-full w-max max-h-60 overflow-y-auto bg-card border border-border rounded-lg shadow-lg py-1 animate-fadeIn">
                     {options.map((opt, i) => {
                         if (opt.isHeader) {
                             return (
@@ -105,12 +110,12 @@ function CustomSelect({
                                     onChange(opt.value);
                                     setIsOpen(false);
                                 }}
-                                className={`w-full text-left px-4 py-2 text-sm flex items-center justify-between hover:bg-neutral-100 transition-colors ${
+                                className={`w-full text-left px-4 py-2 text-sm flex items-center justify-between gap-4 hover:bg-neutral-100 transition-colors ${
                                     value === opt.value ? 'text-primary font-semibold bg-primary/10' : 'text-gray-50'
                                 }`}
                             >
-                                <span>{opt.label}</span>
-                                {value === opt.value && <Check className="w-4 h-4 text-primary" />}
+                                <span className="whitespace-nowrap">{opt.label}</span>
+                                {value === opt.value && <Check className="w-4 h-4 text-primary shrink-0" />}
                             </button>
                         );
                     })}
@@ -203,7 +208,7 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
             }),
     });
 
-    const listings = searchData?.publicListings?.data ?? [];
+    const rawListings = searchData?.publicListings?.data ?? [];
     
     // Client-side sorting logic
     const listings = useMemo(() => {
@@ -281,14 +286,12 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
                         </span>
 
                         <div className="flex items-center gap-3">
-                            <div className="flex items-center gap-2 border border-border rounded-lg px-3 py-1.5 bg-card">
-                                <CustomSelect 
-                                    value={sortOrder}
-                                    options={SORT_OPTIONS}
-                                    onChange={(val) => setSortOrder(val)}
-                                    icon={SlidersHorizontal}
-                                />
-                            </div>
+                            <CustomSelect 
+                                value={sortOrder}
+                                options={SORT_OPTIONS}
+                                onChange={(val) => setSortOrder(val)}
+                                icon={SlidersHorizontal}
+                            />
 
                             {/* VIEW TOGGLE DIV COMMENTED OUT */}
                             {/*
