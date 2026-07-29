@@ -5,40 +5,57 @@ import { Linkedin } from "../icons/linkedin";
 import { Logo } from "../icons/Logo";
 import { TwitterX } from "../icons/twitterX";
 
+interface SocialItem {
+    name: string;
+    href: string;
+    icon: React.ComponentType;
+}
+
+interface FooterLinkSection {
+    title: string;
+    links: { name: string; href: string }[];
+}
+
 export default function Footer() {
 
-    const socials = [
+    const socials: SocialItem[] = [
         { name: "Facebook", href: "https://www.facebook.com/kaban.nig", icon: Facebook },
-        {/* name: "Twitter", href: "https://twitter.com/kabanrealestate", icon: TwitterX */},
+        /* { name: "Twitter", href: "https://twitter.com/kabanrealestate", icon: TwitterX }, */
         { name: "Instagram", href: "https://www.instagram.com/kaban.ng/", icon: Instagram },
         { name: "LinkedIn", href: "https://www.linkedin.com/company/kaban-ng/", icon: Linkedin },
-    ]
+    ];
 
-    const footerLinks = [
-        {/*
-            title: "Company",
-            links: [
-                { name: "About Us", href: "/about-us" },
-                { name: "Contact", href: "/contact-us" },
-                { name: "FAQs", href: "/faqs" },
-                { name: "Blogs", href: "/blogs" },
-            ]
-        */},
-        {/*
-            title: "Property",
-            links: [
-                { name: "Residential", href: "/residential" },
-                { name: "Commercial", href: "/commercial" },
-                { name: "Industrial", href: "/industrial" },
-            ]
-        */},
-        {/*
-            title: "Realtors",
-            links: [
-                { name: "Agencies", href: "/agencies" },
-                { name: "Agents", href: "/agents" },
-            ]
-        */},
+    const footerLinks: FooterLinkSection[] = [
+        /*
+            {
+                title: "Company",
+                links: [
+                    { name: "About Us", href: "/about-us" },
+                    { name: "Contact", href: "/contact-us" },
+                    { name: "FAQs", href: "/faqs" },
+                    { name: "Blogs", href: "/blogs" },
+                ]
+            },
+        */
+        /*
+            {
+                title: "Property",
+                links: [
+                    { name: "Residential", href: "/residential" },
+                    { name: "Commercial", href: "/commercial" },
+                    { name: "Industrial", href: "/industrial" },
+                ]
+            },
+        */
+        /*
+            {
+                title: "Realtors",
+                links: [
+                    { name: "Agencies", href: "/agencies" },
+                    { name: "Agents", href: "/agents" },
+                ]
+            },
+        */
         {
             title: "Contact",
             links: [
@@ -47,7 +64,7 @@ export default function Footer() {
                 { name: "info@kaban.ng", href: "mailto:info@kaban.ng" },
             ]
         },
-    ]
+    ];
 
     return (
         <footer className="bg-primary text-white">
@@ -57,12 +74,16 @@ export default function Footer() {
                         <div className="flex flex-col gap-4">
                             <Logo />
                             <div className="w-full">
-                                <p>As we strive to make real estate accessible and stress-free, Kaban welcomes our valued customers seeking rental or investment opportunities. </p>
+                                <p>As we strive to make real estate accessible and stress-free, Kaban welcomes our valued customers seeking rental or investment opportunities.</p>
                             </div>
                         </div>
                         <div className="flex space-x-6">
                             {socials.map((social, index) => (
-                                <Link key={index} href={social.href} className="flex items-center justify-center p-2 bg-white text-primary rounded-full size-10">
+                                <Link 
+                                    key={index} 
+                                    href={social.href} 
+                                    className="flex items-center justify-center p-2 bg-white text-primary rounded-full size-10"
+                                >
                                     <social.icon />
                                 </Link>
                             ))}
@@ -84,7 +105,7 @@ export default function Footer() {
                     </div>
                 </div>
                 <div className="mt-16">
-                    <hr />
+                    <hr className="border-white/20" />
                     <div className="mt-6 flex flex-col sm:flex-row gap-4 items-center justify-between">
                         <small>&copy; {new Date().getFullYear()} Kaban.ng. All rights reserved.</small>
                         <div className="flex gap-4">
@@ -95,5 +116,5 @@ export default function Footer() {
                 </div>
             </div>
         </footer>
-    )
+    );
 }
