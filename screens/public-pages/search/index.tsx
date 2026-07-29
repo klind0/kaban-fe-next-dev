@@ -210,14 +210,34 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
 
     const rawListings = searchData?.publicListings?.data ?? [];
     
+    // Helper to safely extract a numeric price regardless of formatting
+    const getNumericPrice = (listing: any): number => {
+        // 1. Check if price exists directly or nested
+        const rawPrice = listing?.price ?? listing?.amount ?? listing?.pricing?.price ?? 0;
+        
+        // 2. If it's already a number, return it directly
+        if (typeof rawPrice === 'number') return rawPrice;
+        
+        // 3. If it's a string (e.g., "₦800,000" or "800000"), strip non-numeric characters
+        if (typeof rawPrice === 'string') {
+            const cleaned = rawPrice.replace(/[^0-9.]/g, '');
+            return parseFloat(cleaned) || 0;
+        }
+        
+        return 0;
+    };
+
+
     // Client-side sorting logic
     const listings = useMemo(() => {
+        if (!Array.isArray(rawListings)) return [];
         const sorted = [...rawListings];
+        
         if (sortOrder === 'price_asc') {
-            return sorted.sort((a, b) => Number(a.price || 0) - Number(b.price || 0));
+            return sorted.sort((a, b) => parsePrice(a.price) - parsePrice(b.price));
         }
         if (sortOrder === 'price_desc') {
-            return sorted.sort((a, b) => Number(b.price || 0) - Number(a.price || 0));
+            return sorted.sort((a, b) => parsePrice(b.price) - parsePrice(a.price));
         }
         return sorted;
     }, [rawListings, sortOrder]);
