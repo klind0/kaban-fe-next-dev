@@ -8,14 +8,14 @@ import { TwitterX } from "../icons/twitterX";
 export default function Footer() {
 
     const socials = [
-        { name: "Facebook", href: "https://www.facebook.com/kabanrealestate", icon: Facebook },
-        { name: "Twitter", href: "https://twitter.com/kabanrealestate", icon: TwitterX },
-        { name: "Instagram", href: "https://www.instagram.com/kabanrealestate/", icon: Instagram },
-        { name: "LinkedIn", href: "https://www.linkedin.com/company/kabanrealestate/", icon: Linkedin },
+        { name: "Facebook", href: "https://www.facebook.com/kaban.nig", icon: Facebook },
+        {/* name: "Twitter", href: "https://twitter.com/kabanrealestate", icon: TwitterX */},
+        { name: "Instagram", href: "https://www.instagram.com/kaban.ng/", icon: Instagram },
+        { name: "LinkedIn", href: "https://www.linkedin.com/company/kaban-ng/", icon: Linkedin },
     ]
 
     const footerLinks = [
-        {
+        {/*
             title: "Company",
             links: [
                 { name: "About Us", href: "/about-us" },
@@ -23,22 +23,22 @@ export default function Footer() {
                 { name: "FAQs", href: "/faqs" },
                 { name: "Blogs", href: "/blogs" },
             ]
-        },
-        {
+        */},
+        {/*
             title: "Property",
             links: [
                 { name: "Residential", href: "/residential" },
                 { name: "Commercial", href: "/commercial" },
                 { name: "Industrial", href: "/industrial" },
             ]
-        },
-        {
+        */},
+        {/*
             title: "Realtors",
             links: [
                 { name: "Agencies", href: "/agencies" },
                 { name: "Agents", href: "/agents" },
             ]
-        },
+        */},
         {
             title: "Contact",
             links: [
