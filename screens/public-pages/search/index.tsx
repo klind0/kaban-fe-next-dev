@@ -37,6 +37,18 @@ const SORT_OPTIONS = [
     { label: "Price: High to Low", value: "price_desc" },
 ];
 
+/**
+ * Safe parser utility for numeric price comparisons
+ */
+const parsePrice = (value: unknown): number => {
+    if (typeof value === 'number') return isNaN(value) ? 0 : value;
+    if (typeof value === 'string') {
+        const parsed = parseFloat(value.replace(/[^0-9.-]+/g, ''));
+        return isNaN(parsed) ? 0 : parsed;
+    }
+    return 0;
+};
+
 // Custom Selection Dropdown Component with Primary Theme Integration
 function CustomSelect({ 
     label, 
