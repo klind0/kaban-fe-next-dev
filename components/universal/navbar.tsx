@@ -44,7 +44,7 @@ type MenuItem = {
 };
 
 export default function Navbar() {
-    const { user, isAuthenticated, clearUser } = useUserStore()
+    const { user, isAuthenticated, clearUser } = useUserStore();
     const isUserLoggedIn = isAuthenticated && user !== null;
 
     const [mobileOpen, setMobileOpen] = React.useState(false);
@@ -157,9 +157,16 @@ export default function Navbar() {
                                             </div>
                                         </div>
                                         <div className="flex flex-col">
-                                            <Link href={'/dashboard'} className="px-6 py-3 font-semibold flex items-center gap-3 text-[#495E6C] hover:bg-neutral-100 rounded-md"><Building2 />My listings</Link>
-                                            <Link href={'/dashboard/#'} className="px-6 py-3 font-semibold flex items-center gap-3 text-[#495E6C] hover:bg-neutral-100 rounded-md"><Profile />Profile</Link>
-                                            <button className="px-6 py-3 font-semibold flex items-center gap-3 text-[#495E6C] hover:bg-neutral-100 rounded-md" onClick={handleLogout}><LogoutIcon />Logout</button>
+                                            <Link href={'/dashboard'} className="px-6 py-3 font-semibold flex items-center gap-3 text-[#495E6C] hover:bg-neutral-100 rounded-md">
+                                                <Building2 />My listings
+                                            </Link>
+                                            {/* Updated Desktop Profile Link */}
+                                            <Link href={'/dashboard/profile'} className="px-6 py-3 font-semibold flex items-center gap-3 text-[#495E6C] hover:bg-neutral-100 rounded-md">
+                                                <Profile />Profile
+                                            </Link>
+                                            <button className="px-6 py-3 font-semibold flex items-center gap-3 text-[#495E6C] hover:bg-neutral-100 rounded-md" onClick={handleLogout}>
+                                                <LogoutIcon />Logout
+                                            </button>
                                         </div>
                                     </div>
                                 </PopoverContent>
@@ -269,9 +276,16 @@ export default function Navbar() {
                                             <PopoverDescription className="sr-only">Manage your account settings and preferences.</PopoverDescription>
                                         </PopoverHeader>
                                         <div className="flex flex-col">
-                                            <Link href={'/dashboard/'} className="px-6 py-3 font-semibold flex items-center gap-3 text-[#495E6C] hover:bg-neutral-100 rounded-md" onClick={() => setMobileOpen(false)}><Building2 />My listings</Link>
-                                            <Link href={'/dashboard/#'} className="px-6 py-3 font-semibold flex items-center gap-3 text-[#495E6C] hover:bg-neutral-100 rounded-md" onClick={() => setMobileOpen(false)}><Profile />Profile</Link>
-                                            <button className="px-6 py-3 font-semibold flex items-center gap-3 text-[#495E6C] hover:bg-neutral-100 rounded-md" onClick={() => { handleLogout(); setMobileOpen(false); }}><LogoutIcon />Sign out</button>
+                                            <Link href={'/dashboard'} className="px-6 py-3 font-semibold flex items-center gap-3 text-[#495E6C] hover:bg-neutral-100 rounded-md" onClick={() => setMobileOpen(false)}>
+                                                <Building2 />My listings
+                                            </Link>
+                                            {/* Updated Mobile Profile Link */}
+                                            <Link href={'/dashboard/profile'} className="px-6 py-3 font-semibold flex items-center gap-3 text-[#495E6C] hover:bg-neutral-100 rounded-md" onClick={() => setMobileOpen(false)}>
+                                                <Profile />Profile
+                                            </Link>
+                                            <button className="px-6 py-3 font-semibold flex items-center gap-3 text-[#495E6C] hover:bg-neutral-100 rounded-md" onClick={() => { handleLogout(); setMobileOpen(false); }}>
+                                                <LogoutIcon />Sign out
+                                            </button>
                                         </div>
                                     </PopoverContent>
                                 </Popover>
