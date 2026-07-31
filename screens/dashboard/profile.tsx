@@ -12,7 +12,9 @@ import { Button } from '@/components/ui/button';
 import { useQueryParams } from '@/hooks/useQueryParams';
 import { useRouter, useSearchParams } from 'next/navigation';
 import React from 'react';
-import { useUserStore } from "@/app/stores/user-store"; // Imported user store
+import { useUserStore } from "@/app/stores/user-store";
+import { axiosInstance } from "@/network/axios-instance";
+import { toast } from "sonner";
 
 const UPDATE_REALTOR_MUTATION = `
   mutation UpdateRealtor($id: String!, $input: JSONObject!, $realtor_pic: Upload) {
@@ -52,7 +54,7 @@ export default function ProfileScreen() {
 
     const handleProfileSubmit = async (data: ProfileFormValues) => {
         if (!realtorId) {
-            console.error("Realtor ID is missing");
+            toast.error("Realtor ID is missing!");
             return;
         }
 
@@ -65,30 +67,25 @@ export default function ProfileScreen() {
                 whatsapp_number: data.whatsapp_number,
             };
 
-            const response = await fetch('/graphql', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
+            // Relative url '/graphql' appends to baseURL 'https://kaban-ai-be-graphql.onrender.com/api'
+            const response = await axiosInstance.post("/graphql", {
+                query: UPDATE_REALTOR_MUTATION,
+                variables: {
+                    id: realtorId,
+                    input: inputPayload,
+                    realtor_pic: data.realtor_pic || null,
                 },
-                body: JSON.stringify({
-                    query: UPDATE_REALTOR_MUTATION,
-                    variables: {
-                        id: realtorId,
-                        input: inputPayload,
-                        realtor_pic: data.realtor_pic || null,
-                    },
-                }),
             });
 
-            const result = await response.json();
-
-            if (result.errors) {
-                console.error("GraphQL errors:", result.errors);
+            // GraphQL success payloads return under response.data
+            if (response.data?.errors) {
+                toast.error(response.data.errors[0]?.message || "Failed to update profile");
             } else {
-                console.log("Profile updated successfully:", result.data);
+                toast.success("Profile updated successfully!");
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error("Error executing profile update:", err);
+            toast.error(err?.message || "An unexpected error occurred.");
         } finally {
             setIsPending(false);
         }
