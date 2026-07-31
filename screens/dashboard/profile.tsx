@@ -13,12 +13,7 @@ import { useQueryParams } from '@/hooks/useQueryParams';
 import { useRouter, useSearchParams } from 'next/navigation';
 import React from 'react';
 
-// Apollo / GraphQL
-import { gql, useMutation } from '@apollo/client';
-import { toast } from 'sonner'; // Or your preferred toast notification library
-
-// Define the mutation based on your RealtorResolver signature
-const UPDATE_REALTOR = gql`
+const UPDATE_REALTOR_MUTATION = `
   mutation UpdateRealtor($id: String!, $input: JSONObject!) {
     updateRealtor(id: $id, input: $input)
   }
@@ -45,18 +40,9 @@ export default function ProfileScreen({ realtorId }: ProfileScreenProps) {
     const [activeTab, setActiveTab] = React.useState<TabType>(
         (searchParams.get('tab') as TabType) || 'profile'
     );
+    const [isPending, setIsPending] = React.useState(false);
 
     const { handleQueryParamsChange } = useQueryParams();
-
-    // Apollo mutation hook setup
-    const [updateRealtorMutation, { loading: isPending }] = useMutation(UPDATE_REALTOR, {
-        onCompleted: () => {
-            toast.success("Profile updated successfully!");
-        },
-        onError: (error) => {
-            toast.error(error.message || "Failed to update profile. Please try again.");
-        },
-    });
 
     const handleTabChange = (targetTab: string) => {
         const cleanTarget = targetTab as TabType;
@@ -66,24 +52,45 @@ export default function ProfileScreen({ realtorId }: ProfileScreenProps) {
 
     const handleProfileSubmit = async (data: ProfileFormValues) => {
         if (!realtorId) {
-            toast.error("Realtor ID not found. Unable to update profile.");
+            console.error("Realtor ID is missing");
             return;
         }
 
+        setIsPending(true);
+
         try {
-            await updateRealtorMutation({
-                variables: {
-                    id: realtorId,
-                    input: {
-                        bio: data.bio,
-                        company: data.company_name,
-                        office_address: data.address,
-                        mobile_number: data.phone_number,
-                    },
+            const response = await fetch('/api/graphql', { // Adjust endpoint URL if needed
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    // Include Authorization header if needed:
+                    // 'Authorization': `Bearer ${token}`
                 },
+                body: JSON.stringify({
+                    query: UPDATE_REALTOR_MUTATION,
+                    variables: {
+                        id: realtorId,
+                        input: {
+                            bio: data.bio,
+                            company: data.company_name,
+                            office_address: data.address,
+                            mobile_number: data.phone_number,
+                        },
+                    },
+                }),
             });
+
+            const result = await response.json();
+
+            if (result.errors) {
+                console.error("GraphQL errors:", result.errors);
+            } else {
+                console.log("Updated successfully:", result.data);
+            }
         } catch (err) {
-            console.error("Profile mutation error:", err);
+            console.error("Profile update error:", err);
+        } finally {
+            setIsPending(false);
         }
     };
 
