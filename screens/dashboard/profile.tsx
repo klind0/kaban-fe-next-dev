@@ -12,9 +12,7 @@ import { Button } from '@/components/ui/button';
 import { useQueryParams } from '@/hooks/useQueryParams';
 import { useRouter, useSearchParams } from 'next/navigation';
 import React from 'react';
-
-// Replace this with your project's actual Auth context/hook (e.g. useAuth, useSession, or Redux state)
-// import { useAuth } from '@/hooks/useAuth'; 
+import { useUserStore } from "@/app/stores/user-store"; // Imported user store
 
 const UPDATE_REALTOR_MUTATION = `
   mutation UpdateRealtor($id: String!, $input: JSONObject!, $realtor_pic: Upload) {
@@ -32,24 +30,12 @@ const tabOptions = [
 
 type TabType = 'profile' | 'social-media' | 'password' | 'verification' | 'deactivate-account';
 
-interface ProfileScreenProps {
-    realtorId?: string;
-    // Optional initial user data passed as props from server page component if applicable
-    userData?: {
-        full_name?: string;
-        email?: string;
-        mobile_number?: string;
-        whatsapp_number?: string;
-        realtor_pic?: string;
-    };
-}
-
-export default function ProfileScreen({ realtorId, userData }: ProfileScreenProps) {
+export default function ProfileScreen() {
     const searchParams = useSearchParams();
     const router = useRouter();
 
-    // If using an Auth Hook, extract user profile info here:
-    // const { user } = useAuth();
+    const { user } = useUserStore(); // Pulled current user from user-store
+    const realtorId = user?.id;
 
     const [activeTab, setActiveTab] = React.useState<TabType>(
         (searchParams.get('tab') as TabType) || 'profile'
@@ -73,7 +59,6 @@ export default function ProfileScreen({ realtorId, userData }: ProfileScreenProp
         setIsPending(true);
 
         try {
-            // Prepares payload containing only active editable fields
             const inputPayload = {
                 full_name: data.full_name,
                 mobile_number: data.mobile_number,
@@ -130,11 +115,11 @@ export default function ProfileScreen({ realtorId, userData }: ProfileScreenProp
                 <div className={activeTab !== 'profile' ? 'hidden' : ''}>
                     <ProfileForm 
                         initialData={{
-                            full_name: userData?.full_name || "",
-                            email: userData?.email || "",
-                            mobile_number: userData?.mobile_number || "",
-                            whatsapp_number: userData?.whatsapp_number || "",
-                            realtor_pic: userData?.realtor_pic || "",
+                            full_name: user?.fullName || "",
+                            email: user?.email || "",
+                            mobile_number: user?.mobileNumber || "",
+                            whatsapp_number: user?.whatsappNumber || "",
+                            realtor_pic: user?.avatar || "",
                         }}
                         onFormSubmit={handleProfileSubmit} 
                         isPending={isPending}
