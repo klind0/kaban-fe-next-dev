@@ -1,192 +1,207 @@
 "use client";
 
-import React, { useState } from 'react';
-import Image from 'next/image';
-import { Button } from '@/components/ui/button';
-import { CheckCircle2, Camera } from 'lucide-react';
-import { toast } from 'sonner';
+import React from "react";
+import { Controller, useForm } from "react-hook-form";
+import FormControl from "@/components/universal/form-control";
+import { getErrorMessage } from "@/lib/getErrorMessage";
+import { Button } from "@/components/ui/button";
+import FormCard from "@/components/dashboard/create-listing/form-card"; 
 
-export default function ProfileForm() {
-    const [formData, setFormData] = useState({
-        fullName: 'Precious Ekong',
-        email: 'precious@gmail.com',
-        mobile: '',
-        whatsapp: '',
-        sameAsMobile: false,
-        avatarUrl: '/images/avatar-placeholder.jpg',
-        isVerified: true,
-    });
+export type ProfileFormValues = {
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone_number: string;
+  bio: string;
+  company_name: string;
+  address: string;
+};
 
-    const [isPending, setIsPending] = useState(false);
+type Props = {
+  initialData?: Partial<ProfileFormValues> | null;
+  onFormSubmit: (data: ProfileFormValues) => void;
+  isPending?: boolean;
+};
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        setFormData((prev) => {
-            const updated = { ...prev, [name]: value };
-            if (name === 'mobile' && prev.sameAsMobile) {
-                updated.whatsapp = value;
-            }
-            return updated;
-        });
-    };
+export default function ProfileForm({ initialData, onFormSubmit, isPending }: Props) {
+  const {
+    handleSubmit,
+    control,
+    formState: { errors },
+  } = useForm<ProfileFormValues>({
+    defaultValues: {
+      first_name: initialData?.first_name || "",
+      last_name: initialData?.last_name || "",
+      email: initialData?.email || "",
+      phone_number: initialData?.phone_number || "",
+      bio: initialData?.bio || "",
+      company_name: initialData?.company_name || "",
+      address: initialData?.address || "",
+    },
+    mode: "onChange",
+  });
 
-    const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const checked = e.target.checked;
-        setFormData((prev) => ({
-            ...prev,
-            sameAsMobile: checked,
-            whatsapp: checked ? prev.mobile : prev.whatsapp,
-        }));
-    };
+  return (
+    <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-4 md:space-y-7.5 mt-8">
+      
+      {/* Personal Information Section */}
+      <FormCard title="Personal Information">
+        <div className="space-y-6">
+          <div className="w-full flex flex-col md:flex-row gap-6">
+            <Controller
+              name="first_name"
+              control={control}
+              rules={{ required: "First name is required" }}
+              render={({ field }) => (
+                <FormControl
+                  as="input"
+                  labelText="First Name *"
+                  placeholder="Enter first name"
+                  type="text"
+                  containerClass="w-full"
+                  {...field}
+                  disabled={isPending}
+                  error={getErrorMessage(errors.first_name)}
+                />
+              )}
+            />
+            <Controller
+              name="last_name"
+              control={control}
+              rules={{ required: "Last name is required" }}
+              render={({ field }) => (
+                <FormControl
+                  as="input"
+                  labelText="Last Name *"
+                  placeholder="Enter last name"
+                  type="text"
+                  containerClass="w-full"
+                  {...field}
+                  disabled={isPending}
+                  error={getErrorMessage(errors.last_name)}
+                />
+              )}
+            />
+          </div>
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsPending(true);
-        
-        try {
-            // Replace with your API mutation handler
-            console.log('Profile submission:', formData);
-            toast.success('Profile updated successfully!');
-        } catch (error: any) {
-            toast.error(error?.message || 'Failed to update profile.');
-        } finally {
-            setIsPending(false);
-        }
-    };
+          <div className="w-full flex flex-col md:flex-row gap-6">
+            <Controller
+              name="email"
+              control={control}
+              rules={{ 
+                required: "Email is required",
+                pattern: {
+                  value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                  message: "Invalid email address"
+                }
+              }}
+              render={({ field }) => (
+                <FormControl
+                  as="input"
+                  labelText="Email Address *"
+                  placeholder="name@example.com"
+                  type="email"
+                  containerClass="w-full"
+                  {...field}
+                  disabled={isPending}
+                  error={getErrorMessage(errors.email)}
+                />
+              )}
+            />
+            <Controller
+              name="phone_number"
+              control={control}
+              render={({ field }) => (
+                <FormControl
+                  as="input"
+                  labelText="Phone Number"
+                  placeholder="+234..."
+                  type="tel"
+                  containerClass="w-full"
+                  {...field}
+                  disabled={isPending}
+                  error={getErrorMessage(errors.phone_number)}
+                />
+              )}
+            />
+          </div>
 
-    return (
-        <div className="space-y-6 max-w-5xl">
-            {/* Header Avatar Card */}
-            <div className="bg-white border border-gray-100 rounded-xl p-6 shadow-sm flex items-center justify-between">
-                <div className="flex items-center gap-5">
-                    <div className="relative w-20 h-20 rounded-full overflow-hidden bg-gray-100 border border-gray-200">
-                        <Image
-                            src={formData.avatarUrl}
-                            alt={formData.fullName}
-                            fill
-                            className="object-cover"
-                        />
-                    </div>
-                    <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                            <h2 className="text-xl font-bold text-gray-900">{formData.fullName}</h2>
-                            {formData.isVerified && (
-                                <CheckCircle2 className="w-5 h-5 text-blue-600 fill-blue-600/10" />
-                            )}
-                        </div>
-                        <p className="text-sm text-gray-500">{formData.email}</p>
-                    </div>
-                </div>
-
-                <div>
-                    <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors shadow-sm">
-                        <Camera className="w-4 h-4 text-gray-500" />
-                        <span>Change Picture</span>
-                        <input type="file" accept="image/*" className="hidden" />
-                    </label>
-                </div>
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Profile Fields Card */}
-                <div className="bg-white border border-gray-100 rounded-xl p-6 shadow-sm space-y-5">
-                    <h3 className="text-lg font-semibold text-gray-900">Profile</h3>
-
-                    <div className="space-y-4">
-                        <div>
-                            <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-1.5">
-                                Full Name
-                            </label>
-                            <input
-                                type="text"
-                                id="fullName"
-                                name="fullName"
-                                value={formData.fullName}
-                                onChange={handleChange}
-                                placeholder="John Doe"
-                                className="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all"
-                            />
-                        </div>
-
-                        <div>
-                            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1.5">
-                                Email Address
-                            </label>
-                            <input
-                                type="email"
-                                id="email"
-                                name="email"
-                                value={formData.email}
-                                onChange={handleChange}
-                                placeholder="johndoe@example.com"
-                                className="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all bg-gray-50/50"
-                            />
-                        </div>
-                    </div>
-                </div>
-
-                {/* Contact Details Card */}
-                <div className="bg-white border border-gray-100 rounded-xl p-6 shadow-sm space-y-5">
-                    <h3 className="text-lg font-semibold text-gray-900">Contact</h3>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                        <div>
-                            <label htmlFor="mobile" className="block text-sm font-medium text-gray-700 mb-1.5">
-                                Mobile <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                                type="text"
-                                id="mobile"
-                                name="mobile"
-                                value={formData.mobile}
-                                onChange={handleChange}
-                                placeholder="+234 xxxxx xxxxx"
-                                required
-                                className="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all"
-                            />
-                        </div>
-
-                        <div className="space-y-3">
-                            <div>
-                                <label htmlFor="whatsapp" className="block text-sm font-medium text-gray-700 mb-1.5">
-                                    WhatsApp <span className="text-red-500">*</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    id="whatsapp"
-                                    name="whatsapp"
-                                    value={formData.whatsapp}
-                                    onChange={handleChange}
-                                    disabled={formData.sameAsMobile}
-                                    placeholder="+234 xxxxx xxxxx"
-                                    required
-                                    className="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all disabled:bg-gray-50 disabled:text-gray-500"
-                                />
-                            </div>
-
-                            <div className="flex items-center gap-2">
-                                <input
-                                    type="checkbox"
-                                    id="sameAsMobile"
-                                    checked={formData.sameAsMobile}
-                                    onChange={handleCheckboxChange}
-                                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                                />
-                                <label htmlFor="sameAsMobile" className="text-sm text-gray-600 select-none cursor-pointer">
-                                    Same as mobile?
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Form Action */}
-                <div className="flex justify-end pt-2">
-                    <Button type="submit" disabled={isPending}>
-                        {isPending ? 'Updating...' : 'Update Profile'}
-                    </Button>
-                </div>
-            </form>
+          <Controller
+            name="bio"
+            control={control}
+            render={({ field }) => (
+              <FormControl
+                as="textarea"
+                labelText="Bio"
+                placeholder="Brief summary about yourself or agency"
+                containerClass="w-full"
+                {...field}
+                disabled={isPending}
+                error={getErrorMessage(errors.bio)}
+              />
+            )}
+          />
         </div>
-    );
+      </FormCard>
+
+      {/* Business Details Section */}
+      <FormCard title="Business Details">
+        <div className="space-y-6">
+          <div className="w-full flex flex-col md:flex-row gap-6">
+            <Controller
+              name="company_name"
+              control={control}
+              render={({ field }) => (
+                <FormControl
+                  as="input"
+                  labelText="Company / Agency Name"
+                  placeholder="Enter company name"
+                  type="text"
+                  containerClass="w-full"
+                  {...field}
+                  disabled={isPending}
+                  error={getErrorMessage(errors.company_name)}
+                />
+              )}
+            />
+            <Controller
+              name="address"
+              control={control}
+              render={({ field }) => (
+                <FormControl
+                  as="input"
+                  labelText="Office Address"
+                  placeholder="Enter address"
+                  type="text"
+                  containerClass="w-full"
+                  {...field}
+                  disabled={isPending}
+                  error={getErrorMessage(errors.address)}
+                />
+              )}
+            />
+          </div>
+        </div>
+      </FormCard>
+
+      {/* Action Buttons */}
+      <div className="flex justify-end gap-3">
+        <Button 
+          variant="outline" 
+          type="button" 
+          className="md:min-w-30"
+          disabled={isPending}
+        >
+          Cancel
+        </Button>
+        <Button 
+          type="submit" 
+          className="md:min-w-30"
+          disabled={isPending}
+        >
+          Save Changes
+        </Button>
+      </div>
+    </form>
+  );
 }
