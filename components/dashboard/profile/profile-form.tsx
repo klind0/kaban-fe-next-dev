@@ -71,7 +71,7 @@ export default function ProfileForm({ initialData, onFormSubmit, isPending }: Pr
     <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-6 mt-6">
       
       {/* Profile Header Card */}
-      <FormCard className="p-6">
+      <FormCard>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="relative w-16 h-16 rounded-full overflow-hidden bg-slate-100 flex-shrink-0">
