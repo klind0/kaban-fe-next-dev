@@ -13,6 +13,9 @@ import { useQueryParams } from '@/hooks/useQueryParams';
 import { useRouter, useSearchParams } from 'next/navigation';
 import React from 'react';
 
+// Replace this with your project's actual Auth context/hook (e.g. useAuth, useSession, or Redux state)
+// import { useAuth } from '@/hooks/useAuth'; 
+
 const UPDATE_REALTOR_MUTATION = `
   mutation UpdateRealtor($id: String!, $input: JSONObject!, $realtor_pic: Upload) {
     updateRealtor(id: $id, input: $input, realtor_pic: $realtor_pic)
@@ -31,11 +34,22 @@ type TabType = 'profile' | 'social-media' | 'password' | 'verification' | 'deact
 
 interface ProfileScreenProps {
     realtorId?: string;
+    // Optional initial user data passed as props from server page component if applicable
+    userData?: {
+        full_name?: string;
+        email?: string;
+        mobile_number?: string;
+        whatsapp_number?: string;
+        realtor_pic?: string;
+    };
 }
 
-export default function ProfileScreen({ realtorId }: ProfileScreenProps) {
+export default function ProfileScreen({ realtorId, userData }: ProfileScreenProps) {
     const searchParams = useSearchParams();
     const router = useRouter();
+
+    // If using an Auth Hook, extract user profile info here:
+    // const { user } = useAuth();
 
     const [activeTab, setActiveTab] = React.useState<TabType>(
         (searchParams.get('tab') as TabType) || 'profile'
@@ -59,8 +73,9 @@ export default function ProfileScreen({ realtorId }: ProfileScreenProps) {
         setIsPending(true);
 
         try {
-            // Prepares payload containing only active image fields
+            // Prepares payload containing only active editable fields
             const inputPayload = {
+                full_name: data.full_name,
                 mobile_number: data.mobile_number,
                 whatsapp_number: data.whatsapp_number,
             };
@@ -114,6 +129,13 @@ export default function ProfileScreen({ realtorId }: ProfileScreenProps) {
 
                 <div className={activeTab !== 'profile' ? 'hidden' : ''}>
                     <ProfileForm 
+                        initialData={{
+                            full_name: userData?.full_name || "",
+                            email: userData?.email || "",
+                            mobile_number: userData?.mobile_number || "",
+                            whatsapp_number: userData?.whatsapp_number || "",
+                            realtor_pic: userData?.realtor_pic || "",
+                        }}
                         onFormSubmit={handleProfileSubmit} 
                         isPending={isPending}
                     />

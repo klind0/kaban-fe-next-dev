@@ -38,6 +38,7 @@ export default function ProfileForm({ initialData, onFormSubmit, isPending }: Pr
     control,
     setValue,
     watch,
+    reset,
     formState: { errors },
   } = useForm<ProfileFormValues>({
     defaultValues: {
@@ -50,9 +51,23 @@ export default function ProfileForm({ initialData, onFormSubmit, isPending }: Pr
     mode: "onChange",
   });
 
+  // Automatically update form fields if initialData loads asynchronously (e.g. via API/Auth session)
+  useEffect(() => {
+    if (initialData) {
+      reset({
+        full_name: initialData.full_name || "",
+        email: initialData.email || "",
+        mobile_number: initialData.mobile_number || "",
+        whatsapp_number: initialData.whatsapp_number || "",
+      });
+      if (initialData.realtor_pic) {
+        setPreviewPic(initialData.realtor_pic);
+      }
+    }
+  }, [initialData, reset]);
+
   const mobileNumberValue = watch("mobile_number");
 
-  // Sync WhatsApp number when "Same as mobile?" is checked
   useEffect(() => {
     if (sameAsMobile) {
       setValue("whatsapp_number", mobileNumberValue || "", { shouldValidate: true });
@@ -84,21 +99,14 @@ export default function ProfileForm({ initialData, onFormSubmit, isPending }: Pr
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-slate-400 font-bold text-xl">
-                  {initialData?.full_name ? initialData.full_name[0] : "P"}
+                  {initialData?.full_name ? initialData.full_name[0].toUpperCase() : "P"}
                 </div>
               )}
             </div>
             <div>
-              <div className="flex items-center gap-1.5">
-                <h3 className="text-xl font-bold text-slate-900">
-                  {initialData?.full_name || "Precious Ekong"}
-                </h3>
-                <span className="text-blue-600">
-                  <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
-                  </svg>
-                </span>
-              </div>
+              <h3 className="text-xl font-bold text-slate-900">
+                {initialData?.full_name || "Precious Ekong"}
+              </h3>
               <p className="text-sm text-slate-500">
                 {initialData?.email || "precious@gmail.com"}
               </p>
@@ -129,6 +137,7 @@ export default function ProfileForm({ initialData, onFormSubmit, isPending }: Pr
       {/* Profile Details Card */}
       <FormCard title="Profile">
         <div className="space-y-5">
+          {/* Full Name */}
           <Controller
             name="full_name"
             control={control}
@@ -146,6 +155,7 @@ export default function ProfileForm({ initialData, onFormSubmit, isPending }: Pr
             )}
           />
 
+          {/* Email Address (Non-editable) */}
           <Controller
             name="email"
             control={control}
@@ -157,7 +167,9 @@ export default function ProfileForm({ initialData, onFormSubmit, isPending }: Pr
                 type="email"
                 containerClass="w-full"
                 {...field}
-                disabled={isPending}
+                disabled={true} // Hard-disabled so users cannot edit email
+                readOnly={true}
+                className="bg-slate-100 text-slate-500 cursor-not-allowed" // Visual hint for read-only state
                 error={getErrorMessage(errors.email)}
               />
             )}
@@ -167,8 +179,8 @@ export default function ProfileForm({ initialData, onFormSubmit, isPending }: Pr
 
       {/* Contact Card */}
       <FormCard title="Contact">
-        <div className="space-y-4">
-          <div className="w-full flex flex-col md:flex-row gap-6">
+        <div className="w-full flex flex-col md:flex-row gap-6">
+          <div className="w-full">
             <Controller
               name="mobile_number"
               control={control}
@@ -186,7 +198,9 @@ export default function ProfileForm({ initialData, onFormSubmit, isPending }: Pr
                 />
               )}
             />
+          </div>
 
+          <div className="w-full space-y-2">
             <Controller
               name="whatsapp_number"
               control={control}
@@ -204,19 +218,19 @@ export default function ProfileForm({ initialData, onFormSubmit, isPending }: Pr
                 />
               )}
             />
-          </div>
 
-          <div className="flex items-center gap-2 pt-1">
-            <input
-              type="checkbox"
-              id="sameAsMobile"
-              checked={sameAsMobile}
-              onChange={(e) => setSameAsMobile(e.target.checked)}
-              className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-            />
-            <label htmlFor="sameAsMobile" className="text-sm text-slate-600 cursor-pointer">
-              Same as mobile?
-            </label>
+            <div className="flex items-center gap-2 pt-1">
+              <input
+                type="checkbox"
+                id="sameAsMobile"
+                checked={sameAsMobile}
+                onChange={(e) => setSameAsMobile(e.target.checked)}
+                className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+              />
+              <label htmlFor="sameAsMobile" className="text-sm text-slate-600 cursor-pointer">
+                Same as mobile?
+              </label>
+            </div>
           </div>
         </div>
       </FormCard>
