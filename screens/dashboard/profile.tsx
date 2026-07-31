@@ -14,8 +14,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import React from 'react';
 
 const UPDATE_REALTOR_MUTATION = `
-  mutation UpdateRealtor($id: String!, $input: JSONObject!) {
-    updateRealtor(id: $id, input: $input)
+  mutation UpdateRealtor($id: String!, $input: JSONObject!, $realtor_pic: Upload) {
+    updateRealtor(id: $id, input: $input, realtor_pic: $realtor_pic)
   }
 `;
 
@@ -59,23 +59,23 @@ export default function ProfileScreen({ realtorId }: ProfileScreenProps) {
         setIsPending(true);
 
         try {
-            const response = await fetch('/api/graphql', { // Adjust endpoint URL if needed
+            // Prepares payload containing only active image fields
+            const inputPayload = {
+                mobile_number: data.mobile_number,
+                whatsapp_number: data.whatsapp_number,
+            };
+
+            const response = await fetch('/graphql', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    // Include Authorization header if needed:
-                    // 'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify({
                     query: UPDATE_REALTOR_MUTATION,
                     variables: {
                         id: realtorId,
-                        input: {
-                            bio: data.bio,
-                            company: data.company_name,
-                            office_address: data.address,
-                            mobile_number: data.phone_number,
-                        },
+                        input: inputPayload,
+                        realtor_pic: data.realtor_pic || null,
                     },
                 }),
             });
@@ -85,10 +85,10 @@ export default function ProfileScreen({ realtorId }: ProfileScreenProps) {
             if (result.errors) {
                 console.error("GraphQL errors:", result.errors);
             } else {
-                console.log("Updated successfully:", result.data);
+                console.log("Profile updated successfully:", result.data);
             }
         } catch (err) {
-            console.error("Profile update error:", err);
+            console.error("Error executing profile update:", err);
         } finally {
             setIsPending(false);
         }
