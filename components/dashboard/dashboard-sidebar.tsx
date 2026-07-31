@@ -26,7 +26,7 @@ import { QUERY_KEY } from "@/enum/queryKeys"
 import { toast } from "sonner"
 import Cookies from "js-cookie"
 import X from "../icons/x"
-import { Menu } from "lucide-react" // Added standard menu icon for the toggle
+import { Menu } from "lucide-react" 
 import { Button } from "../ui/button"
 
 export const menuItems = [
@@ -40,13 +40,16 @@ export const menuItems = [
 
 export function DashboardSidebar() {
     const pathName = usePathname()
-    // FIX: Pull openMobile along with setOpenMobile
     const { setOpenMobile, openMobile } = useSidebar()
 
     const router = useRouter()
 
     const { user, clearUser } = useUserStore()
-    const userData = user ? { firstName: user.fullName.split(' ')[0], lastName: user.fullName.split(' ')[1], email: user.email } : { firstName: "Great", lastName: "User", email: "hello@kaban.ng" };
+    const userData = user ? { 
+        firstName: user.fullName?.split(' ')[0] || "User", 
+        lastName: user.fullName?.split(' ')[1] || "", 
+        email: user.email || "" 
+    } : { firstName: "Great", lastName: "User", email: "hello@kaban.ng" };
 
     const isActive = (url: string) => pathName === url;
 
@@ -65,7 +68,6 @@ export function DashboardSidebar() {
                     <Link href={'/'}>
                         <Logo className="text-primary" />
                     </Link>
-                    {/* FIX: Conditional rendering based on sidebar open state */}
                     <SidebarTrigger className="md:hidden">
                         {openMobile ? <X className="size-5" /> : <Menu className="size-5" />}
                     </SidebarTrigger>
@@ -87,7 +89,7 @@ export function DashboardSidebar() {
                                 menuItems.map((item) => {
                                     return (
                                         <SidebarMenuItem key={item.title} className={`${isActive(item.url) ? 'bg-[#F3F9FE] border-l-[3px] border-primary text-primary' : ''} flex items-center justify-between gap-1 py-3`}>
-                                        	<Link href={item.url} onClick={() => setOpenMobile(false)} className={`flex gap-2 items-center w-full pl-6 font-semibold`}><item.icon /> {item.title}</Link>
+                                            <Link href={item.url} onClick={() => setOpenMobile(false)} className={`flex gap-2 items-center w-full pl-6 font-semibold`}><item.icon /> {item.title}</Link>
                                         </SidebarMenuItem>
                                     )
                                 })
@@ -117,8 +119,20 @@ export function DashboardSidebar() {
                                     <PopoverDescription className="sr-only">Manage your account settings and preferences.</PopoverDescription>
                                 </PopoverHeader>
                                 <div className="flex flex-col">
-                                    <Link href={'/dashboard/#'} className="px-6 py-3 font-semibold flex items-center gap-3 text-[#495E6C] hover:bg-neutral-100 rounded-md" onClick={() => setOpenMobile(false)}><Profile />Profile</Link>
-                                    <button className="px-6 py-3 font-semibold flex items-center gap-3 text-[#495E6C] hover:bg-neutral-100 rounded-md" onClick={() => { handleLogout(); setOpenMobile(false); }}><LogoutIcon />Sign out</button>
+                                    {/* Linked to /dashboard/profile */}
+                                    <Link 
+                                        href={'/dashboard/profile'} 
+                                        className="px-6 py-3 font-semibold flex items-center gap-3 text-[#495E6C] hover:bg-neutral-100 rounded-md" 
+                                        onClick={() => setOpenMobile(false)}
+                                    >
+                                        <Profile />Profile
+                                    </Link>
+                                    <button 
+                                        className="px-6 py-3 font-semibold flex items-center gap-3 text-[#495E6C] hover:bg-neutral-100 rounded-md" 
+                                        onClick={() => { handleLogout(); setOpenMobile(false); }}
+                                    >
+                                        <LogoutIcon />Sign out
+                                    </button>
                                 </div>
                             </PopoverContent>
                         </Popover>
