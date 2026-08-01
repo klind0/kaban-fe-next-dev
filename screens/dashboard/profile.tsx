@@ -125,7 +125,6 @@ export default function ProfileScreen() {
                 response = await axiosInstance.post("/graphql", formData, {
                     headers: {
                         "apollo-require-preflight": "true",
-                        "Content-Type": "multipart/form-data",
                     },
                 });
             } else {
