@@ -90,25 +90,66 @@ export default function ProfileScreen() {
         setIsPending(true);
 
         try {
-            const response = await axiosInstance.post("/graphql", {
-                query: UPDATE_REALTOR_MUTATION,
-                variables: {
-                    id: targetRealtorId,
-                    input: {
-                        full_name: data.full_name,
-                        mobile_number: data.mobile_number,
-                        whatsapp_number: data.whatsapp_number,
+            let response;
+
+            // 1. Check if user attached a NEW file (a File object from <input type="file" />)
+            if (data.realtor_pic instanceof File) {
+                const formData = new FormData();
+
+                // Operations map for GraphQL Multipart Request Spec
+                const operations = {
+                    query: UPDATE_REALTOR_MUTATION,
+                    variables: {
+                        id: targetRealtorId,
+                        input: {
+                            full_name: data.full_name,
+                            mobile_number: data.mobile_number,
+                            whatsapp_number: data.whatsapp_number,
+                        },
+                        realtor_pic: null, // Placeholder to be mapped
                     },
-                    realtor_pic: data.realtor_pic || null,
-                },
-            });
+                };
+
+                formData.append("operations", JSON.stringify(operations));
+
+                // Map binary file to the GraphQL variable ($realtor_pic)
+                const map = {
+                    "0": ["variables.realtor_pic"],
+                };
+                formData.append("map", JSON.stringify(map));
+
+                // Append the raw binary file
+                formData.append("0", data.realtor_pic);
+
+                // Send multipart request
+                response = await axiosInstance.post("/graphql", formData, {
+                    headers: {
+                        "apollo-require-preflight": "true",
+                        "Content-Type": "multipart/form-data",
+                    },
+                });
+            } else {
+                // 2. Standard JSON request (when NO new image file is chosen)
+                response = await axiosInstance.post("/graphql", {
+                    query: UPDATE_REALTOR_MUTATION,
+                    variables: {
+                        id: targetRealtorId,
+                        input: {
+                            full_name: data.full_name,
+                            mobile_number: data.mobile_number,
+                            whatsapp_number: data.whatsapp_number,
+                        },
+                        realtor_pic: null, // Pass explicit null when no file is uploaded
+                    },
+                });
+            }
 
             if (response.data?.errors) {
                 toast.error(response.data.errors[0]?.message || "Failed to update profile");
             } else {
                 toast.success("Profile updated successfully!");
 
-                // 💡 FIX: Sync local store with the newly updated fields
+                // Sync Zustand store with updated values
                 if (user) {
                     setUser({
                         ...user,
