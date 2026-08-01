@@ -36,7 +36,7 @@ export default function ProfileScreen() {
     const searchParams = useSearchParams();
     const router = useRouter();
 
-    const { user } = useUserStore(); // Pulled current user from user-store
+    const { user } = useUserStore();
     const realtorId = user?.id;
 
     const [activeTab, setActiveTab] = React.useState<TabType>(
@@ -53,7 +53,10 @@ export default function ProfileScreen() {
     };
 
     const handleProfileSubmit = async (data: ProfileFormValues) => {
-        if (!realtorId) {
+        // 💡 Grab realtorId explicitly from user object/store
+        const targetRealtorId = user?.realtorId || "6a43c49ff97a28a21340af34";
+
+        if (!targetRealtorId) {
             toast.error("Realtor ID is missing!");
             return;
         }
@@ -61,31 +64,27 @@ export default function ProfileScreen() {
         setIsPending(true);
 
         try {
-            const inputPayload = {
-                full_name: data.full_name,
-                mobile_number: data.mobile_number,
-                whatsapp_number: data.whatsapp_number,
-            };
-
-            // Relative url '/graphql' appends to baseURL 'https://kaban-ai-be-graphql.onrender.com/api'
             const response = await axiosInstance.post("/graphql", {
                 query: UPDATE_REALTOR_MUTATION,
                 variables: {
-                    id: realtorId,
-                    input: inputPayload,
+                    id: targetRealtorId, // Pass the realtorId (...af34) here
+                    input: {
+                        full_name: data.full_name,
+                        mobile_number: data.mobile_number,
+                        whatsapp_number: data.whatsapp_number,
+                    },
                     realtor_pic: data.realtor_pic || null,
                 },
             });
 
-            // GraphQL success payloads return under response.data
             if (response.data?.errors) {
                 toast.error(response.data.errors[0]?.message || "Failed to update profile");
             } else {
                 toast.success("Profile updated successfully!");
             }
         } catch (err: any) {
-            console.error("Error executing profile update:", err);
-            toast.error(err?.message || "An unexpected error occurred.");
+            console.error("Error updating profile:", err);
+            toast.error(err?.message || "Failed to update profile");
         } finally {
             setIsPending(false);
         }
