@@ -36,6 +36,7 @@ export interface IUser {
   email: string;
   fullName: string;
   role: number;
+  realtorId?: string;
   realtor?: IRealtor;
   mobileNumber?: string;  
   whatsappNumber?: string; 

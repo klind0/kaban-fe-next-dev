@@ -53,11 +53,13 @@ export default function ProfileScreen() {
     };
 
     const handleProfileSubmit = async (data: ProfileFormValues) => {
-        // 💡 Access id from the nested realtor object
-        const targetRealtorId = user?.realtor?.id;
+        // 💡 Check direct realtorId first, then nested realtor.id
+        const targetRealtorId = user?.realtorId || user?.realtor?.id;
+
+        console.log("Resolved Target Realtor ID:", targetRealtorId);
 
         if (!targetRealtorId) {
-            toast.error("Realtor profile not found!");
+            toast.error("Realtor profile ID not found!");
             return;
         }
 
@@ -67,7 +69,7 @@ export default function ProfileScreen() {
             const response = await axiosInstance.post("/graphql", {
                 query: UPDATE_REALTOR_MUTATION,
                 variables: {
-                    id: targetRealtorId, // Pass user.realtor.id ("6a43c49ff97a28a21340af34")
+                    id: targetRealtorId, // Sends "6a43c49ff97a28a21340af34"
                     input: {
                         full_name: data.full_name,
                         mobile_number: data.mobile_number,
