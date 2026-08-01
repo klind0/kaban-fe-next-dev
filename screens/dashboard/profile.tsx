@@ -11,10 +11,11 @@ import CustomTab from '@/components/universal/custom-tab';
 import { Button } from '@/components/ui/button';
 import { useQueryParams } from '@/hooks/useQueryParams';
 import { useRouter, useSearchParams } from 'next/navigation';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useUserStore } from "@/app/stores/user-store";
 import { axiosInstance } from "@/network/axios-instance";
 import { toast } from "sonner";
+import Cookies from "js-cookie";
 
 const UPDATE_REALTOR_MUTATION = `
   mutation UpdateRealtor($id: String!, $input: JSONObject!, $realtor_pic: Upload) {
@@ -32,12 +33,33 @@ const tabOptions = [
 
 type TabType = 'profile' | 'social-media' | 'password' | 'verification' | 'deactivate-account';
 
+// Helper function to resolve realtorId across state sources and cookie token
+const resolveRealtorId = (user: any): string | null => {
+    // 1. Direct property on user (if added to IUser)
+    if (user?.realtorId) return user.realtorId;
+
+    // 2. Nested realtor object (user.realtor.id)
+    if (user?.realtor?.id) return user.realtor.id;
+
+    // 3. Cookie fallback: Decode JWT token directly
+    try {
+        const token = Cookies.get("EzxqowpoqiaQa");
+        if (token) {
+            const payload = JSON.parse(atob(token.split(".")[1]));
+            return payload?.realtorId || null;
+        }
+    } catch (err) {
+        console.error("Failed to decode token from cookie:", err);
+    }
+
+    return null;
+};
+
 export default function ProfileScreen() {
     const searchParams = useSearchParams();
     const router = useRouter();
 
     const { user } = useUserStore();
-    const realtorId = user?.id;
 
     const [activeTab, setActiveTab] = React.useState<TabType>(
         (searchParams.get('tab') as TabType) || 'profile'
@@ -46,6 +68,11 @@ export default function ProfileScreen() {
 
     const { handleQueryParamsChange } = useQueryParams();
 
+    // 🔍 Log the active user state on mount / change to inspect store hydration
+    useEffect(() => {
+        console.log("🔍 Current User Object in Store:", user);
+    }, [user]);
+
     const handleTabChange = (targetTab: string) => {
         const cleanTarget = targetTab as TabType;
         setActiveTab(cleanTarget);
@@ -53,13 +80,12 @@ export default function ProfileScreen() {
     };
 
     const handleProfileSubmit = async (data: ProfileFormValues) => {
-        // 💡 Check direct realtorId first, then nested realtor.id
-        const targetRealtorId = user?.realtorId || user?.realtor?.id;
+        const targetRealtorId = resolveRealtorId(user);
 
         console.log("Resolved Target Realtor ID:", targetRealtorId);
 
         if (!targetRealtorId) {
-            toast.error("Realtor profile ID not found!");
+            toast.error("Realtor profile ID not found! Please sign in again.");
             return;
         }
 
@@ -69,7 +95,7 @@ export default function ProfileScreen() {
             const response = await axiosInstance.post("/graphql", {
                 query: UPDATE_REALTOR_MUTATION,
                 variables: {
-                    id: targetRealtorId, // Sends "6a43c49ff97a28a21340af34"
+                    id: targetRealtorId,
                     input: {
                         full_name: data.full_name,
                         mobile_number: data.mobile_number,
