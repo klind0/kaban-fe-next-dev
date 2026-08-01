@@ -59,7 +59,7 @@ export default function ProfileScreen() {
     const searchParams = useSearchParams();
     const router = useRouter();
 
-    const { user } = useUserStore();
+    const { user, setUser } = useUserStore();
 
     const [activeTab, setActiveTab] = React.useState<TabType>(
         (searchParams.get('tab') as TabType) || 'profile'
@@ -81,8 +81,6 @@ export default function ProfileScreen() {
 
     const handleProfileSubmit = async (data: ProfileFormValues) => {
         const targetRealtorId = resolveRealtorId(user);
-
-        console.log("Resolved Target Realtor ID:", targetRealtorId);
 
         if (!targetRealtorId) {
             toast.error("Realtor profile ID not found! Please sign in again.");
@@ -109,6 +107,16 @@ export default function ProfileScreen() {
                 toast.error(response.data.errors[0]?.message || "Failed to update profile");
             } else {
                 toast.success("Profile updated successfully!");
+
+                // 💡 FIX: Sync local store with the newly updated fields
+                if (user) {
+                    setUser({
+                        ...user,
+                        fullName: data.full_name,
+                        mobileNumber: data.mobile_number,
+                        whatsappNumber: data.whatsapp_number,
+                    });
+                }
             }
         } catch (err: any) {
             console.error("Error updating profile:", err);
@@ -141,8 +149,8 @@ export default function ProfileScreen() {
                         initialData={{
                             full_name: user?.fullName || "",
                             email: user?.email || "",
-                            mobile_number: user?.mobileNumber || "",
-                            whatsapp_number: user?.whatsappNumber || "",
+                            mobile_number: user?.mobileNumber || user?.realtor?.mobile_number || "",
+                            whatsapp_number: user?.whatsappNumber || user?.realtor?.whatsapp_number || "",
                             realtor_pic: user?.avatar || "",
                         }}
                         onFormSubmit={handleProfileSubmit} 
