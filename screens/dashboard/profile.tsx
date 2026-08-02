@@ -35,13 +35,9 @@ type TabType = 'profile' | 'social-media' | 'password' | 'verification' | 'deact
 
 // Helper function to resolve realtorId across state sources and cookie token
 const resolveRealtorId = (user: any): string | null => {
-    // 1. Direct property on user (if added to IUser)
     if (user?.realtorId) return user.realtorId;
-
-    // 2. Nested realtor object (user.realtor.id)
     if (user?.realtor?.id) return user.realtor.id;
 
-    // 3. Cookie fallback: Decode JWT token directly
     try {
         const token = Cookies.get("EzxqowpoqiaQa");
         if (token) {
@@ -68,7 +64,6 @@ export default function ProfileScreen() {
 
     const { handleQueryParamsChange } = useQueryParams();
 
-    // 🔍 Log the active user state on mount / change to inspect store hydration
     useEffect(() => {
         console.log("🔍 Current User Object in Store:", user);
     }, [user]);
@@ -92,11 +87,10 @@ export default function ProfileScreen() {
         try {
             let response;
 
-            // 1. Check if user attached a NEW file (a File object from <input type="file" />)
+            // 1. Multipart Form Request for File Uploads
             if (data.realtor_pic instanceof File) {
                 const formData = new FormData();
 
-                // Operations map for GraphQL Multipart Request Spec
                 const operations = {
                     query: UPDATE_REALTOR_MUTATION,
                     variables: {
@@ -106,29 +100,25 @@ export default function ProfileScreen() {
                             mobile_number: data.mobile_number,
                             whatsapp_number: data.whatsapp_number,
                         },
-                        realtor_pic: null, // Placeholder to be mapped
+                        realtor_pic: null,
                     },
                 };
 
                 formData.append("operations", JSON.stringify(operations));
 
-                // Map binary file to the GraphQL variable ($realtor_pic)
                 const map = {
                     "0": ["variables.realtor_pic"],
                 };
                 formData.append("map", JSON.stringify(map));
-
-                // Append the raw binary file
                 formData.append("0", data.realtor_pic);
 
-                // Send multipart request
                 response = await axiosInstance.post("/graphql", formData, {
                     headers: {
                         "apollo-require-preflight": "true",
                     },
                 });
             } else {
-                // 2. Standard JSON request (when NO new image file is chosen)
+                // 2. Standard JSON Request for Text-only Updates
                 response = await axiosInstance.post("/graphql", {
                     query: UPDATE_REALTOR_MUTATION,
                     variables: {
@@ -138,7 +128,7 @@ export default function ProfileScreen() {
                             mobile_number: data.mobile_number,
                             whatsapp_number: data.whatsapp_number,
                         },
-                        realtor_pic: null, // Pass explicit null when no file is uploaded
+                        realtor_pic: null,
                     },
                 });
             }
@@ -148,13 +138,28 @@ export default function ProfileScreen() {
             } else {
                 toast.success("Profile updated successfully!");
 
-                // Sync Zustand store with updated values
+                const result = response.data?.data?.updateRealtor;
+                const newPicUrl = typeof result === "object" ? result?.realtor_pic : null;
+
+                // Sync Zustand store dynamically across all common image key conventions
                 if (user) {
+                    const updatedPicture = newPicUrl || user.realtor_pic || user.avatar || user.realtorPic;
+
                     setUser({
                         ...user,
                         fullName: data.full_name,
                         mobileNumber: data.mobile_number,
                         whatsappNumber: data.whatsapp_number,
+                        // Sync multiple key aliases so avatar/navbars catch the new image
+                        avatar: updatedPicture,
+                        realtor_pic: updatedPicture,
+                        realtorPic: updatedPicture,
+                        realtor: {
+                            ...user.realtor,
+                            mobile_number: data.mobile_number,
+                            whatsapp_number: data.whatsapp_number,
+                            realtor_pic: updatedPicture,
+                        },
                     });
                 }
             }
@@ -191,7 +196,7 @@ export default function ProfileScreen() {
                             email: user?.email || "",
                             mobile_number: user?.mobileNumber || user?.realtor?.mobile_number || "",
                             whatsapp_number: user?.whatsappNumber || user?.realtor?.whatsapp_number || "",
-                            realtor_pic: user?.avatar || "",
+                            realtor_pic: user?.avatar || user?.realtor_pic || user?.realtor?.realtor_pic || "",
                         }}
                         onFormSubmit={handleProfileSubmit} 
                         isPending={isPending}

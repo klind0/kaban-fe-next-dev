@@ -131,7 +131,7 @@ export default function ListingCard({
                             R
                         </div>
                     )}
-                    {realtor?.mobile_number && <span className="text-sm font-medium text-neutral-700">{realtor.mobile_number}</span>}
+                    {realtor?.full_name && <span className="text-sm font-medium text-neutral-700">{realtor.full_name}</span>}
                 </div>
             </div>
         </Link>
