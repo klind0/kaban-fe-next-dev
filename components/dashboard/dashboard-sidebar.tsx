@@ -51,11 +51,7 @@ export function DashboardSidebar() {
         fullName: user.fullName || "User", 
         email: user.email || "",
         avatar: user.realtor_pic || user.avatar || user.realtorPic || (user.realtor as any)?.realtor_pic || SampleAvatar
-    } : { 
-        fullName: "Great User", 
-        email: "hello@kaban.ng",
-        avatar: SampleAvatar 
-    };
+    } : null;
 
     const isActive = (url: string) => pathName === url;
 
@@ -107,46 +103,63 @@ export function DashboardSidebar() {
             <SidebarFooter className="p-6 border-t border-dark-blue">
                 <div className="w-full flex justify-center">
                     <div className="container flex w-full items-center gap-2">
-                        <Popover>
-                            <PopoverTrigger asChild>
-                                <button className="flex w-full items-center gap-2">
-                                    <div className="size-10 shrink-0 overflow-hidden rounded-full">
-                                        <Image 
-                                            src={userData.avatar} 
-                                            alt="User Avatar" 
-                                            width={40} 
-                                            height={40} 
-                                            className="rounded-full w-full h-full object-cover" 
-                                        />
-                                    </div>
-                                    <div className="flex-1 min-w-0 flex flex-col text-left">
-                                        <span className="text-sm font-medium text-gray-700 truncate">{userData.fullName}</span>
-                                        <span className="text-xs text-gray-500 truncate">{userData.email}</span>
-                                    </div>
-                                </button>
-                            </PopoverTrigger>
-                            <PopoverContent className="p-4 mb-2" side="top" align="start">
-                                <PopoverHeader>
-                                    <PopoverTitle className="sr-only">User profile</PopoverTitle>
-                                    <PopoverDescription className="sr-only">Manage your account settings and preferences.</PopoverDescription>
-                                </PopoverHeader>
-                                <div className="flex flex-col">
-                                    <Link 
-                                        href={'/dashboard/profile'} 
-                                        className="px-6 py-3 font-semibold flex items-center gap-3 text-[#495E6C] hover:bg-neutral-100 rounded-md" 
-                                        onClick={() => setOpenMobile(false)}
-                                    >
-                                        <Profile />Profile
-                                    </Link>
-                                    <button 
-                                        className="px-6 py-3 font-semibold flex items-center gap-3 text-[#495E6C] hover:bg-neutral-100 rounded-md" 
-                                        onClick={() => { handleLogout(); setOpenMobile(false); }}
-                                    >
-                                        <LogoutIcon />Sign out
-                                    </button>
+                        {!userData ? (
+                            /* Loading Skeleton */
+                            <div className="flex w-full items-center gap-2 animate-pulse">
+                                <div className="size-10 shrink-0 bg-neutral-200 rounded-full" />
+                                <div className="flex-1 space-y-2">
+                                    <div className="h-3.5 bg-neutral-200 rounded w-24" />
+                                    <div className="h-2.5 bg-neutral-200 rounded w-32" />
                                 </div>
-                            </PopoverContent>
-                        </Popover>
+                            </div>
+                        ) : (
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <button className="flex w-full items-center gap-2">
+                                        <div className="size-10 shrink-0 overflow-hidden rounded-full">
+                                            {userData.avatar ? (
+                                            <Image 
+                                                src={userData.avatar} 
+                                                alt="User Avatar" 
+                                                width={40} 
+                                                height={40} 
+                                                className="rounded-full w-full h-full object-cover" 
+                                            />
+                                        ) : (
+                                            <span className="text-xs font-bold text-gray-500">
+                                                {userData.fullName.charAt(0).toUpperCase() || "U"}
+                                            </span>
+                                        )}                                           
+                                        </div>
+                                        <div className="flex-1 min-w-0 flex flex-col text-left">
+                                            <span className="text-sm font-medium text-gray-700 truncate">{userData.fullName}</span>
+                                            <span className="text-xs text-gray-500 truncate">{userData.email}</span>
+                                        </div>
+                                    </button>
+                                </PopoverTrigger>
+                                <PopoverContent className="p-4 mb-2" side="top" align="start">
+                                    <PopoverHeader>
+                                        <PopoverTitle className="sr-only">User profile</PopoverTitle>
+                                        <PopoverDescription className="sr-only">Manage your account settings and preferences.</PopoverDescription>
+                                    </PopoverHeader>
+                                    <div className="flex flex-col">
+                                        <Link 
+                                            href={'/dashboard/profile'} 
+                                            className="px-6 py-3 font-semibold flex items-center gap-3 text-[#495E6C] hover:bg-neutral-100 rounded-md" 
+                                            onClick={() => setOpenMobile(false)}
+                                        >
+                                            <Profile />Profile
+                                        </Link>
+                                        <button 
+                                            className="px-6 py-3 font-semibold flex items-center gap-3 text-[#495E6C] hover:bg-neutral-100 rounded-md" 
+                                            onClick={() => { handleLogout(); setOpenMobile(false); }}
+                                        >
+                                            <LogoutIcon />Sign out
+                                        </button>
+                                    </div>
+                                </PopoverContent>
+                            </Popover>
+                        )}
                     </div>
                 </div>
             </SidebarFooter>

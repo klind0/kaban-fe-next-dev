@@ -49,9 +49,9 @@ export default function Navbar() {
     // Standardized to fullName with fallback initials logic
     const userData = user 
         ? { fullName: user.fullName || "User", email: user.email } 
-        : { fullName: "Great User", email: "hello@kaban.ng" };
+        : { fullName: "", email: "" };
 
-    const nameParts = userData.fullName.trim().split(" ");
+    const nameParts = userData.fullName.trim().split(" ").filter(Boolean);
     const nameInitials = nameParts.length > 1
         ? `${nameParts[0][0]}${nameParts[nameParts.length - 1][0]}`.toUpperCase()
         : `${nameParts[0][0] || "U"}`.toUpperCase();
@@ -64,6 +64,20 @@ export default function Navbar() {
                 { name: 'Commercial', link: '/search?category=commercial', icon: House2 },
             ]
         },
+        /*{
+            name: 'Realtors', href: '#', subMenu: [
+                { name: 'Agents', link: '/realtors/agents', icon: ProfileUser },
+                { name: 'Agencies', link: '/realtors/agencies', icon: People },
+            ]
+        },*/
+        /*{
+            name: 'Company', href: '#', subMenu: [
+                { name: 'About us', link: '/company/about-us', icon: Clipboard },
+                { name: 'Contact us', link: '/company/contact-us', icon: Messages },
+                { name: 'FAQs', link: '/company/faqs', icon: MessageQuestion },
+            ]
+        },*/
+        /*{ name: 'Blog', href: '/blog' },*/
     ];
 
     const handleLogout = () => {
@@ -244,7 +258,9 @@ export default function Navbar() {
                                 <Popover>
                                     <PopoverTrigger asChild>
                                         <button className="flex w-full items-center gap-2">
-                                            <Image src={SampleAvatar} alt="User Avatar" width={40} height={40} className="rounded-full" />
+                                            <div className="size-10 rounded-full flex items-center justify-center bg-primary text-white text-sm font-semibold shrink-0">
+                                                {nameInitials}
+                                            </div>
                                             <div className="flex flex-col text-left">
                                                 <span className="font-medium text-gray-700">{userData.fullName}</span>
                                                 <span className="text-sm text-gray-500">{userData.email}</span>
