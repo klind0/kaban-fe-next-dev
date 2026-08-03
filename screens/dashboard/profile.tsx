@@ -16,6 +16,7 @@ import { useUserStore } from "@/app/stores/user-store";
 import { axiosInstance } from "@/network/axios-instance";
 import { toast } from "sonner";
 import Cookies from "js-cookie";
+import { IRealtor } from "@/types/realtor";
 
 const UPDATE_REALTOR_MUTATION = `
   mutation UpdateRealtor($id: String!, $input: JSONObject!, $realtor_pic: Upload) {
@@ -150,16 +151,17 @@ export default function ProfileScreen() {
                         fullName: data.full_name,
                         mobileNumber: data.mobile_number,
                         whatsappNumber: data.whatsapp_number,
-                        // Sync multiple key aliases so avatar/navbars catch the new image
                         avatar: updatedPicture,
                         realtor_pic: updatedPicture,
                         realtorPic: updatedPicture,
                         realtor: {
                             ...user.realtor,
+                            id: user.realtor?.id || targetRealtorId,
+                            full_name: data.full_name,
                             mobile_number: data.mobile_number,
                             whatsapp_number: data.whatsapp_number,
                             realtor_pic: updatedPicture,
-                        },
+                        } as IRealtor,
                     });
                 }
             }
