@@ -16,7 +16,7 @@ import { useUserStore } from "@/app/stores/user-store";
 import { axiosInstance } from "@/network/axios-instance";
 import { toast } from "sonner";
 import Cookies from "js-cookie";
-import { IRealtor } from "@/types/realtor";
+import { IRealtor } from "@/types/userTypes";
 
 const UPDATE_REALTOR_MUTATION = `
   mutation UpdateRealtor($id: String!, $input: JSONObject!, $realtor_pic: Upload) {
