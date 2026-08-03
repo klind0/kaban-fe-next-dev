@@ -10,8 +10,7 @@ type ProfileMenuProps = {
     setOpenProfileMenu: (open: boolean) => void,
     nameInitials: string,
     userData: {
-        firstName: string,
-        lastName: string,
+        fullName: string,
         email: string
     },
     handleLogout: () => void
@@ -34,7 +33,7 @@ export default function ProfileMenu({ openProfileMenu, setOpenProfileMenu, nameI
                             </div>
                         </div>
                         <div className="flex flex-col w-full min-w-0">
-                            <span className="font-medium text-gray-700 truncate">{`${userData.firstName} ${userData.lastName}`}</span>
+                            <span className="font-medium text-gray-700 truncate">{userData.fullName}</span>
                             <span className="text-sm text-gray-500 truncate">{userData.email}</span>
                         </div>
                     </div>

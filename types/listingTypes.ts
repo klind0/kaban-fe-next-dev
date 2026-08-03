@@ -107,8 +107,7 @@ export interface IListing {
     whatsapp_number: string | null;
     realtor_pic: string | null;
     email: string | null;
-    first_name: string;
-    last_name: string;
+    full_name: string | null; // 👈 Updated to single full_name field
   };
   rejectionReasons: RejectionReason[] | string[];
   approvalNotes: string | null;

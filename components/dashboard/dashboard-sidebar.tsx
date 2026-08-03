@@ -45,11 +45,17 @@ export function DashboardSidebar() {
     const router = useRouter()
 
     const { user, clearUser } = useUserStore()
+    
+    // Standardized to use fullName directly with a clean fallback
     const userData = user ? { 
-        firstName: user.fullName?.split(' ')[0] || "User", 
-        lastName: user.fullName?.split(' ')[1] || "", 
-        email: user.email || "" 
-    } : { firstName: "Great", lastName: "User", email: "hello@kaban.ng" };
+        fullName: user.fullName || "User", 
+        email: user.email || "",
+        avatar: user.realtor_pic || user.avatar || user.realtorPic || (user.realtor as any)?.realtor_pic || SampleAvatar
+    } : { 
+        fullName: "Great User", 
+        email: "hello@kaban.ng",
+        avatar: SampleAvatar 
+    };
 
     const isActive = (url: string) => pathName === url;
 
@@ -104,11 +110,17 @@ export function DashboardSidebar() {
                         <Popover>
                             <PopoverTrigger asChild>
                                 <button className="flex w-full items-center gap-2">
-                                    <div className="size-10 shrink-0">
-                                        <Image src={SampleAvatar} alt="User Avatar" width={40} height={40} className="rounded-full w-full" />
+                                    <div className="size-10 shrink-0 overflow-hidden rounded-full">
+                                        <Image 
+                                            src={userData.avatar} 
+                                            alt="User Avatar" 
+                                            width={40} 
+                                            height={40} 
+                                            className="rounded-full w-full h-full object-cover" 
+                                        />
                                     </div>
                                     <div className="flex-1 min-w-0 flex flex-col text-left">
-                                        <span className="text-sm font-medium text-gray-700 truncate">{`${userData.firstName} ${userData.lastName}`}</span>
+                                        <span className="text-sm font-medium text-gray-700 truncate">{userData.fullName}</span>
                                         <span className="text-xs text-gray-500 truncate">{userData.email}</span>
                                     </div>
                                 </button>
@@ -119,7 +131,6 @@ export function DashboardSidebar() {
                                     <PopoverDescription className="sr-only">Manage your account settings and preferences.</PopoverDescription>
                                 </PopoverHeader>
                                 <div className="flex flex-col">
-                                    {/* Linked to /dashboard/profile */}
                                     <Link 
                                         href={'/dashboard/profile'} 
                                         className="px-6 py-3 font-semibold flex items-center gap-3 text-[#495E6C] hover:bg-neutral-100 rounded-md" 

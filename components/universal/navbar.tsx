@@ -18,11 +18,6 @@ import React from "react";
 import { Hamburger } from "../icons/hamburger";
 import X from "../icons/x";
 import { House, House2 } from "../icons/house";
-import { People } from "../icons/people";
-import { ProfileUser } from "../icons/profile-user";
-import { Clipboard } from "../icons/clipboard";
-import { Messages } from "../icons/messages";
-import { MessageQuestion } from "../icons/message-question";
 import Image from "next/image";
 import SampleAvatar from '@/app/assets/images/sample-avatar.png';
 import { useUserStore } from "@/app/stores/user-store";
@@ -51,8 +46,15 @@ export default function Navbar() {
     const [openSubmenu, setOpenSubmenu] = React.useState<string | null>(null);
     const [isSignInModalOpen, setSignInModalOpen] = React.useState(false);
 
-    const userData = user ? { firstName: user.fullName.split(' ')[0], lastName: user.fullName.split(' ')[1], email: user.email } : { firstName: "Great", lastName: "User", email: "hello@kaban.ng" };
-    const nameInitials = `${userData.firstName[0]}${userData.lastName[0]}`;
+    // Standardized to fullName with fallback initials logic
+    const userData = user 
+        ? { fullName: user.fullName || "User", email: user.email } 
+        : { fullName: "Great User", email: "hello@kaban.ng" };
+
+    const nameParts = userData.fullName.trim().split(" ");
+    const nameInitials = nameParts.length > 1
+        ? `${nameParts[0][0]}${nameParts[nameParts.length - 1][0]}`.toUpperCase()
+        : `${nameParts[0][0] || "U"}`.toUpperCase();
 
     const menuItems: MenuItem[] = [
         {
@@ -62,26 +64,6 @@ export default function Navbar() {
                 { name: 'Commercial', link: '/search?category=commercial', icon: House2 },
             ]
         },
-        /*
-        {
-            name: 'Realtors', href: '#', subMenu: [
-                { name: 'Agents', link: '/realtors/agents', icon: ProfileUser },
-                { name: 'Agencies', link: '/realtors/agencies', icon: People },
-            ]
-        },
-        */
-        /*
-        {
-            name: 'Company', href: '#', subMenu: [
-                { name: 'About us', link: '/company/about-us', icon: Clipboard },
-                { name: 'Contact us', link: '/company/contact-us', icon: Messages },
-                { name: 'FAQs', link: '/company/faqs', icon: MessageQuestion },
-            ]
-        },
-        */
-        /*
-        { name: 'Blog', href: '/blog' },
-        */
     ];
 
     const handleLogout = () => {
@@ -152,7 +134,7 @@ export default function Navbar() {
                                                 </div>
                                             </div>
                                             <div className="flex flex-col w-full min-w-0">
-                                                <span className="font-medium text-gray-700 truncate">{`${userData.firstName} ${userData.lastName}`}</span>
+                                                <span className="font-medium text-gray-700 truncate">{userData.fullName}</span>
                                                 <span className="text-sm text-gray-500 truncate">{userData.email}</span>
                                             </div>
                                         </div>
@@ -160,7 +142,6 @@ export default function Navbar() {
                                             <Link href={'/dashboard'} className="px-6 py-3 font-semibold flex items-center gap-3 text-[#495E6C] hover:bg-neutral-100 rounded-md">
                                                 <Building2 />My listings
                                             </Link>
-                                            {/* Updated Desktop Profile Link */}
                                             <Link href={'/dashboard/profile'} className="px-6 py-3 font-semibold flex items-center gap-3 text-[#495E6C] hover:bg-neutral-100 rounded-md">
                                                 <Profile />Profile
                                             </Link>
@@ -265,7 +246,7 @@ export default function Navbar() {
                                         <button className="flex w-full items-center gap-2">
                                             <Image src={SampleAvatar} alt="User Avatar" width={40} height={40} className="rounded-full" />
                                             <div className="flex flex-col text-left">
-                                                <span className="font-medium text-gray-700">{`${userData.firstName} ${userData.lastName}`}</span>
+                                                <span className="font-medium text-gray-700">{userData.fullName}</span>
                                                 <span className="text-sm text-gray-500">{userData.email}</span>
                                             </div>
                                         </button>
@@ -279,7 +260,6 @@ export default function Navbar() {
                                             <Link href={'/dashboard'} className="px-6 py-3 font-semibold flex items-center gap-3 text-[#495E6C] hover:bg-neutral-100 rounded-md" onClick={() => setMobileOpen(false)}>
                                                 <Building2 />My listings
                                             </Link>
-                                            {/* Updated Mobile Profile Link */}
                                             <Link href={'/dashboard/profile'} className="px-6 py-3 font-semibold flex items-center gap-3 text-[#495E6C] hover:bg-neutral-100 rounded-md" onClick={() => setMobileOpen(false)}>
                                                 <Profile />Profile
                                             </Link>
