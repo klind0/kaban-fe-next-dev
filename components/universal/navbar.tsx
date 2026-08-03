@@ -52,9 +52,10 @@ export default function Navbar() {
         : { fullName: "", email: "" };
 
     const nameParts = userData.fullName.trim().split(" ").filter(Boolean);
-    const nameInitials = nameParts.length > 1
-        ? `${nameParts[0][0]}${nameParts[nameParts.length - 1][0]}`.toUpperCase()
-        : `${nameParts[0][0] || "U"}`.toUpperCase();
+    const nameInitials = (userData.fullName.trim().match(/\b\w/g) || ["U"])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
 
     const menuItems: MenuItem[] = [
         {
