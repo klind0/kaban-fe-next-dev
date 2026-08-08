@@ -16,7 +16,7 @@ export default function PropertyDetails({ listing }: PropertyDetailsProps) {
     const hasDescription = Boolean(listing?.description?.trim());
     const hasFeatures = features.length > 0;
 
-    // Check if at least one basic numeric detail exists
+    // Check if at least one basic numeric detail metric exists
     const hasBasicDetails = Boolean(
         details?.bedroom ||
         details?.bathroom ||
@@ -27,14 +27,15 @@ export default function PropertyDetails({ listing }: PropertyDetailsProps) {
 
     return (
         <div className="space-y-8 px-4 md:px-0">
-            {/* Top Details Card - Only rendered if at least one detail metric is available */}
-            {hasBasicDetails && (
-                <div className="border border-neutral-600 rounded-[10px] mt-8 shadow">
-                    <div className="p-4 flex items-center justify-between text-foreground flex-wrap font-semibold border-b border-neutral-600">
-                        <h5>Property Details</h5>
-                        {listing?.property_id && <h5>ID: {listing.property_id}</h5>}
-                    </div>
+            {/* Top Property Details Card - Always rendered to ensure Property ID is permanently visible */}
+            <div className="border border-neutral-600 rounded-[10px] mt-8 shadow">
+                <div className={`p-4 flex items-center justify-between text-foreground flex-wrap font-semibold ${hasBasicDetails ? "border-b border-neutral-600" : ""}`}>
+                    <h5>Property Details</h5>
+                    {listing?.property_id && <h5>ID: {listing.property_id}</h5>}
+                </div>
 
+                {/* Render metrics body section only if at least one metric is present */}
+                {hasBasicDetails && (
                     <div className="p-4 flex flex-col md:flex-row gap-4 flex-wrap items-start md:items-center justify-start md:gap-8">
                         {Boolean(details?.bedroom) && (
                             <div className="flex items-center gap-1.5">
@@ -81,8 +82,8 @@ export default function PropertyDetails({ listing }: PropertyDetailsProps) {
                             </div>
                         )}
                     </div>
-                </div>
-            )}
+                )}
+            </div>
 
             {/* Description & Features Card - Only rendered if at least one exists */}
             {(hasDescription || hasFeatures) && (
