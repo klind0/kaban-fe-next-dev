@@ -17,6 +17,7 @@ import Image from "next/image";
 import { Call } from '@/components/icons/call';
 import { Whatsapp } from '@/components/icons/whatsapp';
 import { Sms } from '@/components/icons/sms';
+import { useUserStore } from "@/app/stores/user-store"
 
 interface IndividualPropertyProps {
     slug: string;
@@ -50,46 +51,15 @@ export default function IndividualProperty({ slug, initialData }: IndividualProp
         );
     }
 
-    const realtorObj = listing?.realtor as any;
-    const userObj = listing?.user as any;
-
-    const realtorName = 
-        realtorObj?.full_name || 
-        realtorObj?.user?.full_name || 
-        userObj?.full_name || 
-        "Listing Agent";
-
-    const email = 
-        realtorObj?.email || 
-        realtorObj?.user?.email || 
-        userObj?.email || 
-        null;
-
-    const avatarUrl = 
-        realtorObj?.realtor_pic || 
-        realtorObj?.user?.realtor_pic || 
-        realtorObj?.user?.profile_pic || 
-        userObj?.profile_pic || 
-        null;
-
-    const mobileNumber = 
-        realtorObj?.mobile_number || 
-        realtorObj?.user?.mobile_number || 
-        userObj?.mobile_number || 
-        null;
-
-    const whatsappNumber = 
-        realtorObj?.whatsapp_number || 
-        realtorObj?.user?.whatsapp_number || 
-        userObj?.whatsapp_number || 
-        mobileNumber;
+    const realtorName = userData.fullName|| "Listing Agent";
+    const avatarUrl = listing?.realtor?.realtor_pic || null;
 
     const initials = (realtorName.trim().match(/\b\w/g) || ["R"])
         .join("")
         .slice(0, 2)
         .toUpperCase();
 
-    // Construct Full Location string matching Listing Card
+    // 🛠️ Construct Full Location string matching Listing Card (Address, City, State)
     const formattedLocation = [
         listing?.location?.address,
         listing?.location?.city,
@@ -148,9 +118,11 @@ export default function IndividualProperty({ slug, initialData }: IndividualProp
 
                         <div className="mt-5 flex flex-col gap-4 lg:flex-row justify-between items-start lg:items-center">
                             <div>
+                                {/* 🛠️ Title Case Title */}
                                 <h3 className="text-lg md:text-3xl font-semibold text-foreground capitalize">
                                     {formattedTitle}
                                 </h3>
+                                {/* 🛠️ Title Case Location with Address, City, State */}
                                 {formattedLocation && (
                                     <div className="flex items-center gap-1.5 mt-1.5">
                                         <Location className="text-primary shrink-0 size-5" />
@@ -178,7 +150,8 @@ export default function IndividualProperty({ slug, initialData }: IndividualProp
                         <RealtorInformationCard listing={listing} />
                         <SafetyTipCard />
                         <DisclaimerCard />
-                        
+          
+                        {/* Placeholder Advert Space */}
                         <div className="bg-neutral-200 border border-neutral-300 rounded-lg flex items-center justify-center h-80 font-bold text-neutral-500 text-lg">
                             Advert Space
                         </div>
@@ -191,18 +164,18 @@ export default function IndividualProperty({ slug, initialData }: IndividualProp
                 <SimilarProperties />
             </div>
 
-            {/* Mobile Quick-Contact Bar */}
+            {/* 🛠️ Mobile Quick-Contact Bar (Pinned to viewport bottom at all times) */}
             <div className="md:hidden fixed inset-x-0 bottom-0 left-0 right-0 z-[100] bg-white p-3 border-t border-neutral-200 shadow-[0_-4px_12px_rgba(0,0,0,0.08)]">
                 <div className="container mx-auto flex justify-between items-center px-2">
                     <div className="flex items-center gap-2.5 min-w-0">
                         <div className="size-10 rounded-full overflow-hidden shrink-0 bg-primary flex items-center justify-center text-white text-xs font-bold">
                             {avatarUrl ? (
-                                <Image 
-                                    src={avatarUrl} 
-                                    width={40} 
-                                    height={40} 
-                                    alt="Realtor avatar" 
-                                    className="object-cover w-full h-full" 
+                                <Image
+                                    src={avatarUrl}
+                                    width={40}
+                                    height={40}
+                                    alt="Realtor avatar"
+                                    className="object-cover w-full h-full"
                                 />
                             ) : (
                                 <span>{initials}</span>
@@ -216,16 +189,16 @@ export default function IndividualProperty({ slug, initialData }: IndividualProp
                     </div>
 
                     <div className="flex items-center gap-2 shrink-0">
-                        {mobileNumber && (
-                            <Link href={`tel:${mobileNumber}`}>
+                        {listing?.realtor?.mobile_number && (
+                            <Link href={`tel:${listing.realtor.mobile_number}`}>
                                 <Button variant="outline" className="text-primary border-primary size-9 p-0 flex items-center justify-center rounded-full hover:bg-primary/5">
                                     <Call className="size-4" />
                                 </Button>
                             </Link>
                         )}
-                        {whatsappNumber && (
+                        {listing?.realtor?.whatsapp_number && (
                             <Link
-                                href={`https://wa.me/${whatsappNumber.replace(/\D/g, "")}`}
+                                href={`https://wa.me/${listing.realtor.whatsapp_number.replace(/\D/g, "")}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                             >
@@ -234,9 +207,9 @@ export default function IndividualProperty({ slug, initialData }: IndividualProp
                                 </Button>
                             </Link>
                         )}
-                        {email && (
+                        {listing?.realtor?.email && (
                             <Link
-                                href={`mailto:${email}`}
+                                href={`mailto:${listing.realtor.email}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                             >
@@ -250,4 +223,4 @@ export default function IndividualProperty({ slug, initialData }: IndividualProp
             </div>
         </div>
     );
-}
+} 
