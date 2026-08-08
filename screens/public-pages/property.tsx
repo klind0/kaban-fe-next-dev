@@ -34,7 +34,7 @@ const toTitleCase = (str: string = ""): string => {
 };
 
 export default function IndividualProperty({ slug, initialData }: IndividualPropertyProps) {
-    const { userData } = useUserStore();
+    const { user, realtor } = useUserStore();
     const listing = initialData ?? null;
 
     const priceLabel = listing?.price?.per === "one-time"
@@ -52,9 +52,24 @@ export default function IndividualProperty({ slug, initialData }: IndividualProp
         );
     }
 
-    const realtorName = userData?.fullName || listing?.realtor?.full_name || "Listing Agent";
-    const realtorEmail = userData?.email || listing?.realtor?.email || null;
-    const avatarUrl = listing?.realtor?.realtor_pic || null;
+    const realtorName =
+        user?.full_name ||
+        (user as any)?.fullName ||
+        realtor?.full_name ||
+        listing?.realtor?.full_name ||
+        "Listing Agent";
+
+    const realtorEmail =
+        user?.email ||
+        realtor?.email ||
+        listing?.realtor?.email ||
+        null;
+
+    const avatarUrl =
+        realtor?.realtor_pic ||
+        user?.profile_pic ||
+        listing?.realtor?.realtor_pic ||
+        null;
 
     const initials = (realtorName.trim().match(/\b\w/g) || ["R"])
         .join("")

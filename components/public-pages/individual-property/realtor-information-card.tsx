@@ -15,11 +15,27 @@ interface RealtorInformationCardProps {
 }
 
 export default function RealtorInformationCard({ listing }: RealtorInformationCardProps) {
-    const { userData } = useUserStore();
+    const { user, realtor } = useUserStore();
 
-    const realtorName = userData?.fullName || listing?.realtor?.full_name || "Listing Agent";
-    const realtorEmail = userData?.email || listing?.realtor?.email || null;
-    const avatarUrl = listing?.realtor?.realtor_pic || null;
+    // 🛠️ Check user/realtor store values first, then fallback to listing.realtor
+    const realtorName =
+        user?.full_name ||
+        (user as any)?.fullName ||
+        realtor?.full_name ||
+        listing?.realtor?.full_name ||
+        "Listing Agent";
+
+    const realtorEmail =
+        user?.email ||
+        realtor?.email ||
+        listing?.realtor?.email ||
+        null;
+
+    const avatarUrl =
+        realtor?.realtor_pic ||
+        user?.profile_pic ||
+        listing?.realtor?.realtor_pic ||
+        null;
 
     const initials = (realtorName.trim().match(/\b\w/g) || ["R"])
         .join("")
