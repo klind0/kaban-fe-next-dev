@@ -30,11 +30,14 @@ export default function IndividualProperty({ slug, initialData }: IndividualProp
         ? formatPrice(listing?.price?.amount ?? 0)
         : `${formatPrice(listing?.price?.amount ?? 0)}/${listing?.price?.per ?? "annum"}`;
 
-    console.log("slug:", slug);
-
     if (!listing) {
         return (
-            <div>Loading property details</div>
+            <div className="container mx-auto mt-24 px-4 py-12 flex justify-center items-center">
+                <div className="animate-pulse flex flex-col items-center gap-4">
+                    <div className="h-8 bg-neutral-200 rounded w-48" />
+                    <div className="h-4 bg-neutral-200 rounded w-32" />
+                </div>
+            </div>
         );
     }
 
@@ -47,83 +50,125 @@ export default function IndividualProperty({ slug, initialData }: IndividualProp
         .toUpperCase();
 
     return (
-        <div className="container mx-auto mt-18">
+        <div className="container mx-auto mt-18 pb-20 md:pb-12">
+            {/* Header Navigation Bar */}
             <div className="flex items-center justify-between px-4 py-3">
-                <Button asChild variant="outline" className="rounded-full size-10">
+                <Button asChild variant="outline" className="rounded-full size-10 p-0 flex items-center justify-center">
                     <Link href="/" aria-label="Go back to home page">
                         <ChevronLeft className="size-5" />
                     </Link>
                 </Button>
                 <div className="flex items-center gap-4">
-                    <button className="rounded-full" title="Share listing"><Share /></button>
-                    <button className="rounded-full" title="Report listing"><Warning /></button>
+                    <button className="rounded-full p-2 hover:bg-neutral-100 transition-colors" title="Share listing">
+                        <Share />
+                    </button>
+                    <button className="rounded-full p-2 hover:bg-neutral-100 transition-colors" title="Report listing">
+                        <Warning />
+                    </button>
                 </div>
             </div>
 
-            <div className="mt-6 flex flex-col lg:flex-row gap-8">
+            {/* Main Content Layout */}
+            <div className="mt-4 flex flex-col lg:flex-row gap-8">
+                {/* Left Column - Property Media & Details */}
                 <div className="w-full lg:w-[65%]">
                     {listing && <PropertyImages listing={listing} />}
 
-                    {/* Basic Property info */}
+                    {/* Basic Property Information */}
                     <div className="mt-8 px-4 md:px-0">
                         <div className="space-y-3">
-                            <h5 className="text-foreground text-lg font-medium">Apartment</h5>
+                            <h5 className="text-foreground text-lg font-medium capitalize">
+                                {listing?.property_type || "Property"}
+                            </h5>
                             <div className="flex items-center gap-2">
-                                {listing && <div className="bg-[#006AFF]/10 text-primary text-[10px] sm:text-xs font-semibold rounded-[5px] p-1.5 md:p-2">● For {listing.status}</div>}
-                                {listing?.isFeatured && <div className={`bg-[#41AE49]/10 text-[#41AE49] text-[10px] sm:text-xs font-semibold rounded-[5px] p-1.5 md:p-2`}>● Featured</div>}
-                            </div>
-                        </div>
-                        <div className="mt-5 flex flex-col gap-4 lg:flex-row justify-between">
-                            <div>
-                                <h3 className="text-lg md:text-3xl font-semibold text-foreground">{listing?.title}</h3>
-                                <div className="flex items-center gap-1">
-                                    <Location className="text-primary" />
-                                    <span className="font-medium">{listing?.location?.address}</span>
-                                </div>
-                            </div>
-                            <div>
-                                <h4 className="text-lg md:text-3xl font-bold text-foreground">{priceLabel}</h4>
+                                {listing?.status && (
+                                    <div className="bg-[#006AFF]/10 text-primary text-[10px] sm:text-xs font-semibold rounded-[5px] p-1.5 md:p-2 capitalize">
+                                        ● For {listing.status}
+                                    </div>
+                                )}
+                                {listing?.isFeatured && (
+                                    <div className="bg-[#41AE49]/10 text-[#41AE49] text-[10px] sm:text-xs font-semibold rounded-[5px] p-1.5 md:p-2">
+                                        ● Featured
+                                    </div>
+                                )}
                             </div>
                         </div>
 
+                        <div className="mt-5 flex flex-col gap-4 lg:flex-row justify-between items-start lg:items-center">
+                            <div>
+                                <h3 className="text-lg md:text-3xl font-semibold text-foreground">
+                                    {listing?.title}
+                                </h3>
+                                {listing?.location?.address && (
+                                    <div className="flex items-center gap-1 mt-1">
+                                        <Location className="text-primary shrink-0" />
+                                        <span className="font-medium text-neutral-600">
+                                            {listing.location.address}
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
+                            <div>
+                                <h4 className="text-lg md:text-3xl font-bold text-foreground shrink-0">
+                                    {priceLabel}
+                                </h4>
+                            </div>
+                        </div>
                     </div>
+
                     {listing && <PropertyDetails listing={listing} />}
                     <PropertyMapView listing={listing} />
                 </div>
 
+                {/* Right Column - Realtor Card & Safety Info */}
                 <div className="w-full lg:w-[35%] px-4 md:px-0">
-                    <div className="space-y-8 sticky top-18">
+                    <div className="space-y-8 sticky top-20">
                         <RealtorInformationCard listing={listing} />
                         <SafetyTipCard />
                         <DisclaimerCard />
-                        <div className="bg-neutral-400 flex items-center justify-center h-100.5 font-bold text-primary text-lg">
-                            Advert space
+                        
+                        {/* Placeholder Advert Space */}
+                        <div className="bg-neutral-200 border border-neutral-300 rounded-lg flex items-center justify-center h-80 font-bold text-neutral-500 text-lg">
+                            Advert Space
                         </div>
                     </div>
                 </div>
             </div>
-            <SimilarProperties />
 
-            {/* Mobile bottom bar - visible only on small screens */}
-            <div className="md:hidden fixed inset-x-0 w-full bottom-0 z-40 bg-background p-4 border-t border-neutral-200">
+            {/* Bottom Similar Properties Section */}
+            <div className="mt-12">
+                <SimilarProperties />
+            </div>
+
+            {/* Mobile Bottom Quick-Contact Bar */}
+            <div className="md:hidden fixed inset-x-0 w-full bottom-0 z-40 bg-background p-3 border-t border-neutral-200 shadow-lg">
                 <div className="container mx-auto flex justify-between items-center">
-                    <div className='flex items-center gap-2'>
-                        <div className="size-8 rounded-full overflow-hidden shrink-0 bg-primary flex items-center justify-center text-white text-xs font-bold">
+                    <div className="flex items-center gap-2 min-w-0">
+                        <div className="size-9 rounded-full overflow-hidden shrink-0 bg-primary flex items-center justify-center text-white text-xs font-bold">
                             {avatarUrl ? (
-                                <Image src={avatarUrl} width={32} height={32} alt="Realtor avatar" className="object-cover w-full h-full" />
+                                <Image 
+                                    src={avatarUrl} 
+                                    width={36} 
+                                    height={36} 
+                                    alt="Realtor avatar" 
+                                    className="object-cover w-full h-full" 
+                                />
                             ) : (
                                 <span>{initials}</span>
                             )}
                         </div>
-                        <div>
-                            <h4 className='text-foreground text-sm font-semibold truncate max-w-[120px] sm:max-w-[180px]'>{realtorName}</h4>
+                        <div className="min-w-0">
+                            <h4 className="text-foreground text-sm font-semibold truncate max-w-[110px] sm:max-w-[180px]">
+                                {realtorName}
+                            </h4>
                         </div>
                     </div>
-                    <div className="flex items-center gap-3">
+
+                    <div className="flex items-center gap-2 shrink-0">
                         {listing?.realtor?.mobile_number && (
-                            <Link href={`tel:${listing?.realtor?.mobile_number}`} className='font-medium '>
-                                <Button variant="outline" className="w-full text-primary border-primary size-8 p-0 flex items-center justify-center">
-                                    <Call className='size-4' />
+                            <Link href={`tel:${listing.realtor.mobile_number}`}>
+                                <Button variant="outline" className="text-primary border-primary size-9 p-0 flex items-center justify-center rounded-full">
+                                    <Call className="size-4" />
                                 </Button>
                             </Link>
                         )}
@@ -133,8 +178,8 @@ export default function IndividualProperty({ slug, initialData }: IndividualProp
                                 target="_blank"
                                 rel="noopener noreferrer"
                             >
-                                <Button variant="outline" className="w-full text-primary border-primary size-8 p-0 flex items-center justify-center">
-                                    <Whatsapp className='size-4' />
+                                <Button variant="outline" className="text-primary border-primary size-9 p-0 flex items-center justify-center rounded-full">
+                                    <Whatsapp className="size-4" />
                                 </Button>
                             </Link>
                         )}
@@ -144,8 +189,8 @@ export default function IndividualProperty({ slug, initialData }: IndividualProp
                                 target="_blank"
                                 rel="noopener noreferrer"
                             >
-                                <Button variant="outline" className="w-full text-primary border-primary size-8 p-0 flex items-center justify-center">
-                                    <Sms className='size-4' />
+                                <Button variant="outline" className="text-primary border-primary size-9 p-0 flex items-center justify-center rounded-full">
+                                    <Sms className="size-4" />
                                 </Button>
                             </Link>
                         )}
