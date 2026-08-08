@@ -14,8 +14,29 @@ interface RealtorInformationCardProps {
 }
 
 export default function RealtorInformationCard({ listing }: RealtorInformationCardProps) {
-    const realtorName = listing?.realtor?.full_name || "Listing Agent";
-    const avatarUrl = listing?.realtor?.realtor_pic || null;
+    const realtorObj = listing?.realtor as any;
+    const userObj = listing?.user as any;
+
+    // 🛠️ Fallback extraction logic checking realtor, realtor.user, and listing.user
+    const realtorName = 
+        realtorObj?.full_name || 
+        realtorObj?.user?.full_name || 
+        userObj?.full_name || 
+        realtorObj?.name || 
+        "Listing Agent";
+
+    const email = 
+        realtorObj?.email || 
+        realtorObj?.user?.email || 
+        userObj?.email || 
+        null;
+
+    const avatarUrl = 
+        realtorObj?.realtor_pic || 
+        realtorObj?.user?.realtor_pic || 
+        realtorObj?.user?.profile_pic || 
+        userObj?.profile_pic || 
+        null;
 
     const initials = (realtorName.trim().match(/\b\w/g) || ["R"])
         .join("")
@@ -48,14 +69,14 @@ export default function RealtorInformationCard({ listing }: RealtorInformationCa
                         <h4 className="text-foreground font-bold truncate">
                             {realtorName}
                         </h4>
-                        {listing?.realtor?.email && (
+                        {email && (
                             <p className="text-sm text-neutral-500 truncate mt-0.5">
-                                {listing.realtor.email}
+                                {email}
                             </p>
                         )}
                     </div>
                 </div>
-
+                                
                 {/* Commented Out Metadata Sections */}
                 {/* 
                 <div className="space-y-3 text-sm">
