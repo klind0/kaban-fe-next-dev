@@ -17,7 +17,7 @@ import Image from "next/image";
 import { Call } from '@/components/icons/call';
 import { Whatsapp } from '@/components/icons/whatsapp';
 import { Sms } from '@/components/icons/sms';
-import { useUserStore } from "@/app/stores/user-store"
+import { useUserStore } from "@/app/stores/user-store";
 
 interface IndividualPropertyProps {
     slug: string;
@@ -34,6 +34,7 @@ const toTitleCase = (str: string = ""): string => {
 };
 
 export default function IndividualProperty({ slug, initialData }: IndividualPropertyProps) {
+    const { userData } = useUserStore();
     const listing = initialData ?? null;
 
     const priceLabel = listing?.price?.per === "one-time"
@@ -51,7 +52,8 @@ export default function IndividualProperty({ slug, initialData }: IndividualProp
         );
     }
 
-    const realtorName = userData.fullName|| "Listing Agent";
+    const realtorName = userData?.fullName || listing?.realtor?.full_name || "Listing Agent";
+    const realtorEmail = userData?.email || listing?.realtor?.email || null;
     const avatarUrl = listing?.realtor?.realtor_pic || null;
 
     const initials = (realtorName.trim().match(/\b\w/g) || ["R"])
@@ -207,9 +209,9 @@ export default function IndividualProperty({ slug, initialData }: IndividualProp
                                 </Button>
                             </Link>
                         )}
-                        {listing?.realtor?.email && (
+                        {realtorEmail && (
                             <Link
-                                href={`mailto:${listing.realtor.email}`}
+                                href={`mailto:${realtorEmail}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                             >
@@ -223,4 +225,4 @@ export default function IndividualProperty({ slug, initialData }: IndividualProp
             </div>
         </div>
     );
-} 
+}

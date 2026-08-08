@@ -8,19 +8,18 @@ import { Bookmark } from '@/components/icons/bookmark';
 import { Call } from '@/components/icons/call';
 import { Whatsapp } from '@/components/icons/whatsapp';
 import { ExternalLink } from '@/components/icons/external-link';
-import { useUserStore } from "@/app/stores/user-store"
+import { useUserStore } from "@/app/stores/user-store";
 
 interface RealtorInformationCardProps {
     listing: IListing;
 }
 
 export default function RealtorInformationCard({ listing }: RealtorInformationCardProps) {
+    const { userData } = useUserStore();
 
-    const realtorName = listing?.realtor?.full_name || "Listing Agent";
-
+    const realtorName = userData?.fullName || listing?.realtor?.full_name || "Listing Agent";
+    const realtorEmail = userData?.email || listing?.realtor?.email || null;
     const avatarUrl = listing?.realtor?.realtor_pic || null;
-
-
 
     const initials = (realtorName.trim().match(/\b\w/g) || ["R"])
         .join("")
@@ -51,11 +50,11 @@ export default function RealtorInformationCard({ listing }: RealtorInformationCa
                     </div>
                     <div className="min-w-0 flex-1">
                         <h4 className="text-foreground font-bold truncate">
-                            {userData.fullName}
+                            {realtorName}
                         </h4>
-                        {listing?.realtor?.email && (
+                        {realtorEmail && (
                             <p className="text-sm text-neutral-500 truncate mt-0.5">
-                                {userData.email}
+                                {realtorEmail}
                             </p>
                         )}
                     </div>
