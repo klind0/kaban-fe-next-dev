@@ -11,7 +11,7 @@ import CustomTab from '@/components/universal/custom-tab';
 import { Button } from '@/components/ui/button';
 import { useQueryParams } from '@/hooks/useQueryParams';
 import { useRouter, useSearchParams } from 'next/navigation';
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useUserStore } from "@/app/stores/user-store";
 import { axiosInstance } from "@/network/axios-instance";
 import { toast } from "sonner";
@@ -34,8 +34,10 @@ const tabOptions = [
 
 type TabType = 'profile' | 'social-media' | 'password' | 'verification' | 'deactivate-account';
 
-// Helper function to resolve realtorId across state sources and cookie token
-const resolveRealtorId = (user: any): string | null => {
+// Helper function to resolve realtorId across store slices and cookie token
+const resolveRealtorId = (user: any, realtor: any): string | null => {
+    if (realtor?.id) return realtor.id;
+    if (realtor?._id) return realtor._id;
     if (user?.realtorId) return user.realtorId;
     if (user?.realtor?.id) return user.realtor.id;
 
@@ -56,7 +58,8 @@ export default function ProfileScreen() {
     const searchParams = useSearchParams();
     const router = useRouter();
 
-    const { user, setUser } = useUserStore();
+    // 🛠️ FIX 1: Extract BOTH user AND realtor from Zustand store
+    const { user, realtor, setUser, setRealtor } = useUserStore();
 
     const [activeTab, setActiveTab] = React.useState<TabType>(
         (searchParams.get('tab') as TabType) || 'profile'
@@ -66,8 +69,8 @@ export default function ProfileScreen() {
     const { handleQueryParamsChange } = useQueryParams();
 
     useEffect(() => {
-        console.log("🔍 Current User Object in Store:", user);
-    }, [user]);
+        console.log("🔍 Current User Store State:", { user, realtor });
+    }, [user, realtor]);
 
     const handleTabChange = (targetTab: string) => {
         const cleanTarget = targetTab as TabType;
@@ -75,8 +78,19 @@ export default function ProfileScreen() {
         handleQueryParamsChange('tab', cleanTarget);
     };
 
+    // 🛠️ FIX 2: Memoize initialData to prevent fields from resetting/disappearing during `isPending` state
+    const initialFormData = useMemo(() => {
+        return {
+            full_name: user?.fullName || (user as any)?.full_name || "",
+            email: user?.email || "",
+            mobile_number: realtor?.mobile_number || (user as any)?.mobileNumber || (user as any)?.realtor?.mobile_number || "",
+            whatsapp_number: realtor?.whatsapp_number || (user as any)?.whatsappNumber || (user as any)?.realtor?.whatsapp_number || "",
+            realtor_pic: realtor?.realtor_pic || (user as any)?.avatar || (user as any)?.realtor_pic || "",
+        };
+    }, [user, realtor]);
+
     const handleProfileSubmit = async (data: ProfileFormValues) => {
-        const targetRealtorId = resolveRealtorId(user);
+        const targetRealtorId = resolveRealtorId(user, realtor);
 
         if (!targetRealtorId) {
             toast.error("Realtor profile ID not found! Please sign in again.");
@@ -141,29 +155,25 @@ export default function ProfileScreen() {
 
                 const result = response.data?.data?.updateRealtor;
                 const newPicUrl = typeof result === "object" ? result?.realtor_pic : null;
+                const updatedPicture = newPicUrl || realtor?.realtor_pic || (user as any)?.avatar || (user as any)?.realtor_pic;
 
-                // Sync Zustand store dynamically across all common image key conventions
+                // 🛠️ FIX 3: Update User Document slice
                 if (user) {
-                    const updatedPicture = newPicUrl || user.realtor_pic || user.avatar || user.realtorPic;
-
                     setUser({
                         ...user,
                         fullName: data.full_name,
-                        mobileNumber: data.mobile_number,
-                        whatsappNumber: data.whatsapp_number,
                         avatar: updatedPicture,
-                        realtor_pic: updatedPicture,
-                        realtorPic: updatedPicture,
-                        realtor: {
-                            ...user.realtor,
-                            id: user.realtor?.id || targetRealtorId,
-                            full_name: data.full_name,
-                            mobile_number: data.mobile_number,
-                            whatsapp_number: data.whatsapp_number,
-                            realtor_pic: updatedPicture,
-                        } as IRealtor,
                     });
                 }
+
+                // 🛠️ FIX 4: Explicitly update the Realtor Document slice in Zustand
+                setRealtor({
+                    ...realtor,
+                    id: realtor?.id || targetRealtorId,
+                    mobile_number: data.mobile_number,
+                    whatsapp_number: data.whatsapp_number,
+                    realtor_pic: updatedPicture,
+                } as IRealtor);
             }
         } catch (err: any) {
             console.error("Error updating profile:", err);
@@ -193,13 +203,7 @@ export default function ProfileScreen() {
 
                 <div className={activeTab !== 'profile' ? 'hidden' : ''}>
                     <ProfileForm 
-                        initialData={{
-                            full_name: user?.fullName || "",
-                            email: user?.email || "",
-                            mobile_number: user?.mobileNumber || user?.realtor?.mobile_number || "",
-                            whatsapp_number: user?.whatsappNumber || user?.realtor?.whatsapp_number || "",
-                            realtor_pic: user?.avatar || user?.realtor_pic || user?.realtor?.realtor_pic || "",
-                        }}
+                        initialData={initialFormData}
                         onFormSubmit={handleProfileSubmit} 
                         isPending={isPending}
                     />
