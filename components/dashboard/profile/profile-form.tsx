@@ -87,7 +87,7 @@ export default function ProfileForm({ initialData, onFormSubmit, isPending }: Pr
       
       {/* Profile Header Card */}
       <FormCard title="">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="relative w-16 h-16 rounded-full overflow-hidden bg-slate-100 flex-shrink-0">
               {previewPic ? (
@@ -103,17 +103,17 @@ export default function ProfileForm({ initialData, onFormSubmit, isPending }: Pr
                 </div>
               )}
             </div>
-            <div>
-              <h3 className="text-xl font-bold text-slate-900">
+            <div className="min-w-0 flex-1">
+              <h3 className="text-lg sm:text-xl font-bold text-slate-900 truncate">
                 {initialData?.full_name || "Precious Ekong"}
               </h3>
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-slate-500 truncate">
                 {initialData?.email || "precious@gmail.com"}
               </p>
             </div>
           </div>
 
-          <div>
+          <div className="w-full sm:w-auto">
             <input
               type="file"
               ref={fileInputRef}
@@ -124,7 +124,7 @@ export default function ProfileForm({ initialData, onFormSubmit, isPending }: Pr
             <Button
               type="button"
               variant="outline"
-              className="border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50"
+              className="w-full sm:w-auto border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50"
               onClick={() => fileInputRef.current?.click()}
               disabled={isPending}
             >

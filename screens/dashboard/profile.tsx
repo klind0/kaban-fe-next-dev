@@ -26,10 +26,12 @@ const UPDATE_REALTOR_MUTATION = `
 
 const tabOptions = [
     { name: 'Profile', value: 'profile' },
+    /*
     { name: 'Social Media', value: 'social-media' },
     { name: 'Password', value: 'password' },
     { name: 'Verification', value: 'verification' },
     { name: 'Deactivate Account', value: 'deactivate-account' },
+    */
 ];
 
 type TabType = 'profile' | 'social-media' | 'password' | 'verification' | 'deactivate-account';
@@ -209,6 +211,7 @@ export default function ProfileScreen() {
                     />
                 </div>
 
+                {/*}
                 <div className={activeTab !== 'social-media' ? 'hidden' : ''}>
                     <SocialMediaForm />
                 </div>
@@ -224,6 +227,7 @@ export default function ProfileScreen() {
                 <div className={activeTab !== 'deactivate-account' ? 'hidden' : ''}>
                     <DeactivateAccountForm />
                 </div>
+                */}
             </DashboardPageContainer>
         </>
     );
