@@ -23,6 +23,15 @@ interface IndividualPropertyProps {
     initialData?: IListing | null;
 }
 
+// Helper to format string into Title Case
+const toTitleCase = (str: string = ""): string => {
+    return str
+        .toLowerCase()
+        .split(" ")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ");
+};
+
 export default function IndividualProperty({ slug, initialData }: IndividualPropertyProps) {
     const listing = initialData ?? null;
 
@@ -49,8 +58,20 @@ export default function IndividualProperty({ slug, initialData }: IndividualProp
         .slice(0, 2)
         .toUpperCase();
 
+    // 🛠️ Construct Full Location string matching Listing Card (Address, City, State)
+    const formattedLocation = [
+        listing?.location?.address,
+        listing?.location?.city,
+        listing?.location?.state,
+    ]
+        .filter(Boolean)
+        .map((part) => toTitleCase(part?.toString().trim()))
+        .join(", ");
+
+    const formattedTitle = toTitleCase(listing?.title || "");
+
     return (
-        <div className="container mx-auto mt-18 pb-20 md:pb-12">
+        <div className="container mx-auto mt-18 pb-28 md:pb-12">
             {/* Header Navigation Bar */}
             <div className="flex items-center justify-between px-4 py-3">
                 <Button asChild variant="outline" className="rounded-full size-10 p-0 flex items-center justify-center">
@@ -78,7 +99,7 @@ export default function IndividualProperty({ slug, initialData }: IndividualProp
                     <div className="mt-8 px-4 md:px-0">
                         <div className="space-y-3">
                             <h5 className="text-foreground text-lg font-medium capitalize">
-                                {listing?.property_type || "Property"}
+                                {listing?.property_type ? listing.property_type.replace(/_/g, " ") : "Property"}
                             </h5>
                             <div className="flex items-center gap-2">
                                 {listing?.status && (
@@ -96,14 +117,16 @@ export default function IndividualProperty({ slug, initialData }: IndividualProp
 
                         <div className="mt-5 flex flex-col gap-4 lg:flex-row justify-between items-start lg:items-center">
                             <div>
-                                <h3 className="text-lg md:text-3xl font-semibold text-foreground">
-                                    {listing?.title}
+                                {/* 🛠️ Title Case Title */}
+                                <h3 className="text-lg md:text-3xl font-semibold text-foreground capitalize">
+                                    {formattedTitle}
                                 </h3>
-                                {listing?.location?.address && (
-                                    <div className="flex items-center gap-1 mt-1">
-                                        <Location className="text-primary shrink-0" />
-                                        <span className="font-medium text-neutral-600">
-                                            {listing.location.address}
+                                {/* 🛠️ Title Case Location with Address, City, State */}
+                                {formattedLocation && (
+                                    <div className="flex items-center gap-1.5 mt-1.5">
+                                        <Location className="text-primary shrink-0 size-5" />
+                                        <span className="font-medium text-neutral-800 text-sm md:text-base capitalize">
+                                            {formattedLocation}
                                         </span>
                                     </div>
                                 )}
@@ -140,16 +163,16 @@ export default function IndividualProperty({ slug, initialData }: IndividualProp
                 <SimilarProperties />
             </div>
 
-            {/* Mobile Bottom Quick-Contact Bar */}
-            <div className="md:hidden fixed inset-x-0 w-full bottom-0 z-40 bg-background p-3 border-t border-neutral-200 shadow-lg">
-                <div className="container mx-auto flex justify-between items-center">
-                    <div className="flex items-center gap-2 min-w-0">
-                        <div className="size-9 rounded-full overflow-hidden shrink-0 bg-primary flex items-center justify-center text-white text-xs font-bold">
+            {/* 🛠️ Mobile Quick-Contact Bar (Pinned to viewport bottom at all times) */}
+            <div className="md:hidden fixed inset-x-0 bottom-0 left-0 right-0 z-[100] bg-white p-3 border-t border-neutral-200 shadow-[0_-4px_12px_rgba(0,0,0,0.08)]">
+                <div className="container mx-auto flex justify-between items-center px-2">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="size-10 rounded-full overflow-hidden shrink-0 bg-primary flex items-center justify-center text-white text-xs font-bold">
                             {avatarUrl ? (
                                 <Image 
                                     src={avatarUrl} 
-                                    width={36} 
-                                    height={36} 
+                                    width={40} 
+                                    height={40} 
                                     alt="Realtor avatar" 
                                     className="object-cover w-full h-full" 
                                 />
@@ -158,7 +181,7 @@ export default function IndividualProperty({ slug, initialData }: IndividualProp
                             )}
                         </div>
                         <div className="min-w-0">
-                            <h4 className="text-foreground text-sm font-semibold truncate max-w-[110px] sm:max-w-[180px]">
+                            <h4 className="text-foreground text-sm font-semibold truncate max-w-[120px] sm:max-w-[180px]">
                                 {realtorName}
                             </h4>
                         </div>
@@ -167,7 +190,7 @@ export default function IndividualProperty({ slug, initialData }: IndividualProp
                     <div className="flex items-center gap-2 shrink-0">
                         {listing?.realtor?.mobile_number && (
                             <Link href={`tel:${listing.realtor.mobile_number}`}>
-                                <Button variant="outline" className="text-primary border-primary size-9 p-0 flex items-center justify-center rounded-full">
+                                <Button variant="outline" className="text-primary border-primary size-9 p-0 flex items-center justify-center rounded-full hover:bg-primary/5">
                                     <Call className="size-4" />
                                 </Button>
                             </Link>
@@ -178,7 +201,7 @@ export default function IndividualProperty({ slug, initialData }: IndividualProp
                                 target="_blank"
                                 rel="noopener noreferrer"
                             >
-                                <Button variant="outline" className="text-primary border-primary size-9 p-0 flex items-center justify-center rounded-full">
+                                <Button variant="outline" className="text-primary border-primary size-9 p-0 flex items-center justify-center rounded-full hover:bg-primary/5">
                                     <Whatsapp className="size-4" />
                                 </Button>
                             </Link>
@@ -189,7 +212,7 @@ export default function IndividualProperty({ slug, initialData }: IndividualProp
                                 target="_blank"
                                 rel="noopener noreferrer"
                             >
-                                <Button variant="outline" className="text-primary border-primary size-9 p-0 flex items-center justify-center rounded-full">
+                                <Button variant="outline" className="text-primary border-primary size-9 p-0 flex items-center justify-center rounded-full hover:bg-primary/5">
                                     <Sms className="size-4" />
                                 </Button>
                             </Link>
