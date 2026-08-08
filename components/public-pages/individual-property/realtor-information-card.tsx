@@ -38,6 +38,18 @@ export default function RealtorInformationCard({ listing }: RealtorInformationCa
         userObj?.profile_pic || 
         null;
 
+    const mobileNumber = 
+        realtorObj?.mobile_number || 
+        realtorObj?.user?.mobile_number || 
+        userObj?.mobile_number || 
+        null;
+
+    const whatsappNumber = 
+        realtorObj?.whatsapp_number || 
+        realtorObj?.user?.whatsapp_number || 
+        userObj?.whatsapp_number || 
+        mobileNumber;
+
     const initials = (realtorName.trim().match(/\b\w/g) || ["R"])
         .join("")
         .slice(0, 2)
@@ -76,7 +88,7 @@ export default function RealtorInformationCard({ listing }: RealtorInformationCa
                         )}
                     </div>
                 </div>
-                                
+
                 {/* Commented Out Metadata Sections */}
                 {/* 
                 <div className="space-y-3 text-sm">
@@ -99,9 +111,9 @@ export default function RealtorInformationCard({ listing }: RealtorInformationCa
 
                 {/* Action Buttons: WhatsApp & Call */}
                 <div className="flex items-center gap-4">
-                    {listing?.realtor?.whatsapp_number && (
+                    {whatsappNumber && (
                         <Link
-                            href={`https://wa.me/${listing.realtor.whatsapp_number.replace(/\D/g, "")}`}
+                            href={`https://wa.me/${whatsappNumber.replace(/\D/g, "")}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="flex-1"
@@ -113,9 +125,9 @@ export default function RealtorInformationCard({ listing }: RealtorInformationCa
                         </Link>
                     )}
                     
-                    {listing?.realtor?.mobile_number && (
+                    {mobileNumber && (
                         <Link
-                            href={`tel:${listing.realtor.mobile_number}`}
+                            href={`tel:${mobileNumber}`}
                             className="flex-1"
                         >
                             <Button variant="outline" className="w-full text-primary border-primary gap-2">
