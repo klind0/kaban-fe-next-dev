@@ -1,4 +1,4 @@
-    import Share from "@/components/icons/share";
+import Share from "@/components/icons/share";
 import Warning from "@/components/icons/warning";
 import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/formatPrice";
@@ -14,7 +14,6 @@ import SafetyTipCard from "@/components/public-pages/individual-property/safety-
 import DisclaimerCard from "@/components/public-pages/individual-property/disclaimer-card";
 import SimilarProperties from "@/components/public-pages/individual-property/similar-properties";
 import Image from "next/image";
-import DefaultAvatar from "@/app/assets/images/sample-avatar.png";
 import { Call } from '@/components/icons/call';
 import { Whatsapp } from '@/components/icons/whatsapp';
 import { Sms } from '@/components/icons/sms';
@@ -31,15 +30,21 @@ export default function IndividualProperty({ slug, initialData }: IndividualProp
         ? formatPrice(listing?.price?.amount ?? 0)
         : `${formatPrice(listing?.price?.amount ?? 0)}/${listing?.price?.per ?? "annum"}`;
 
-    console.log("slug:", slug)
-
+    console.log("slug:", slug);
 
     if (!listing) {
         return (
-            //Update this to a proper loading skeleton later
             <div>Loading property details</div>
         );
     }
+
+    const realtorName = listing?.realtor?.full_name || "Listing Agent";
+    const avatarUrl = listing?.realtor?.realtor_pic || null;
+
+    const initials = (realtorName.trim().match(/\b\w/g) || ["R"])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase();
 
     return (
         <div className="container mx-auto mt-18">
@@ -100,21 +105,24 @@ export default function IndividualProperty({ slug, initialData }: IndividualProp
             <SimilarProperties />
 
             {/* Mobile bottom bar - visible only on small screens */}
-            <div className="md:hidden fixed inset-x-0 w-full bottom-0 z-40 bg-background p-4">
+            <div className="md:hidden fixed inset-x-0 w-full bottom-0 z-40 bg-background p-4 border-t border-neutral-200">
                 <div className="container mx-auto flex justify-between items-center">
                     <div className='flex items-center gap-2'>
-                        <div className="size-8 rounded-full overflow-hidden shrink-0">
-                            <Image src={listing.realtor.realtor_pic ?? DefaultAvatar} width={32} height={32} alt="Realtor avatar" className="object-cover" />
+                        <div className="size-8 rounded-full overflow-hidden shrink-0 bg-primary flex items-center justify-center text-white text-xs font-bold">
+                            {avatarUrl ? (
+                                <Image src={avatarUrl} width={32} height={32} alt="Realtor avatar" className="object-cover w-full h-full" />
+                            ) : (
+                                <span>{initials}</span>
+                            )}
                         </div>
                         <div>
-                            <h4 className='text-foreground text-sm font-semibold'>{"Realtor's Name"}</h4>
+                            <h4 className='text-foreground text-sm font-semibold truncate max-w-[120px] sm:max-w-[180px]'>{realtorName}</h4>
                         </div>
                     </div>
                     <div className="flex items-center gap-3">
                         {listing?.realtor?.mobile_number && (
-
                             <Link href={`tel:${listing?.realtor?.mobile_number}`} className='font-medium '>
-                                <Button variant="outline" className="w-full text-primary border-primary size-8">
+                                <Button variant="outline" className="w-full text-primary border-primary size-8 p-0 flex items-center justify-center">
                                     <Call className='size-4' />
                                 </Button>
                             </Link>
@@ -124,23 +132,23 @@ export default function IndividualProperty({ slug, initialData }: IndividualProp
                                 href={`https://wa.me/${listing.realtor.whatsapp_number.replace(/\D/g, "")}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex-1"
                             >
-                                <Button variant="outline" className="w-full text-primary border-primary size-8">
+                                <Button variant="outline" className="w-full text-primary border-primary size-8 p-0 flex items-center justify-center">
                                     <Whatsapp className='size-4' />
                                 </Button>
                             </Link>
                         )}
-                        <Link
-                            href={`mailto:${listing.realtor.email}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex-1"
-                        >
-                            <Button variant="outline" className="w-full text-primary border-primary size-8">
-                                <Sms className='size-4' />
-                            </Button>
-                        </Link>
+                        {listing?.realtor?.email && (
+                            <Link
+                                href={`mailto:${listing.realtor.email}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                <Button variant="outline" className="w-full text-primary border-primary size-8 p-0 flex items-center justify-center">
+                                    <Sms className='size-4' />
+                                </Button>
+                            </Link>
+                        )}
                     </div>
                 </div>
             </div>

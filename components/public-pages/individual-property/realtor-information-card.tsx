@@ -5,7 +5,6 @@ import { IListing } from '@/types/listingTypes';
 import { Star } from 'lucide-react';
 import Image from 'next/image'
 import Link from 'next/link';
-import DefaultAvatar from "@/app/assets/images/sample-avatar.png";
 import { Bookmark } from '@/components/icons/bookmark';
 import { Call } from '@/components/icons/call';
 import { Whatsapp } from '@/components/icons/whatsapp';
@@ -17,6 +16,14 @@ interface RealtorInformationCardProps {
 }
 
 export default function RealtorInformationCard({ listing }: RealtorInformationCardProps) {
+    const realtorName = listing?.realtor?.full_name || "Listing Agent";
+    const avatarUrl = listing?.realtor?.realtor_pic || null;
+
+    const initials = (realtorName.trim().match(/\b\w/g) || ["R"])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase();
+
     return (
         <div className="border border-neutral-600 rounded-[10px] shadow">
             <div className="p-4 flex items-center justify-between text-foreground flex-wrap font-semibold border-b border-neutral-600">
@@ -25,11 +32,15 @@ export default function RealtorInformationCard({ listing }: RealtorInformationCa
 
             <div className="p-4 space-y-6">
                 <div className='flex items-center gap-3'>
-                    <div className="size-12 rounded-full overflow-hidden shrink-0">
-                        <Image src={listing.realtor.realtor_pic ?? DefaultAvatar} width={48} height={48} alt="Realtor avatar" className="object-cover" />
+                    <div className="size-12 rounded-full overflow-hidden shrink-0 bg-primary flex items-center justify-center text-white font-bold text-base">
+                        {avatarUrl ? (
+                            <Image src={avatarUrl} width={48} height={48} alt="Realtor avatar" className="object-cover w-full h-full" />
+                        ) : (
+                            <span>{initials}</span>
+                        )}
                     </div>
                     <div>
-                        <h4 className='text-foreground font-bold'>{"Realtor's Name"}</h4>
+                        <h4 className='text-foreground font-bold'>{realtorName}</h4>
                         <div className="flex items-center gap-0.5 mt-0.5">
                             {[1, 2, 3, 4, 5].map((star) => (
                                 <Star key={star} className={`size-4 ${star <= 3 ? "fill-[#F9B900] text-[#F9B900]" : "text-neutral-700"}`} />
@@ -46,12 +57,10 @@ export default function RealtorInformationCard({ listing }: RealtorInformationCa
                     )}
                     <div className="flex items-center gap-2">
                         <Building2 className="size-5" />
-                        {/* Update this to actual number of properties listed by the realtor once that data is available */}
                         <span className='font-medium'>15 listed properties on Kaban.ng</span>
                     </div>
                     <div className="flex items-center gap-2">
                         <Bookmark className="size-5" />
-                        {/* Update this to actual registration date of the realtor once that data is available */}
                         <span className='font-medium'>Registered 4 years ago</span>
                     </div>
                     {listing?.realtor?.mobile_number && (
@@ -76,7 +85,7 @@ export default function RealtorInformationCard({ listing }: RealtorInformationCa
                         </Link>
                     )}
                     <Link
-                        href={`mailto:${listing.realtor.email}`}
+                        href={`mailto:${listing?.realtor?.email}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex-1"

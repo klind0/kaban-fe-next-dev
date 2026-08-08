@@ -19,7 +19,6 @@ import { Hamburger } from "../icons/hamburger";
 import X from "../icons/x";
 import { House, House2 } from "../icons/house";
 import Image from "next/image";
-import SampleAvatar from '@/app/assets/images/sample-avatar.png';
 import { useUserStore } from "@/app/stores/user-store";
 import { QUERY_KEY } from "@/enum/queryKeys";
 import Cookies from "js-cookie";
@@ -39,23 +38,24 @@ type MenuItem = {
 };
 
 export default function Navbar() {
-    const { user, isAuthenticated, clearUser } = useUserStore();
+    // 🛠️ Consume both user and realtor slices
+    const { user, realtor, isAuthenticated, clearUser } = useUserStore();
     const isUserLoggedIn = isAuthenticated && user !== null;
 
     const [mobileOpen, setMobileOpen] = React.useState(false);
     const [openSubmenu, setOpenSubmenu] = React.useState<string | null>(null);
     const [isSignInModalOpen, setSignInModalOpen] = React.useState(false);
 
-    // Standardized to fullName with fallback initials logic
-    const userData = user 
-        ? { fullName: user.fullName || "User", email: user.email } 
-        : { fullName: "", email: "" };
+    const avatarUrl = realtor?.realtor_pic || (user as any)?.realtor_pic || user?.avatar || (user as any)?.realtorPic || null;
+    const fullName = user?.fullName || (user as any)?.full_name || "";
+    const email = user?.email || "";
 
-    const nameParts = userData.fullName.trim().split(" ").filter(Boolean);
-    const nameInitials = (userData.fullName.trim().match(/\b\w/g) || ["U"])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
+    const nameInitials = (fullName.trim().match(/\b\w/g) || ["U"])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase();
+
+    const userData = { fullName, email, avatar: avatarUrl };
 
     const menuItems: MenuItem[] = [
         {
@@ -132,8 +132,12 @@ export default function Navbar() {
                             </Link>
                             <Popover>
                                 <PopoverTrigger asChild>
-                                    <button className="size-10 rounded-full flex items-center justify-center bg-primary text-white text-sm font-semibold">
-                                        {nameInitials}
+                                    <button className="size-10 rounded-full flex items-center justify-center bg-primary text-white text-sm font-semibold overflow-hidden shrink-0">
+                                        {userData.avatar ? (
+                                            <Image src={userData.avatar} alt="User Avatar" width={40} height={40} className="w-full h-full object-cover" />
+                                        ) : (
+                                            nameInitials
+                                        )}
                                     </button>
                                 </PopoverTrigger>
                                 <PopoverContent className="p-4">
@@ -142,11 +146,13 @@ export default function Navbar() {
                                         <PopoverDescription className="sr-only">Manage your account settings and preferences.</PopoverDescription>
                                     </PopoverHeader>
                                     <div className="space-y-3">
-                                        <div className="p-4 flex gap-4">
-                                            <div>
-                                                <div className="size-10 bg-primary flex justify-center items-center text-sm text-white text-center font-semibold rounded-full">
-                                                    {nameInitials}
-                                                </div>
+                                        <div className="p-4 flex gap-4 items-center">
+                                            <div className="size-10 bg-primary flex justify-center items-center text-sm text-white text-center font-semibold rounded-full overflow-hidden shrink-0">
+                                                {userData.avatar ? (
+                                                    <Image src={userData.avatar} alt="User Avatar" width={40} height={40} className="w-full h-full object-cover" />
+                                                ) : (
+                                                    nameInitials
+                                                )}
                                             </div>
                                             <div className="flex flex-col w-full min-w-0">
                                                 <span className="font-medium text-gray-700 truncate">{userData.fullName}</span>
@@ -259,8 +265,12 @@ export default function Navbar() {
                                 <Popover>
                                     <PopoverTrigger asChild>
                                         <button className="flex w-full items-center gap-2">
-                                            <div className="size-10 rounded-full flex items-center justify-center bg-primary text-white text-sm font-semibold shrink-0">
-                                                {nameInitials}
+                                            <div className="size-10 rounded-full flex items-center justify-center bg-primary text-white text-sm font-semibold shrink-0 overflow-hidden">
+                                                {userData.avatar ? (
+                                                    <Image src={userData.avatar} alt="User Avatar" width={40} height={40} className="w-full h-full object-cover" />
+                                                ) : (
+                                                    nameInitials
+                                                )}
                                             </div>
                                             <div className="flex flex-col text-left">
                                                 <span className="font-medium text-gray-700">{userData.fullName}</span>

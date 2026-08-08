@@ -21,7 +21,6 @@ import Image from "next/image"
 import { LogoutIcon } from "../icons/logout-icon"
 import { Profile } from "../icons/profile"
 import { useUserStore } from "@/app/stores/user-store"
-import SampleAvatar from '@/app/assets/images/sample-avatar.png';
 import { QUERY_KEY } from "@/enum/queryKeys"
 import { toast } from "sonner"
 import Cookies from "js-cookie"
@@ -41,17 +40,21 @@ export const menuItems = [
 export function DashboardSidebar() {
     const pathName = usePathname()
     const { setOpenMobile, openMobile } = useSidebar()
-
     const router = useRouter()
 
-    const { user, clearUser } = useUserStore()
+    // 🛠️ Extract both user and realtor slices from store
+    const { user, realtor, clearUser } = useUserStore()
     
-    // Standardized to use fullName directly with a clean fallback
-    const userData = user ? { 
-        fullName: user.fullName || "User", 
-        email: user.email || "",
-        avatar: user.realtor_pic || user.avatar || user.realtorPic || (user.realtor as any)?.realtor_pic || SampleAvatar
-    } : null;
+    const avatarUrl = realtor?.realtor_pic || (user as any)?.realtor_pic || user?.avatar || (user as any)?.realtorPic || null;
+    const fullName = user?.fullName || (user as any)?.full_name || "User";
+    const email = user?.email || "";
+
+    const nameInitials = (fullName.trim().match(/\b\w/g) || ["U"])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase();
+
+    const userData = user ? { fullName, email, avatar: avatarUrl } : null;
 
     const isActive = (url: string) => pathName === url;
 
@@ -116,20 +119,18 @@ export function DashboardSidebar() {
                             <Popover>
                                 <PopoverTrigger asChild>
                                     <button className="flex w-full items-center gap-2">
-                                        <div className="size-10 shrink-0 overflow-hidden rounded-full">
+                                        <div className="size-10 shrink-0 overflow-hidden rounded-full bg-primary flex items-center justify-center text-white text-sm font-semibold">
                                             {userData.avatar ? (
-                                            <Image 
-                                                src={userData.avatar} 
-                                                alt="User Avatar" 
-                                                width={40} 
-                                                height={40} 
-                                                className="rounded-full w-full h-full object-cover" 
-                                            />
-                                        ) : (
-                                            <span className="text-xs font-bold text-gray-500">
-                                                {userData.fullName.charAt(0).toUpperCase() || "U"}
-                                            </span>
-                                        )}                                           
+                                                <Image 
+                                                    src={userData.avatar} 
+                                                    alt="User Avatar" 
+                                                    width={40} 
+                                                    height={40} 
+                                                    className="rounded-full w-full h-full object-cover" 
+                                                />
+                                            ) : (
+                                                <span>{nameInitials}</span>
+                                            )}                                          
                                         </div>
                                         <div className="flex-1 min-w-0 flex flex-col text-left">
                                             <span className="text-sm font-medium text-gray-700 truncate">{userData.fullName}</span>
