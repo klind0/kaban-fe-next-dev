@@ -17,10 +17,9 @@ interface RealtorInformationCardProps {
 export default function RealtorInformationCard({ listing }: RealtorInformationCardProps) {
     const { user, realtor } = useUserStore();
 
-    // 🛠️ Check user/realtor store values first, then fallback to listing.realtor
+    // 🛠️ Updated to user?.fullName (matching IUser definition)
     const realtorName =
-        user?.full_name ||
-        (user as any)?.fullName ||
+        user?.fullName ||
         realtor?.full_name ||
         listing?.realtor?.full_name ||
         "Listing Agent";

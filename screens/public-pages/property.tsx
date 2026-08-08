@@ -52,9 +52,9 @@ export default function IndividualProperty({ slug, initialData }: IndividualProp
         );
     }
 
+    // 🛠️ Updated to user?.fullName
     const realtorName =
-        user?.full_name ||
-        (user as any)?.fullName ||
+        user?.fullName ||
         realtor?.full_name ||
         listing?.realtor?.full_name ||
         "Listing Agent";
