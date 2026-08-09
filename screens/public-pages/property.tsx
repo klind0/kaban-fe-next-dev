@@ -125,7 +125,7 @@ export default function IndividualProperty({ slug, initialData }: IndividualProp
                                 {formattedLocation && (
                                     <div className="flex items-center gap-1.5 mt-1.5">
                                         <Location className="text-primary shrink-0 size-5" />
-                                        <span className="font-medium text-neutral-800 text-sm md:text-base capitalize">
+                                        <span className="font-medium text-neutral-900 text-sm md:text-base capitalize">
                                             {formattedLocation}
                                         </span>
                                     </div>

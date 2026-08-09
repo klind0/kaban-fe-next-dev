@@ -14,6 +14,10 @@ interface RealtorInformationCardProps {
 }
 
 export default function RealtorInformationCard({ listing }: RealtorInformationCardProps) {
+    // 🔍 Log the entire realtor and listing payload to your browser console
+    console.log("Listing Object Payload:", listing);
+    console.log("Realtor Object Payload:", listing?.realtor);
+    
     const realtorName = listing?.realtor?.full_name || "Listing Agent";
     const avatarUrl = listing?.realtor?.realtor_pic || null;
 
@@ -49,7 +53,7 @@ export default function RealtorInformationCard({ listing }: RealtorInformationCa
                             {realtorName}
                         </h4>
                         {listing?.realtor?.email && (
-                            <p className="text-sm text-neutral-500 truncate mt-0.5">
+                            <p className="text-sm text-neutral-900 truncate mt-0.5">
                                 {listing.realtor.email}
                             </p>
                         )}

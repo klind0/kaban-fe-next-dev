@@ -94,7 +94,7 @@ export default function PropertyDetails({ listing }: PropertyDetailsProps) {
                             <div className="flex items-center justify-between text-foreground font-semibold">
                                 <h5>Description</h5>
                             </div>
-                            <div className="pt-3 text-neutral-800 leading-relaxed whitespace-pre-line text-sm md:text-base">
+                            <div className="pt-3 text-neutral-900 leading-relaxed whitespace-pre-line text-sm md:text-base">
                                 <p>{listing.description}</p>
                             </div>
                         </div>
