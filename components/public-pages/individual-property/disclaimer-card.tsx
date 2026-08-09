@@ -1,6 +1,6 @@
 export default function DisclaimerCard() {
     const disclaimers = [
-        "Please be aware that Kaban.ng is a property advertising platform and is not involved in the actual transaction of listed properties. We do not provide warranties or guarantee the accuracy of property descriptions. Prospective buyers and tenants should contact listing agents for detailed information, and we encourage customers to review and rate the realtors on our platform. Kaban.ng is not responsible for the actions of agents, but we advise them to maintain positive customer relationships.",
+        "Kaban.ng acts solely as a real estate marketing platform and is not a party to any property transactions. We make no representations or warranties regarding the accuracy of listed details. Interested buyers and tenants should contact the listing agent directly to verify all information. Although we encourage agents to maintain professional standards, Kaban.ng assumes no liability for agent conduct or transaction outcomes.",
     ]
     return (
         <div className="bg-[#F2DDDA] rounded-[10px] shadow">

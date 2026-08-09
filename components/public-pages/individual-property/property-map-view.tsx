@@ -180,7 +180,7 @@ export default function PropertyMapView({ listing }: PropertyMapProps) {
                             {landmark && (
                                 <div className="flex items-start gap-1.5 pt-1">
                                     <Location className="text-neutral-500 shrink-0 size-4 mt-0.5" />
-                                    <div className="text-xs text-neutral-700 font-medium leading-tight">
+                                    <div className="text-xs text-neutral-900 font-medium leading-tight">
                                         Near {landmark}
                                     </div>
                                 </div>

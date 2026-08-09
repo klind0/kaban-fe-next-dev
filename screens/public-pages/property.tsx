@@ -160,7 +160,7 @@ export default function IndividualProperty({ slug, initialData }: IndividualProp
 
             {/* Bottom Similar Properties Section */}
             <div className="mt-12">
-                <SimilarProperties />
+                <SimilarProperties currentListing={listing} />
             </div>
 
             {/* 🛠️ Mobile Quick-Contact Bar (Pinned to viewport bottom at all times) */}
