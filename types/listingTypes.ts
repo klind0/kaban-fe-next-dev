@@ -102,25 +102,12 @@ export interface IListing {
   publishedAt: string | null;
   expiresAt: string | null;
   realtor: {
-    id: string;
-    mobile_number: string | null;
-    whatsapp_number: string | null;
-    realtor_pic: string | null;
-    email: string | null;
-    full_name: string | null;
-    user?: {
-      full_name?: string | null;
-      email?: string | null;
-      profile_pic?: string | null;
-      mobile_number?: string | null;
-      whatsapp_number?: string | null;
-    } | null;
+    full_name: string;
+    email: string;
+    mobile_number: string;
+    whatsapp_number: string;
+    realtor_pic?: string | null;
   };
-  user?: {
-    full_name?: string | null;
-    email?: string | null;
-    profile_pic?: string | null;
-  } | null;
   rejectionReasons: RejectionReason[] | string[];
   approvalNotes: string | null;
   listing_state: ListingState;
