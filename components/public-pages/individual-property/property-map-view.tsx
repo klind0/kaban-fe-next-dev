@@ -9,12 +9,6 @@ interface PropertyMapProps {
     listing: IListing;
 }
 
-declare global {
-    interface Window {
-        google?: any;
-    }
-}
-
 export default function PropertyMapView({ listing }: PropertyMapProps) {
     const mapRef = useRef<HTMLDivElement>(null);
     const [popupOpen, setPopupOpen] = useState(false);
@@ -27,11 +21,13 @@ export default function PropertyMapView({ listing }: PropertyMapProps) {
     const latitude = coordinates?.[0] ?? 6.5244;
     const longitude = coordinates?.[1] ?? 3.3792;
 
-    // 1. Dynamically load Google Maps JS API script with zero external dependencies
+    // 1. Dynamically load Google Maps JS API script
     useEffect(() => {
         if (!apiKey) return;
 
-        if (window.google?.maps) {
+        const globalWin = window as any;
+
+        if (globalWin.google?.maps) {
             setIsMapLoaded(true);
             return;
         }
@@ -49,17 +45,18 @@ export default function PropertyMapView({ listing }: PropertyMapProps) {
             document.head.appendChild(script);
         } else {
             existingScript.addEventListener("load", () => setIsMapLoaded(true));
-            if (window.google?.maps) setIsMapLoaded(true);
+            if (globalWin.google?.maps) setIsMapLoaded(true);
         }
     }, [apiKey]);
 
     // 2. Initialize Google Map instance and 600m Privacy Radius Circle
     useEffect(() => {
-        if (!isMapLoaded || !mapRef.current || !window.google?.maps) return;
+        const globalWin = window as any;
+        if (!isMapLoaded || !mapRef.current || !globalWin.google?.maps) return;
 
         const center = { lat: latitude, lng: longitude };
 
-        const map = new window.google.maps.Map(mapRef.current, {
+        const map = new globalWin.google.maps.Map(mapRef.current, {
             center,
             zoom: 14,
             disableDefaultUI: false,
@@ -70,7 +67,7 @@ export default function PropertyMapView({ listing }: PropertyMapProps) {
         });
 
         // 600-meter translucent privacy perimeter circle
-        const circle = new window.google.maps.Circle({
+        const circle = new globalWin.google.maps.Circle({
             map,
             center,
             radius: 600, // in meters
@@ -146,7 +143,7 @@ export default function PropertyMapView({ listing }: PropertyMapProps) {
                     )}
 
                     {/* Informative Resident Security Badge */}
-                    <div className="absolute bottom-6 left-6 bg-white/95 backdrop-blur text-xs font-medium text-neutral-700 px-3 py-2 rounded-lg shadow-sm border pointer-events-none z-10 max-w-[280px]">
+                    <div className="absolute bottom-6 left-6 bg-white/95 backdrop-blur text-xs font-medium text-neutral-900 px-3 py-2 rounded-lg shadow-sm border pointer-events-none z-10 max-w-[280px]">
                         🔒 To ensure resident security, the exact street coordinates are hidden behind this localized perimeter radius.
                     </div>
                 </div>
