@@ -11,17 +11,28 @@ interface PropertyMapProps {
 
 export default function PropertyMapView({ listing }: PropertyMapProps) {
     const mapRef = useRef<HTMLDivElement>(null);
+    const googleMapInstance = useRef<any>(null);
+    const circleInstance = useRef<any>(null);
+
     const [popupOpen, setPopupOpen] = useState(false);
     const [isMapLoaded, setIsMapLoaded] = useState(false);
 
     const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
+    const { coordinates, landmark, address, city, state } = listing.location || {};
 
-    // Coordinates configuration: [lat, lng]
-    const { coordinates, landmark } = listing.location;
-    const latitude = coordinates?.[0] ?? 6.5244;
-    const longitude = coordinates?.[1] ?? 3.3792;
+    // 🛠️ GeoJSON / MongoDB coordinates order is [longitude, latitude]
+    const rawLng = coordinates?.[0];
+    const rawLat = coordinates?.[1];
 
-    // 1. Dynamically load Google Maps JS API script
+    const initialLat = typeof rawLat === "number" && rawLat !== 0 ? rawLat : 5.0154;
+    const initialLng = typeof rawLng === "number" && rawLng !== 0 ? rawLng : 7.9173;
+
+    const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number }>({
+        lat: initialLat,
+        lng: initialLng,
+    });
+
+    // 1. Dynamically load Google Maps JS API script with Places/Geocoding libraries
     useEffect(() => {
         if (!apiKey) return;
 
@@ -49,28 +60,62 @@ export default function PropertyMapView({ listing }: PropertyMapProps) {
         }
     }, [apiKey]);
 
-    // 2. Initialize Google Map instance and 600m Privacy Radius Circle
+    // 2. Fallback Geocoder if raw coordinates are missing
+    useEffect(() => {
+        const globalWin = window as any;
+        if (!isMapLoaded || !globalWin.google?.maps) return;
+
+        const hasValidCoords =
+            typeof rawLat === "number" &&
+            typeof rawLng === "number" &&
+            (rawLat !== 0 || rawLng !== 0);
+
+        if (hasValidCoords) {
+            setMapCenter({ lat: rawLat, lng: rawLng });
+        } else {
+            // Geocode using Landmark / Address / City / State
+            const searchQuery = [landmark, address, city, state].filter(Boolean).join(", ");
+            if (!searchQuery) return;
+
+            const geocoder = new globalWin.google.maps.Geocoder();
+            geocoder.geocode({ address: searchQuery }, (results: any, status: string) => {
+                if (status === "OK" && results?.[0]?.geometry?.location) {
+                    const loc = results[0].geometry.location;
+                    setMapCenter({ lat: loc.lat(), lng: loc.lng() });
+                }
+            });
+        }
+    }, [isMapLoaded, rawLat, rawLng, landmark, address, city, state]);
+
+    // 3. Initialize / Update Map & 600m Privacy Radius Circle
     useEffect(() => {
         const globalWin = window as any;
         if (!isMapLoaded || !mapRef.current || !globalWin.google?.maps) return;
 
-        const center = { lat: latitude, lng: longitude };
+        if (!googleMapInstance.current) {
+            googleMapInstance.current = new globalWin.google.maps.Map(mapRef.current, {
+                center: mapCenter,
+                zoom: 14,
+                disableDefaultUI: false,
+                zoomControl: true,
+                streetViewControl: false,
+                mapTypeControl: false,
+                fullscreenControl: false,
+            });
+        } else {
+            googleMapInstance.current.setCenter(mapCenter);
+        }
 
-        const map = new globalWin.google.maps.Map(mapRef.current, {
-            center,
-            zoom: 14,
-            disableDefaultUI: false,
-            zoomControl: true,
-            streetViewControl: false,
-            mapTypeControl: false,
-            fullscreenControl: false,
-        });
+        // Clean up previous circle if centered position updates
+        if (circleInstance.current) {
+            circleInstance.current.setMap(null);
+        }
 
-        // 600-meter translucent privacy perimeter circle
-        const circle = new globalWin.google.maps.Circle({
-            map,
-            center,
-            radius: 600, // in meters
+        // Create 600-meter translucent privacy perimeter circle around landmark
+        circleInstance.current = new globalWin.google.maps.Circle({
+            map: googleMapInstance.current,
+            center: mapCenter,
+            radius: 600, // radius in meters
             fillColor: "#006AFF",
             fillOpacity: 0.15,
             strokeColor: "#006AFF",
@@ -79,15 +124,16 @@ export default function PropertyMapView({ listing }: PropertyMapProps) {
             clickable: true,
         });
 
-        // Open area context card on circle click
-        circle.addListener("click", () => {
+        circleInstance.current.addListener("click", () => {
             setPopupOpen(true);
         });
 
         return () => {
-            circle.setMap(null);
+            if (circleInstance.current) {
+                circleInstance.current.setMap(null);
+            }
         };
-    }, [isMapLoaded, latitude, longitude]);
+    }, [isMapLoaded, mapCenter]);
 
     return (
         <div className="mt-8 px-4 md:px-0">
@@ -97,7 +143,7 @@ export default function PropertyMapView({ listing }: PropertyMapProps) {
                 </div>
 
                 <div className="w-full h-110.75 sm:p-4 relative">
-                    {/* Google Map Canvas Container */}
+                    {/* Google Map Canvas */}
                     <div 
                         ref={mapRef} 
                         className="w-full h-full rounded-lg overflow-hidden bg-neutral-100" 
@@ -142,7 +188,7 @@ export default function PropertyMapView({ listing }: PropertyMapProps) {
                         </div>
                     )}
 
-                    {/* Informative Resident Security Badge */}
+                    {/* Resident Security Notice */}
                     <div className="absolute bottom-6 left-6 bg-white/95 backdrop-blur text-xs font-medium text-neutral-900 px-3 py-2 rounded-lg shadow-sm border pointer-events-none z-10 max-w-[280px]">
                         🔒 To ensure resident security, the exact street coordinates are hidden behind this localized perimeter radius.
                     </div>
