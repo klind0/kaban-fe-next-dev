@@ -79,6 +79,7 @@ export default function IndividualProperty({ slug, initialData }: IndividualProp
                         <ChevronLeft className="size-5" />
                     </Link>
                 </Button>
+                {/*
                 <div className="flex items-center gap-4">
                     <button className="rounded-full p-2 hover:bg-neutral-100 transition-colors" title="Share listing">
                         <Share />
@@ -87,6 +88,7 @@ export default function IndividualProperty({ slug, initialData }: IndividualProp
                         <Warning />
                     </button>
                 </div>
+                */}
             </div>
 
             {/* Main Content Layout */}
