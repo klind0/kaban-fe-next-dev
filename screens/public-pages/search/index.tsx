@@ -35,6 +35,7 @@ const SORT_OPTIONS = [
     { label: "Default order", value: "default" },
     { label: "Price: Low to High", value: "price_asc" },
     { label: "Price: High to Low", value: "price_desc" },
+    { label: "Oldest listings", value: "oldest" },
 ];
 
 /**
@@ -42,6 +43,9 @@ const SORT_OPTIONS = [
  */
 const parsePrice = (value: unknown): number => {
     if (typeof value === 'number') return isNaN(value) ? 0 : value;
+    if (typeof value === 'object' && value !== null && 'amount' in value) {
+        return parsePrice((value as any).amount);
+    }
     if (typeof value === 'string') {
         const parsed = parseFloat(value.replace(/[^0-9.-]+/g, ''));
         return isNaN(parsed) ? 0 : parsed;
@@ -216,26 +220,56 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
                     ...(selectedAmenities.length > 0 && { amenities: selectedAmenities }),
                     ...(isRadiusActive && radiusValue > 0 && { radius: radiusValue }),
                 },
-                limit: 20,
+                limit: 50,
             }),
     });
 
     const rawListings = searchData?.publicListings?.data ?? [];
 
-
-    // Client-side sorting logic
-    const listings = useMemo(() => {
+    // 🎲 Stable random shuffle created once whenever rawListings update
+    const randomizedRawListings = useMemo(() => {
         if (!Array.isArray(rawListings)) return [];
-        const sorted = [...rawListings];
-        
-        if (sortOrder === 'price_asc') {
-            return sorted.sort((a, b) => parsePrice(a.price) - parsePrice(b.price));
+        const arr = [...rawListings];
+        // Fisher-Yates Shuffle algorithm
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
         }
-        if (sortOrder === 'price_desc') {
-            return sorted.sort((a, b) => parsePrice(b.price) - parsePrice(a.price));
+        return arr;
+    }, [rawListings]);
+
+    // 🏆 Client-side sorting logic: Featured listings ALWAYS prioritized first
+    const listings = useMemo(() => {
+        if (!Array.isArray(rawListings) || rawListings.length === 0) return [];
+
+        const baseList = sortOrder === 'default' ? randomizedRawListings : [...rawListings];
+
+        // Separate featured and non-featured listings
+        const featuredList = baseList.filter((item) => item.isFeatured);
+        const nonFeaturedList = baseList.filter((item) => !item.isFeatured);
+
+        // Sorting function according to chosen option
+        const sortFn = (a: any, b: any) => {
+            if (sortOrder === 'price_asc') {
+                return parsePrice(a.price) - parsePrice(b.price);
+            }
+            if (sortOrder === 'price_desc') {
+                return parsePrice(b.price) - parsePrice(a.price);
+            }
+            if (sortOrder === 'oldest') {
+                return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+            }
+            return 0; // 'default' order maintains randomized structure
+        };
+
+        if (sortOrder !== 'default') {
+            featuredList.sort(sortFn);
+            nonFeaturedList.sort(sortFn);
         }
-        return sorted;
-    }, [rawListings, sortOrder]);
+
+        // Always stack featured listings first
+        return [...featuredList, ...nonFeaturedList];
+    }, [rawListings, randomizedRawListings, sortOrder]);
 
     const totalResults = listings.length;
     const { mediasize } = useResponsiveNav({});
