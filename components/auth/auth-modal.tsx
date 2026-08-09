@@ -4,6 +4,7 @@ import SignInForm from './sign-in-form'
 import React from 'react';
 import SignUpForm from './sign-up-form';
 import GoogleAuthButton from './google-auth-button';
+
 interface AuthModalProps {
     isOpen: boolean;
     onOpenChange: () => void;
@@ -41,13 +42,15 @@ export default function AuthModal({ isOpen, onOpenChange }: AuthModalProps) {
                             <SignUpForm onOpenChange={onOpenChange} />
                         )}
                         <div className='space-y-6'>
+                            {/* GOOGLE AUTHENTICATION SECTION COMMENTED OUT
                             <div className='flex items-center gap-3'>
                                 <div className='h-px w-full bg-neutral-600'></div>
                                 <span className='whitespace-nowrap'>Or continue with </span>
                                 <div className='h-px w-full bg-neutral-600'></div>
                             </div>
                             <GoogleAuthButton onOpenChange={onOpenChange} isOpen={isOpen} />
-                            <p className='text-center'>
+                            */}
+                            <p className='text-center pt-2'>
                                 {formType === 'signIn' ? 'Not registered yet?' : 'Already a member?'}
                                 {' '}
                                 <button onClick={toggleFormType} className='text-primary font-semibold hover:underline'>
