@@ -51,11 +51,19 @@ export default function ListingCard({
     const baths = details?.bathroom ?? 0;
     const parkingSpots = details?.parking_space ?? 0;
 
-    // 🛠 Construct a clean string checking if city/state properties are provided explicitly
+    // 🛠️ Dynamic Realtor Profile Resolution (Avatar & Initials)
+    const realtorName = realtor?.full_name || "Listing Agent";
+    const avatarUrl = realtor?.realtor_pic || null;
+
+    const initials = (realtorName.trim().match(/\b\w/g) || ["R"])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase();
+
+    // 🛠️ Construct a clean string checking if city/state properties are provided explicitly
     const buildFullLocationString = () => {
         if (!location) return "";
         
-        // If address already includes commas, it might already be a fully concatenated string
         if (location.address && location.address.includes(",")) {
             return location.address;
         }
@@ -75,15 +83,19 @@ export default function ListingCard({
                         <div className="bg-[#00000066] p-2 rounded-lg text-white text-xs font-semibold" style={{ backdropFilter: 'blur(25px)' }}>
                             {daysLabel}
                         </div>
-                        <button onClick={(e) => { e.preventDefault(); toggleFavorite(listingData.id); }} aria-label={favorites.has(listingData.id) ? 'Remove from favorites' : 'Add to favorites'}><Heart filled={favorites.has(listingData.id)} /></button>
+                        <button onClick={(e) => { e.preventDefault(); toggleFavorite(listingData.id); }} aria-label={favorites.has(listingData.id) ? 'Remove from favorites' : 'Add to favorites'}>
+                            <Heart filled={favorites.has(listingData.id)} />
+                        </button>
                     </div>
-                    <div className="flex items-center gap-1"><Camera /><span className="text-white text-sm font-semibold">{photoCount}</span></div>
+                    <div className="flex items-center gap-1">
+                        <Camera />
+                        <span className="text-white text-sm font-semibold">{photoCount}</span>
+                    </div>
                 </div>
             </div>
             <div className="bg-white p-4 w-full">
                 <div className="space-y-3">
                     <div className="space-y-2">
-                        {/* 🛠 Transformed property type toTitleCase as well */}
                         <span className="text-xs font-semibold text-neutral-900 capitalize">{toTitleCase(property_type || '')}</span>
                         <div className="flex items-center justify-between">
                             <h3 className="text-xl font-bold text-[#272D37] whitespace-nowrap">{formatPrice(price?.amount)}</h3>
@@ -120,18 +132,26 @@ export default function ListingCard({
                     </div>
                 </div>
             </div>
+
+            {/* 🛠️ Footer: Realtor Profile Image or Initials */}
             <div className="bg-neutral-50 p-4 border-t border-neutral-100">
-                <div className="flex items-center gap-2">
-                    {realtor?.realtor_pic ? (
-                        <div className="size-8 rounded-full overflow-hidden">
-                            <Image src={realtor.realtor_pic} width={32} height={32} alt="Realtor profile image" />
-                        </div>
-                    ) : (
-                        <div className="size-8 rounded-full bg-primary flex items-center justify-center text-white text-xs font-semibold">
-                            R
-                        </div>
-                    )}
-                    {realtor?.full_name && <span className="text-sm font-medium text-neutral-700">{realtor.full_name}</span>}
+                <div className="flex items-center gap-2 min-w-0">
+                    <div className="size-8 rounded-full overflow-hidden shrink-0 bg-primary flex items-center justify-center text-white text-xs font-semibold">
+                        {avatarUrl ? (
+                            <Image 
+                                src={avatarUrl} 
+                                width={32} 
+                                height={32} 
+                                alt={realtorName} 
+                                className="object-cover w-full h-full"
+                            />
+                        ) : (
+                            <span>{initials}</span>
+                        )}
+                    </div>
+                    <span className="text-sm font-medium text-neutral-900 truncate">
+                        {realtorName}
+                    </span>
                 </div>
             </div>
         </Link>

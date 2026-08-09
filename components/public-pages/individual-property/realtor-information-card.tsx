@@ -14,9 +14,6 @@ interface RealtorInformationCardProps {
 }
 
 export default function RealtorInformationCard({ listing }: RealtorInformationCardProps) {
-    // 🔍 Log the entire realtor and listing payload to your browser console
-    console.log("Listing Object Payload:", listing);
-    console.log("Realtor Object Payload:", listing?.realtor);
     
     const realtorName = listing?.realtor?.full_name || "Listing Agent";
     const avatarUrl = listing?.realtor?.realtor_pic || null;
