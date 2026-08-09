@@ -17,7 +17,6 @@ import Image from "next/image";
 import { Call } from '@/components/icons/call';
 import { Whatsapp } from '@/components/icons/whatsapp';
 import { Sms } from '@/components/icons/sms';
-import { useUserStore } from "@/app/stores/user-store";
 
 interface IndividualPropertyProps {
     slug: string;
@@ -34,7 +33,6 @@ const toTitleCase = (str: string = ""): string => {
 };
 
 export default function IndividualProperty({ slug, initialData }: IndividualPropertyProps) {
-    const { user, realtor } = useUserStore();
     const listing = initialData ?? null;
 
     const priceLabel = listing?.price?.per === "one-time"
@@ -52,24 +50,8 @@ export default function IndividualProperty({ slug, initialData }: IndividualProp
         );
     }
 
-    // 🛠️ Updated to user?.fullName
-    const realtorName =
-        user?.fullName ||
-        realtor?.full_name ||
-        listing?.realtor?.full_name ||
-        "Listing Agent";
-
-    const realtorEmail =
-        user?.email ||
-        realtor?.email ||
-        listing?.realtor?.email ||
-        null;
-
-    const avatarUrl =
-        realtor?.realtor_pic ||
-        user?.profile_pic ||
-        listing?.realtor?.realtor_pic ||
-        null;
+    const realtorName = listing?.realtor?.full_name || "Listing Agent";
+    const avatarUrl = listing?.realtor?.realtor_pic || null;
 
     const initials = (realtorName.trim().match(/\b\w/g) || ["R"])
         .join("")
@@ -167,7 +149,7 @@ export default function IndividualProperty({ slug, initialData }: IndividualProp
                         <RealtorInformationCard listing={listing} />
                         <SafetyTipCard />
                         <DisclaimerCard />
-          
+                        
                         {/* Placeholder Advert Space */}
                         <div className="bg-neutral-200 border border-neutral-300 rounded-lg flex items-center justify-center h-80 font-bold text-neutral-500 text-lg">
                             Advert Space
@@ -187,12 +169,12 @@ export default function IndividualProperty({ slug, initialData }: IndividualProp
                     <div className="flex items-center gap-2.5 min-w-0">
                         <div className="size-10 rounded-full overflow-hidden shrink-0 bg-primary flex items-center justify-center text-white text-xs font-bold">
                             {avatarUrl ? (
-                                <Image
-                                    src={avatarUrl}
-                                    width={40}
-                                    height={40}
-                                    alt="Realtor avatar"
-                                    className="object-cover w-full h-full"
+                                <Image 
+                                    src={avatarUrl} 
+                                    width={40} 
+                                    height={40} 
+                                    alt="Realtor avatar" 
+                                    className="object-cover w-full h-full" 
                                 />
                             ) : (
                                 <span>{initials}</span>
@@ -224,9 +206,9 @@ export default function IndividualProperty({ slug, initialData }: IndividualProp
                                 </Button>
                             </Link>
                         )}
-                        {realtorEmail && (
+                        {listing?.realtor?.email && (
                             <Link
-                                href={`mailto:${realtorEmail}`}
+                                href={`mailto:${listing.realtor.email}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                             >
