@@ -114,9 +114,24 @@ export function DashboardSidebar() {
                         <SidebarMenu className="relative">
                             {
                                 menuItems.map((item) => {
+                                    const active = isActive(item.url);
                                     return (
-                                        <SidebarMenuItem key={item.title} className={`${isActive(item.url) ? 'bg-[#F3F9FE] border-l-[3px] border-primary text-primary' : ''} flex items-center justify-between gap-1 py-3`}>
-                                            <Link href={item.url} onClick={() => setOpenMobile(false)} className={`flex gap-2 items-center w-full pl-6 font-semibold`}><item.icon /> {item.title}</Link>
+                                        <SidebarMenuItem 
+                                            key={item.title} 
+                                            className={`flex items-center justify-between gap-1 py-3 ${
+                                                active 
+                                                    ? 'bg-[#F3F9FE] border-l-[3px] border-primary text-primary font-semibold' 
+                                                    : 'text-sidebar-foreground/70 hover:text-foreground font-medium'
+                                            }`}
+                                        >
+                                            <Link 
+                                                href={item.url} 
+                                                onClick={() => setOpenMobile(false)} 
+                                                className="flex gap-2 items-center w-full pl-6 text-xs"
+                                            >
+                                                <item.icon className="size-4 shrink-0" /> 
+                                                <span>{item.title}</span>
+                                            </Link>
                                         </SidebarMenuItem>
                                     )
                                 })
