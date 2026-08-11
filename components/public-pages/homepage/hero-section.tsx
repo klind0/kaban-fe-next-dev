@@ -77,10 +77,9 @@ export default function HeroSection() {
                         activeTab={activeTab}
                         onTabChange={handleTabChange}
                     />
-                    <div className="w-full flex flex-col mt-8 lg:flex-row gap-3 xl:gap-4 items-start">
-                        {/* Give the Location Autocomplete Search a larger share (flex-[2]) with a min-width */}
-                        <div className="w-full lg:flex-[2] lg:min-w-[260px]">
-                            {/* Google Places Location Search Autocomplete */}
+                    <div className="w-full flex flex-col mt-8 lg:flex-row gap-3 items-center">
+                        {/* Location Autocomplete Search */}
+                        <div className="w-full lg:flex-1">
                             <LocationSearchAutocomplete
                                 value={filters.location || ''}
                                 placeholder="Search location or Property ID..."
@@ -95,8 +94,8 @@ export default function HeroSection() {
                             )}
                         </div>
 
-                        {/* Constrain CustomSelect inputs on desktop so they share remaining space evenly */}
-                        <div className="w-full lg:w-40 xl:w-48 shrink-0">
+                        {/* Bedroom Dropdown */}
+                        <div className="w-full lg:w-32 xl:w-36">
                             <CustomSelect
                                 placeholder="Bedroom"
                                 options={bedroomOptions}
@@ -105,7 +104,8 @@ export default function HeroSection() {
                             />
                         </div>
 
-                        <div className="w-full lg:w-48 xl:w-56 shrink-0">
+                        {/* Property Type Dropdown */}
+                        <div className="w-full lg:w-40 xl:w-44">
                             <CustomSelect
                                 placeholder="Property Type"
                                 groups={propertyTypeGroupedOptions}
@@ -114,7 +114,8 @@ export default function HeroSection() {
                             />
                         </div>
 
-                        <div className="w-full lg:w-40 xl:w-48 shrink-0">
+                        {/* Max Price Dropdown */}
+                        <div className="w-full lg:w-36 xl:w-40">
                             <CustomSelect
                                 placeholder="Max Price"
                                 options={maxPriceOptions}
@@ -123,9 +124,10 @@ export default function HeroSection() {
                             />
                         </div>
 
+                        {/* Search Button */}
                         <Button 
                             onClick={handleSearch} 
-                            className="w-full lg:w-auto lg:min-w-32 xl:min-w-36 shrink-0 bg-primary hover:opacity-90 transition-all text-primary-foreground font-semibold h-11" 
+                            className="w-full lg:w-auto lg:px-8 bg-primary hover:opacity-90 transition-all text-primary-foreground font-semibold h-11 shrink-0" 
                             size={'lg'}
                         >
                             Search
