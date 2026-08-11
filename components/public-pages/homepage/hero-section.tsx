@@ -71,14 +71,15 @@ export default function HeroSection() {
                     <p className='text-white text-center h2'>Discover your customized fit with ease</p>
                     <h1 className='text-white text-center'>Smartest way to scout real estate</h1>
                 </div>
-                <div className="bg-card p-4 rounded-3xl sm:p-8 xl:p-16 shadow-lg border border-border">
+                <div className="bg-card p-4 rounded-3xl sm:p-8 xl:p-12 shadow-lg border border-border">
                     <CustomTab
                         items={propertyStatusOptions}
                         activeTab={activeTab}
                         onTabChange={handleTabChange}
                     />
-                    <div className="w-full flex flex-col mt-8 lg:flex-row gap-4 items-start">
-                        <div className="w-full flex-1">
+                    <div className="w-full flex flex-col mt-8 lg:flex-row gap-3 xl:gap-4 items-start">
+                        {/* Give the Location Autocomplete Search a larger share (flex-[2]) with a min-width */}
+                        <div className="w-full lg:flex-[2] lg:min-w-[260px]">
                             {/* Google Places Location Search Autocomplete */}
                             <LocationSearchAutocomplete
                                 value={filters.location || ''}
@@ -94,30 +95,37 @@ export default function HeroSection() {
                             )}
                         </div>
 
-                        <CustomSelect
-                            placeholder="Bedroom"
-                            options={bedroomOptions}
-                            value={filters.bedroom?.toString()}
-                            onChange={(val) => handleQueryParamsChange('bedroom', val)}
-                        />
+                        {/* Constrain CustomSelect inputs on desktop so they share remaining space evenly */}
+                        <div className="w-full lg:w-40 xl:w-48 shrink-0">
+                            <CustomSelect
+                                placeholder="Bedroom"
+                                options={bedroomOptions}
+                                value={filters.bedroom?.toString()}
+                                onChange={(val) => handleQueryParamsChange('bedroom', val)}
+                            />
+                        </div>
 
-                        <CustomSelect
-                            placeholder="Property Type"
-                            groups={propertyTypeGroupedOptions}
-                            value={filters.property_type}
-                            onChange={(val) => handleQueryParamsChange('property_type', val)}
-                        />
+                        <div className="w-full lg:w-48 xl:w-56 shrink-0">
+                            <CustomSelect
+                                placeholder="Property Type"
+                                groups={propertyTypeGroupedOptions}
+                                value={filters.property_type}
+                                onChange={(val) => handleQueryParamsChange('property_type', val)}
+                            />
+                        </div>
 
-                        <CustomSelect
-                            placeholder="Max Price"
-                            options={maxPriceOptions}
-                            value={filters.priceMax?.toString()}
-                            onChange={(val) => handleQueryParamsChange('priceMax', val)}
-                        />
+                        <div className="w-full lg:w-40 xl:w-48 shrink-0">
+                            <CustomSelect
+                                placeholder="Max Price"
+                                options={maxPriceOptions}
+                                value={filters.priceMax?.toString()}
+                                onChange={(val) => handleQueryParamsChange('priceMax', val)}
+                            />
+                        </div>
 
                         <Button 
                             onClick={handleSearch} 
-                            className="w-full lg:w-auto md:min-w-40 bg-primary hover:opacity-90 transition-all text-primary-foreground font-semibold h-11" 
+                            className="w-full lg:w-auto lg:min-w-32 xl:min-w-36 shrink-0 bg-primary hover:opacity-90 transition-all text-primary-foreground font-semibold h-11" 
                             size={'lg'}
                         >
                             Search
