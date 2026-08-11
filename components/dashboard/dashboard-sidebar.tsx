@@ -1,4 +1,5 @@
 'use client'
+
 import {
     Sidebar,
     SidebarContent,
@@ -42,7 +43,6 @@ export function DashboardSidebar() {
     const { setOpenMobile, openMobile } = useSidebar()
     const router = useRouter()
 
-    // 🛠️ Extract both user and realtor slices from store
     const { user, realtor, clearUser } = useUserStore()
     
     const avatarUrl = realtor?.realtor_pic || (user as any)?.realtor_pic || user?.avatar || (user as any)?.realtorPic || null;
@@ -57,6 +57,21 @@ export function DashboardSidebar() {
     const userData = user ? { fullName, email, avatar: avatarUrl } : null;
 
     const isActive = (url: string) => pathName === url;
+
+    // 🛠️ Route checks for form contexts
+    const isEditing = pathName.includes('/edit-listing');
+    const isCreating = pathName.includes('/create-listing');
+    const isFormRoute = isCreating || isEditing;
+
+    const handleActionButtonClick = (e: React.MouseEvent) => {
+        setOpenMobile(false);
+
+        if (isFormRoute) {
+            e.preventDefault();
+            // Dispatches the exact event listened to by CreateListingScreen
+            window.dispatchEvent(new CustomEvent('trigger-save-draft'));
+        }
+    };
 
     const handleLogout = () => {
         router.push('/');
@@ -80,13 +95,20 @@ export function DashboardSidebar() {
             </SidebarHeader>
             <SidebarContent>
                 <SidebarGroup>
-                    <SidebarGroupContent>
+                    {/* 🛠️ Mobile-only button section */}
+                    <SidebarGroupContent className="md:hidden">
                         <SidebarMenu className="p-4 border-y border-neutral-600">
                             <Button asChild>
-                                <Link href="/dashboard/create-listing" onClick={() => setOpenMobile(false)}>Create Listing</Link>
+                                <Link 
+                                    href="/dashboard/create-listing" 
+                                    onClick={handleActionButtonClick}
+                                >
+                                    {isFormRoute ? "Save as draft" : "Create Listing"}
+                                </Link>
                             </Button>
                         </SidebarMenu>
                     </SidebarGroupContent>
+
                     <SidebarGroupContent>
                         <SidebarGroupLabel className="text-sm font-semibold uppercase px-4 py-3">Menu</SidebarGroupLabel>
                         <SidebarMenu className="relative">
