@@ -165,7 +165,7 @@ export default function IndividualProperty({ slug, initialData }: IndividualProp
                 <SimilarProperties currentListing={listing} />
             </div>
 
-            {/* 🛠️ Mobile Quick-Contact Bar (Pinned to viewport bottom at all times) */}
+            {/* 🛠️ Mobile Quick-Contact Bar (Pinned to viewport bottom when no modal is open) */}
             <div className="md:hidden fixed inset-x-0 bottom-0 left-0 right-0 z-40 bg-white p-3 border-t border-neutral-200 shadow-[0_-4px_12px_rgba(0,0,0,0.08)]">
                 <div className="container mx-auto flex justify-between items-center px-2">
                     <div className="flex items-center gap-2.5 min-w-0">
