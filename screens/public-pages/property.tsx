@@ -166,7 +166,7 @@ export default function IndividualProperty({ slug, initialData }: IndividualProp
             </div>
 
             {/* 🛠️ Mobile Quick-Contact Bar (Pinned to viewport bottom at all times) */}
-            <div className="md:hidden fixed inset-x-0 bottom-0 left-0 right-0 z-[100] bg-white p-3 border-t border-neutral-200 shadow-[0_-4px_12px_rgba(0,0,0,0.08)]">
+            <div className="md:hidden fixed inset-x-0 bottom-0 left-0 right-0 z-40 bg-white p-3 border-t border-neutral-200 shadow-[0_-4px_12px_rgba(0,0,0,0.08)]">
                 <div className="container mx-auto flex justify-between items-center px-2">
                     <div className="flex items-center gap-2.5 min-w-0">
                         <div className="size-10 rounded-full overflow-hidden shrink-0 bg-primary flex items-center justify-center text-white text-xs font-bold">
