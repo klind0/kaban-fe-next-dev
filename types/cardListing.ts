@@ -47,6 +47,7 @@ export type Listing = {
   videoLink?: string;
   street_view: boolean;
   createdAt: string;
+  publishedAt?: string;
   expiresAt?: string;
   
   // Nested Objects

@@ -17,7 +17,10 @@ export default function PropertyImages({ listing }: { listing: IListing }) {
     const totalImages = images.length;
     const currentImage = images[currentImageIndex]?.url;
 
-    const daysAgo = Math.floor((Date.now() - new Date(listing?.createdAt ?? '').getTime()) / (1000 * 60 * 60 * 24));
+    const referenceDate = listing?.publishedAt || listing?.createdAt;
+    const daysAgo = referenceDate 
+        ? Math.floor((Date.now() - new Date(referenceDate).getTime()) / (1000 * 60 * 60 * 24))
+        : 0;
     const daysLabel = daysAgo <= 0 ? "Today" : daysAgo === 1 ? "1 day ago" : `${daysAgo} days ago`;
 
     const changeImage = (newIndex: number) => {
