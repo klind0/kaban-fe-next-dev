@@ -111,7 +111,7 @@ export interface IListing {
   rejectionReasons: RejectionReason[] | string[];
   approvalNotes: string | null;
   listing_state: ListingState;
-  effectiveState: string;
+  effectiveState: ListingState;
 }
 
 export interface IListingMeta {

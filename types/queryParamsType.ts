@@ -3,6 +3,7 @@ import { ListingState, PropertyCategory, PropertyType, Status } from '@/types/li
 export interface IQueryParamsType {
   status?: Status | 'rent' | 'sale';
   listing_state?: ListingState;
+  effectiveState?: ListingState;
   category?: PropertyCategory;
   property_type?: PropertyType | string;
   startDate?: string;

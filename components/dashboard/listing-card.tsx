@@ -39,9 +39,13 @@ export default function ListingCard({
   onRelist,
   onUpgrade,
 }: ListingCardProps) {
-  const currentItemState = (
-    listing?.listing_state || (listing as any).effectiveState
+  const isPastExpiration = listing?.expiresAt && new Date(listing.expiresAt).getTime() < Date.now();
+
+  const rawState = (
+    (listing as any).effectiveState || listing?.listing_state
   )?.toUpperCase();
+
+  const currentItemState = isPastExpiration ? 'EXPIRED' : rawState;
 
   const isExpired = currentItemState === 'EXPIRED';
   const isLive = currentItemState === 'PUBLISHED';
@@ -133,7 +137,7 @@ export default function ListingCard({
                     ● Featured
                   </div>
                 )}
-                <ListingStateBadge state={listing?.listing_state} />
+                <ListingStateBadge state={currentItemState} />
               </div>
             </div>
 

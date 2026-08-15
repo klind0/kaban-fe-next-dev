@@ -83,10 +83,16 @@ export default function DashboardHome({ listings, meta }: DashboardHomeProps) {
     if (sortStatus === 'ALL') return listings;
 
     return listings.filter((item) => {
-      const currentItemState =
-        item.listing_state || (item as any).effectiveState;
+      const isPastExpiration = item?.expiresAt && new Date(item.expiresAt).getTime() < Date.now();
+      
+      const rawState = (
+        (item as any).effectiveState || item?.listing_state
+      )?.toUpperCase();
+      
+      const currentItemState = isPastExpiration ? 'EXPIRED' : rawState;
+      
       if (!currentItemState) return false;
-      return currentItemState.toUpperCase() === sortStatus.toUpperCase();
+      return currentItemState === sortStatus.toUpperCase();
     });
   }, [listings, sortStatus]);
 

@@ -44,7 +44,8 @@ export default function ListingCard({
     const imageUrl = cover_image || images?.[0]?.url;
     const photoCount = images?.length ?? 0;
 
-    const daysAgo = Math.floor((Date.now() - new Date(listingData.createdAt).getTime()) / (1000 * 60 * 60 * 24));
+    const publishDate = listingData.publishedAt || listingData.createdAt;
+    const daysAgo = Math.floor((Date.now() - new Date(publishDate).getTime()) / (1000 * 60 * 60 * 24));
     const daysLabel = daysAgo <= 0 ? "Today" : daysAgo === 1 ? "1 day ago" : `${daysAgo} days ago`;
 
     const beds = details?.bedroom ?? 0;

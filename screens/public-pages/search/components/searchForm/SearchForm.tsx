@@ -31,7 +31,7 @@ export default function SearchForm({
     } = useForm<IQueryParamsType>({
         defaultValues: {
             status: undefined as Status | undefined,
-            listing_state: ListingState.PUBLISHED,
+            effectiveState: ListingState.PUBLISHED,
             startDate: '',
             endDate: '',
             page: 1,
