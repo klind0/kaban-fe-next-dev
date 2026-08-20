@@ -199,7 +199,7 @@ export default function ListingCard({
               className={`p-0.5 rounded transition-colors ${
                 isPending
                   ? 'opacity-40 cursor-not-allowed'
-                  : 'text-neutral-500 hover:text-red-600 hover:bg-red-50'
+                  : 'text-neutral-500 hover:text-red-600 hover:bg-red-30'
               }`}
             >
               <Trash />
