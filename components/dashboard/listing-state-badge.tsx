@@ -4,7 +4,7 @@ const STATE_CONFIG: Record<ListingState, { label: string; className: string }> =
 {
     PUBLISHED: {
         label: "Published",
-        className: "bg-[#41AE49]/10 text-[#41AE49]",
+        className: "bg-[#41AE49]/5 text-[#41AE49]",
     },
     DRAFT: {
         label: "Draft",

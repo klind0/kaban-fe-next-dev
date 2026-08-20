@@ -131,8 +131,8 @@ export const sortOptions = [
 ];
 
 export const priceSuffixOptions = [
-  { name: "per month", value: "per-month" },
-  { name: "per annum", value: "per-annum" },
+  { name: "per month", value: "month" },
+  { name: "per annum", value: "annum" },
   { name: "bi-yearly", value: "bi-yearly" },
 ];
 

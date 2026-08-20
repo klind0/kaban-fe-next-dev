@@ -73,7 +73,7 @@ export default function SimilarProperties({ currentListing }: SimilarPropertiesP
                           <ListingCard key={listing.id} listingData={listing} />
                       ))
                     : !isLoading && (
-                          <div className="col-span-full py-8 text-center text-neutral-500 font-medium">
+                          <div className="col-span-full py-8 text-center text-neutral-900 font-medium">
                               No similar properties found in this area at the moment.
                           </div>
                       )}
