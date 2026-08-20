@@ -149,7 +149,7 @@ const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function B
                             <FormControl
                                 as='input'
                                 labelText='Title *'
-                                placeholder='Enter title'
+                                placeholder='e.g "2 Bedroom Apartment for Rent"'
                                 type='text'
                                 {...field}
                                 disabled={isPending}
