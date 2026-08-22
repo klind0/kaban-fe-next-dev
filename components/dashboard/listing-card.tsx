@@ -193,20 +193,36 @@ export default function ListingCard({
           {/* Buttons */}
           <div className="flex items-center gap-2">
             <button
-              onClick={() => onDelete(listing.id)}
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                const targetId = listing?.id || (listing as any)?._id;
+                if (targetId) {
+                  onDelete(targetId);
+                } else {
+                  console.error('Delete action failed: Listing ID missing on card', listing);
+                }
+              }}
               disabled={isPending}
               title="Delete listing"
               className={`p-0.5 rounded transition-colors ${
                 isPending
                   ? 'opacity-40 cursor-not-allowed'
-                  : 'text-neutral-500 hover:text-red-600 hover:bg-red-30'
+                  : 'text-neutral-500 hover:text-red-600 hover:bg-red-50'
               }`}
             >
               <Trash />
             </button>
 
             <button
-              onClick={() => onEdit(listing.id)}
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                const targetId = listing?.id || (listing as any)?._id;
+                if (targetId) onEdit(targetId);
+              }}
               disabled={isPending}
               title="Edit listing"
               className={`p-0.5 rounded transition-colors ${
@@ -220,7 +236,13 @@ export default function ListingCard({
 
             {isExpired && (
               <button
-                onClick={() => onRelist(listing.id)}
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  const targetId = listing?.id || (listing as any)?._id;
+                  if (targetId) onRelist(targetId);
+                }}
                 disabled={isPending}
                 title="Relist listing"
                 className="text-primary hover:bg-primary/10 transition-colors p-0.5 rounded"
