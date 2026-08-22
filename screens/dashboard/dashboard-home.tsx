@@ -14,6 +14,20 @@ import { Arrow } from '@/components/icons/arrow';
 import { useCallback, useMemo, useRef, useState, useTransition } from 'react';
 import { Building2 } from '@/components/icons/buildings';
 import ListingCard from '@/components/dashboard/listing-card';
+import { useMutation } from '@tanstack/react-query';
+import { gqlRequest } from '@/network/graphql-client';
+
+const DELETE_LISTING_MUTATION = `
+  mutation DeleteListing($id: String!) {
+    deleteListing(id: $id)
+  }
+`;
+
+const RENEW_LISTING_MUTATION = `
+  mutation RenewListing($id: String!) {
+    renewListing(id: $id)
+  }
+`;
 
 interface DashboardHomeProps {
   listings: IListing[];
@@ -48,23 +62,52 @@ export default function DashboardHome({ listings, meta }: DashboardHomeProps) {
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isPending, startTransition] = useTransition();
 
+  const { mutateAsync: deleteListing, isPending: isDeleting } = useMutation({
+    mutationFn: async (id: string) => {
+      return gqlRequest(DELETE_LISTING_MUTATION, { id });
+    },
+    onSuccess: () => {
+      startTransition(() => {
+        router.refresh();
+      });
+    },
+    onError: (err: any) => {
+      console.error('Delete mutation error:', err);
+      alert(err?.message || 'Failed to delete listing.');
+    },
+  });
+
+  const { mutateAsync: renewListing, isPending: isRenewing } = useMutation({
+    mutationFn: async (id: string) => {
+      return gqlRequest(RENEW_LISTING_MUTATION, { id });
+    },
+    onSuccess: () => {
+      startTransition(() => {
+        router.refresh();
+      });
+    },
+    onError: (err: any) => {
+      console.error('Renew mutation error:', err);
+      alert(err?.message || 'Failed to renew listing.');
+    },
+  });
+
   // --- Action Handlers ---
-  const handleDelete = (id: string) => {
-    // Add delete logic / API call here
-    console.log('Delete listing:', id);
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this listing?')) return;
+    await deleteListing(id);
   };
 
   const handleEdit = (id: string) => {
     router.push(`/dashboard/edit-listing/${id}`);
   };
 
-  const handleRelist = (id: string) => {
-    // Add relist logic / API call here
-    console.log('Relist listing:', id);
+  const handleRelist = async (id: string) => {
+    if (!confirm('Are you sure you want to renew this expired listing?')) return;
+    await renewListing(id);
   };
 
   const handleUpgrade = (id: string) => {
-    // Add upgrade logic / API call here
     console.log('Upgrade listing:', id);
   };
 
@@ -83,14 +126,15 @@ export default function DashboardHome({ listings, meta }: DashboardHomeProps) {
     if (sortStatus === 'ALL') return listings;
 
     return listings.filter((item) => {
-      const isPastExpiration = item?.expiresAt && new Date(item.expiresAt).getTime() < Date.now();
-      
+      const isPastExpiration =
+        item?.expiresAt && new Date(item.expiresAt).getTime() < Date.now();
+
       const rawState = (
         (item as any).effectiveState || item?.listing_state
       )?.toUpperCase();
-      
+
       const currentItemState = isPastExpiration ? 'EXPIRED' : rawState;
-      
+
       if (!currentItemState) return false;
       return currentItemState === sortStatus.toUpperCase();
     });
@@ -123,6 +167,8 @@ export default function DashboardHome({ listings, meta }: DashboardHomeProps) {
     },
     [router, searchParams],
   );
+
+  const isActionPending = isPending || isDeleting || isRenewing;
 
   return (
     <>
@@ -171,22 +217,22 @@ export default function DashboardHome({ listings, meta }: DashboardHomeProps) {
 
             <div>
               {filteredListings.map((listing) => (
-                <ListingCard 
-					key={listing.id} 
-					listing={listing}
-					isPending={isPending} 
-					onDelete={handleDelete}
-					onEdit={handleEdit}
-					onRelist={handleRelist}
-					onUpgrade={handleUpgrade}
-				/>
+                <ListingCard
+                  key={listing.id}
+                  listing={listing}
+                  isPending={isActionPending}
+                  onDelete={handleDelete}
+                  onEdit={handleEdit}
+                  onRelist={handleRelist}
+                  onUpgrade={handleUpgrade}
+                />
               ))}
             </div>
 
             <div className="flex items-center justify-between p-3 border-t border-neutral-600">
               <button
                 onClick={() => goToPage(currentPage - 1)}
-                disabled={currentPage <= 1 || isPending}
+                disabled={currentPage <= 1 || isActionPending}
                 className="flex items-center gap-1.5 disabled:opacity-40"
               >
                 <Arrow /> <span className="text-sm font-medium">Prev</span>
@@ -205,7 +251,7 @@ export default function DashboardHome({ listings, meta }: DashboardHomeProps) {
                     <button
                       key={page}
                       onClick={() => goToPage(page)}
-                      disabled={isPending}
+                      disabled={isActionPending}
                       className={`min-w-8 h-8 flex items-center justify-center rounded-md text-sm font-medium transition-colors ${
                         page === currentPage
                           ? 'bg-primary text-white'
@@ -220,7 +266,7 @@ export default function DashboardHome({ listings, meta }: DashboardHomeProps) {
 
               <button
                 onClick={() => goToPage(currentPage + 1)}
-                disabled={currentPage >= totalPages || isPending}
+                disabled={currentPage >= totalPages || isActionPending}
                 className="flex items-center gap-1.5 disabled:opacity-40"
               >
                 <span className="text-sm font-medium">Next</span>{' '}
