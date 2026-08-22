@@ -198,7 +198,13 @@ export default function ListingCard({
                 e.stopPropagation();
                 e.preventDefault();
                 const targetId = listing?.id || (listing as any)?._id;
+
+                console.log('--- DELETE BUTTON CLICKED ---');
+                console.log('Listing Object:', listing);
+                console.log('Extracted ID:', targetId);
+                
                 if (targetId) {
+                  console.log('Calling parent onDelete with ID:', targetId)
                   onDelete(targetId);
                 } else {
                   console.error('Delete action failed: Listing ID missing on card', listing);
