@@ -67,8 +67,12 @@ export default function EditListingScreen() {
             try {
                 setIsLoading(true);
 
-                // Use central gqlRequest to automatically carry authentication headers
-                const data = await gqlRequest(GET_LISTING_FOR_EDIT_QUERY, { id: listingId });
+                // Specify the expected GraphQL response type in the generic parameter
+                const data = await gqlRequest<{ getListingForEdit: any }>(
+                    GET_LISTING_FOR_EDIT_QUERY, 
+                    { id: listingId }
+                );
+
                 const rawListing = data?.getListingForEdit;
 
                 if (!rawListing) {
@@ -265,10 +269,13 @@ export default function EditListingScreen() {
                 }
             };
 
-            await gqlRequest(UPDATE_LISTING_MUTATION, {
-                id: listingId,
-                input: updateInput
-            });
+            await gqlRequest<{ updateListing: any }>(
+                UPDATE_LISTING_MUTATION, 
+                {
+                    id: listingId,
+                    input: updateInput
+                }
+            );    
             
             toast.success(submit ? 'Listing updates published successfully!' : 'Changes successfully saved as draft!');
             router.push('/dashboard');
