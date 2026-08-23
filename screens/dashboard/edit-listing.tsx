@@ -12,7 +12,7 @@ import { BasicListingData, LocationListingData, MediaListingData } from '@/netwo
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import React from 'react';
 import { toast } from 'sonner';
-import { getListingForEditAction } from '@/app/actions/listing-actions';
+import { gqlRequest } from '@/network/graphql-client';
 
 const tabOptions = [
     { name: 'Basic', value: 'basic' },
@@ -23,32 +23,20 @@ const tabOptions = [
 const TAB_ORDER = ['basic', 'media', 'location'] as const;
 type TabType = typeof TAB_ORDER[number];
 
-// Unified helper to execute requests securely against your GraphQL backend API
-async function fetchGraphQL(query: string, variables: Record<string, any> = {}) {
-    // If your app stores authentication tokens in localStorage/cookies, retrieve it here
-    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-
-    const response = await fetch("https://kaban-ai-be-graphql.onrender.com/api/graphql", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            ...(token ? { "Authorization": `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({ query, variables }),
-        // 🚀 THE FIX: Ensures cross-origin cookie storage context (like access tokens) 
-        // is preserved and sent alongside your existing Authorization bearer token.
-        credentials: "include",
-    });
-
-    const resBody = await response.json();
-    if (resBody.errors) {
-        throw new Error(resBody.errors[0]?.message || "GraphQL mutation or query execution failure.");
+// --- GraphQL Documents ---
+const GET_LISTING_FOR_EDIT_QUERY = `
+    query GetListingForEdit($id: String!) {
+        getListingForEdit(id: $id)
     }
-    return resBody.data;
-}
+`;
+
+const UPDATE_LISTING_MUTATION = `
+    mutation UpdateListing($id: String!, $input: JSONObject!) {
+        updateListing(id: $id, input: $input)
+    }
+`;
 
 export default function EditListingScreen() {
-
     const searchParams = useSearchParams();
     const router = useRouter();
     const params = useParams();
@@ -67,13 +55,11 @@ export default function EditListingScreen() {
     
     const [liveLocationData, setLiveLocationData] = React.useState<any>(null);
 
-    // Dynamic ref caching system matching your multi-step edit pipeline
     const draftRef = React.useRef<{
         basic: BasicListingData | null;
         media: MediaListingData | null;
     }>({ basic: null, media: null });
 
-    // Fetch listing details securely using the new getListingForEdit resolver
     React.useEffect(() => {
         if (!listingId) return;
 
@@ -81,21 +67,14 @@ export default function EditListingScreen() {
             try {
                 setIsLoading(true);
 
-                const query = `
-                    query GetListingForEdit($id: String!) {
-                        getListingForEdit(id: $id)
-                    }
-                `;
-                
-                const data = await fetchGraphQL(query, { id: listingId });
+                // Use central gqlRequest to automatically carry authentication headers
+                const data = await gqlRequest(GET_LISTING_FOR_EDIT_QUERY, { id: listingId });
                 const rawListing = data?.getListingForEdit;
 
                 if (!rawListing) {
                     throw new Error("Listing payload empty or access denied.");
                 }
 
-                // 🚀 BREAK CIRCULAR LOOPS: Force-clean the object reference maps 
-                // by serializing only the essential flat keys we need for the forms.
                 const listing = {
                     title: rawListing.title,
                     description: rawListing.description,
@@ -118,7 +97,6 @@ export default function EditListingScreen() {
                     } : null
                 };
                 
-                // Map fields from our cleaned copy into the step wizard form references
                 draftRef.current.basic = {
                     title: listing.title || "",
                     description: listing.description || "",
@@ -148,8 +126,6 @@ export default function EditListingScreen() {
                     (typeof err === "string" ? err : "Failed to load listing configuration details.");
 
                 console.error("❌ Isolated Prefill Error Text:", errorMessage);
-                
-                // Safely alert the UI using only the flat text primitive
                 toast.error(errorMessage);
             } finally {
                 setIsLoading(false);
@@ -272,13 +248,6 @@ export default function EditListingScreen() {
 
         setIsPending(true);
         try {
-            const mutation = `
-                mutation UpdateListing($id: String!, $input: JSONObject!) {
-                    updateListing(id: $id, input: $input)
-                }
-            `;
-
-            // Pack form inputs perfectly to match the server's updateListing JSONObject expectations
             const updateInput = {
                 title: basic.title,
                 description: basic.description,
@@ -296,7 +265,7 @@ export default function EditListingScreen() {
                 }
             };
 
-            await fetchGraphQL(mutation, {
+            await gqlRequest(UPDATE_LISTING_MUTATION, {
                 id: listingId,
                 input: updateInput
             });
@@ -360,7 +329,7 @@ export default function EditListingScreen() {
                         onFormSubmit={handleLocationSubmit}
                         isPending={isPending}
                         onBack={() => handleTabChange('media')}
-                        initialData={liveLocationData?.location || undefined} // 🚀 Using safe optional chaining
+                        initialData={liveLocationData?.location || undefined}
                     />
                 </div>
             </DashboardPageContainer>

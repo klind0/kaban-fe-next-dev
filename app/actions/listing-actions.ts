@@ -29,11 +29,6 @@ export async function createListingAction(
       }
     }
 
-    console.log("==========================================");
-    console.log("📡 [SERVER ACTION] SENDING TO GRAPHQL (SANITIZED):");
-    console.log(JSON.stringify(sanitizedInput, null, 2));
-    console.log("==========================================");
-
     const data = await serverGqlRequest<{ createListing: { id: string } }>(
       CREATE_LISTING_MUTATION,
       { input: sanitizedInput, submit: false }, 
@@ -46,9 +41,7 @@ export async function createListingAction(
     if (isRedirectError(error)) {
       throw error;
     }
-
-    console.error("❌ [SERVER ACTION] GRAPHQL MUTATION CRASHED!");
-    
+ 
     let friendlyMessage = error?.message || "Failed to create listing due to a server error.";
     
     // Adjusted check to accommodate clean GraphQL error arrays from fetch
@@ -72,21 +65,6 @@ export async function submitListingAction(id: string): Promise<unknown> {
     { id },
   );
   return data.submitListing;
-}
-
-export async function getListingForEditAction(id: string): Promise<any> {
-  try {
-    const query = `
-      query GetListingForEdit($id: String!) {
-        getListingForEdit(id: $id)
-      }
-    `;
-    const data = await serverGqlRequest<{ getListingForEdit: any }>(query, { id });
-    return { success: true, listing: data.getListingForEdit };
-  } catch (error: any) {
-    console.error("❌ Failed to fetch listing for edit:", error);
-    return { success: false, error: error?.message || "Failed to load listing." };
-  }
 }
 
 export async function uploadListingImagesAction(
