@@ -407,7 +407,7 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm(
                         Previous
                     </Button>
                     <Button type="submit" className="md:min-w-30" disabled={isPending}>
-                        {isPending ? 'Saving...' : initialData ? 'Save Changes' : 'Next'}
+                        {isPending ? 'Saving...' : 'Next'}
                     </Button>
                 </div>
             </FormCard>

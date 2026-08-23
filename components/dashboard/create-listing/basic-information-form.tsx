@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import FormControl from "@/components/universal/form-control";
 import { getErrorMessage } from "@/lib/getErrorMessage";
@@ -54,7 +54,8 @@ const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function B
         control, 
         formState: { errors }, 
         setValue, 
-        getValues 
+        getValues,
+        reset 
     } = useForm<IListing>({
         defaultValues: {
             title: initialData?.title || '',
@@ -81,6 +82,35 @@ const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function B
         },
         mode: 'onChange'
     });
+
+    // 🚀 Hydrate form whenever async initialData resolves
+    useEffect(() => {
+        if (initialData) {
+            reset({
+                title: initialData.title || '',
+                status: (initialData.status || 'rent') as Status,
+                property_category: (initialData.property_category || '') as PropertyCategory,
+                property_type: (initialData.property_type || '') as PropertyType,
+                description: initialData.description || '',
+                price: {
+                    amount: initialData.price?.amount ?? 0,
+                    per: initialData.price?.per || ''
+                },
+                details: {
+                    bedroom: initialData.details?.bedroom ?? 0,
+                    bathroom: initialData.details?.bathroom ?? 0,
+                    living_room: initialData.details?.living_room ?? 0,
+                    land_area: initialData.details?.land_area || '',
+                    parking_space: initialData.details?.parking_space ?? 0,
+                    furnished: initialData.details?.furnished ?? false,
+                    serviced: initialData.details?.serviced ?? false,
+                    newly_built: initialData.details?.newly_built ?? false,
+                    total_floors: initialData.details?.total_floors ?? 0,
+                    features: initialData.details?.features || []
+                },
+            });
+        }
+    }, [initialData, reset]);
 
     const onSubmit = (data: IListing) => {
         onFormSubmit({

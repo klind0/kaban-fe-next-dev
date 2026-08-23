@@ -32,7 +32,7 @@ type Props = {
     isPending: boolean;
     onBack: () => void;
     externalErrors?: any;
-    initialData?: Partial<IListing["location"]>; // Added for Edit mode support
+    initialData?: Partial<IListing["location"]>;
 };
 
 export default function LocationForm({ onFormSubmit, isPending, onBack, externalErrors, initialData }: Props) {
@@ -49,7 +49,6 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
 
     const [scriptLoaded, setScriptLoaded] = useState(false);
 
-    // Modern Functional API Loader initialization
     useEffect(() => {
         setOptions({
             key: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
@@ -71,9 +70,9 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
         handleSubmit,
         control,
         setValue,
+        reset,
         formState: { errors },
     } = useForm<LocationFormValues>({
-        // Fall back to initialData values if they are provided, otherwise use creation defaults
         defaultValues: {
             location: {
                 state: initialData?.state || "",
@@ -84,10 +83,28 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
                     ? initialData.coordinates 
                     : [5.0377, 7.9128], 
             },
-            agreement: !!initialData, // Automatically check agreement if it's an existing verified listing
+            agreement: !!initialData,
         },
         mode: "onChange",
     });
+
+    // 🚀 Hydrate form whenever async initialData changes
+    useEffect(() => {
+        if (initialData) {
+            reset({
+                location: {
+                    state: initialData.state || "",
+                    city: initialData.city || "",
+                    address: initialData.address || "",
+                    landmark: initialData.landmark || "",
+                    coordinates: initialData.coordinates && initialData.coordinates.length === 2 
+                        ? initialData.coordinates 
+                        : [5.0377, 7.9128],
+                },
+                agreement: true,
+            });
+        }
+    }, [initialData, reset]);
 
     const coordinates = useWatch({ control, name: "location.coordinates" });
     const selectedState = useWatch({ control, name: "location.state" });
@@ -96,8 +113,6 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
     const longitude = coordinates?.[1] ?? 7.9128;
 
     const cityOptions = selectedState ? (nigeriaCitiesByState[selectedState] ?? []) : [];
-
-    // Stable boolean check to use inside dependencies instead of the full initialData object reference
     const hasInitialData = !!initialData;
 
     // Sync state changes with native Google Map instances
@@ -111,7 +126,7 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
         if (!mapInstanceRef.current) {
             mapInstanceRef.current = new g.maps.Map(mapContainerRef.current, {
                 center: targetCenter,
-                zoom: hasInitialData ? 14.5 : 14, // 🚀 Loop Protection: Used hasInitialData boolean variable
+                zoom: hasInitialData ? 14.5 : 14,
                 disableDefaultUI: true,
                 zoomControl: true,
                 gestureHandling: "cooperative",
@@ -124,7 +139,6 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
                 ]
             });
         } else {
-            // Smoothly pan map frame when editing or updates arrive
             mapInstanceRef.current.panTo(targetCenter);
         }
 
@@ -142,7 +156,6 @@ export default function LocationForm({ onFormSubmit, isPending, onBack, external
                 fillOpacity: 0.12,
             });
         }
-    // 🚀 Loop Protection: Swapped [initialData] object with the primitive boolean [hasInitialData]
     }, [scriptLoaded, latitude, longitude, hasInitialData]);
 
     const onSubmit = (data: LocationFormValues) => {
