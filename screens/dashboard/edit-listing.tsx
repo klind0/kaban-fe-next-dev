@@ -79,50 +79,51 @@ export default function EditListingScreen() {
                     throw new Error("Listing payload empty or access denied.");
                 }
 
-                const listing = {
-                    title: rawListing.title,
-                    description: rawListing.description,
-                    property_category: rawListing.property_category,
-                    property_type: rawListing.property_type,
-                    status: rawListing.status,
-                    price: rawListing.price,
-                    images: rawListing.images,
-                    cover_image: rawListing.cover_image,
-                    video: rawListing.video,
-                    video_url: rawListing.video_url,
-                    location: rawListing.location ? {
-                        address: rawListing.location.address || "",
-                        state: rawListing.location.state || "",
-                        city: rawListing.location.city || "",
-                        landmark: rawListing.location.landmark || "",
-                        coordinates: Array.isArray(rawListing.location.coordinates) 
-                            ? [...rawListing.location.coordinates] 
-                            : [5.0377, 7.9128]
-                    } : null
-                };
-                
-                draftRef.current.basic = {
-                    title: listing.title || "",
-                    description: listing.description || "",
-                    property_category: listing.property_category || "",
-                    property_type: listing.property_type || "",
-                    status: listing.status || "",
-                    price: listing.price?.amount || listing.price || "",
-                } as any; 
+                // Ensure coordinates adhere strictly to [lat, lng] array structure
+                const rawCoords = rawListing.location?.coordinates;
+                const safeCoordinates: [number, number] = 
+                    Array.isArray(rawCoords) && rawCoords.length === 2 && !rawCoords.some(isNaN)
+                        ? [Number(rawCoords[0]), Number(rawCoords[1])]
+                        : [5.0377, 7.9128]; // Default fallback [Lat, Lng]
 
-                const mappedImages = Array.isArray(listing.images)
-                    ? listing.images.map((img: any) => typeof img === 'string' ? img : img.url)
+                const listingLocation = rawListing.location ? {
+                    address: rawListing.location.address || "",
+                    state: rawListing.location.state || "",
+                    city: rawListing.location.city || "",
+                    landmark: rawListing.location.landmark || "",
+                    coordinates: safeCoordinates
+                } : {
+                    address: "",
+                    state: "",
+                    city: "",
+                    landmark: "",
+                    coordinates: [5.0377, 7.9128] as [number, number]
+                };
+
+                // 1. Populate Basic Draft (Fixes Issue 1)
+                const extractedPrice = rawListing.price?.amount ?? rawListing.price ?? "";
+                draftRef.current.basic = {
+                    title: rawListing.title || "",
+                    description: rawListing.description || "",
+                    property_category: rawListing.property_category || "",
+                    property_type: rawListing.property_type || "",
+                    status: rawListing.status || "",
+                    price: String(extractedPrice),
+                } as any;
+
+                // 2. Populate Media Draft
+                const mappedImages = Array.isArray(rawListing.images)
+                    ? rawListing.images.map((img: any) => typeof img === 'string' ? img : img.url)
                     : [];
 
                 draftRef.current.media = {
-                    images: mappedImages.length > 0 ? mappedImages : (listing.cover_image ? [listing.cover_image] : []),
+                    images: mappedImages.length > 0 ? mappedImages : (rawListing.cover_image ? [rawListing.cover_image] : []),
                     cover_index: rawListing.cover_index || 0,
-                    video_url: listing.video || listing.video_url || "",
+                    video_url: rawListing.video || rawListing.video_url || "",
                 };
 
-                setLiveLocationData({
-                    location: listing.location || { address: "", state: "", city: "", landmark: "", coordinates: [5.0377, 7.9128] }
-                });
+                // 3. Set Location State directly without nested 'location' wrapper (Fixes Issue 2 & 3)
+                setLiveLocationData(listingLocation);
 
             } catch (err: any) {
                 // 🚀 STACK OVERFLOW FIX: Force extract a strict string primitive 
@@ -346,7 +347,7 @@ export default function EditListingScreen() {
                         onFormSubmit={handleLocationSubmit}
                         isPending={isPending}
                         onBack={() => handleTabChange('media')}
-                        initialData={liveLocationData?.location || undefined}
+                        initialData={liveLocationData || undefined}
                     />
                 </div>
             </DashboardPageContainer>
