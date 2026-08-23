@@ -125,11 +125,21 @@ export default function EditListingScreen() {
                 });
 
             } catch (err: any) {
-                const errorMessage = 
-                    err?.message || 
-                    (typeof err === "string" ? err : "Failed to load listing configuration details.");
+                // 🚀 STACK OVERFLOW FIX: Force extract a strict string primitive 
+                // to prevent circular error objects from choking React state / toast.error
+                let errorMessage = "Failed to load listing configuration details.";
+
+                if (typeof err === "string") {
+                    errorMessage = err;
+                } else if (err?.message && typeof err.message === "string") {
+                    errorMessage = err.message;
+                } else if (err?.errors && Array.isArray(err.errors) && err.errors[0]?.message) {
+                    errorMessage = String(err.errors[0].message);
+                }
 
                 console.error("❌ Isolated Prefill Error Text:", errorMessage);
+                
+                // Safely alert the UI using only a sanitized string
                 toast.error(errorMessage);
             } finally {
                 setIsLoading(false);
