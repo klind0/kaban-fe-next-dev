@@ -341,14 +341,14 @@ export default function EditListingScreen() {
                     />
                 </div>
                 
-                <div className={activeTab !== 'location' ? 'hidden' : ''}>
+                {/*<div className={activeTab !== 'location' ? 'hidden' : ''}>
                     <LocationForm
                         onFormSubmit={handleLocationSubmit}
                         isPending={isPending}
                         onBack={() => handleTabChange('media')}
                         initialData={liveLocationData?.location || undefined}
                     />
-                </div>
+                </div> */}
             </DashboardPageContainer>
         </>
     );
