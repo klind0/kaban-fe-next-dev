@@ -91,7 +91,7 @@ export default function EditListingScreen() {
                 const listingLocation = rawListing.location ? {
                     address: rawListing.location.address || "",
                     state: toTitleCase(rawListing.location.state || ""), // Converts "akwa ibom" -> "Akwa Ibom"
-                    city: toTitleCase(rawListing.location.city || "")
+                    city: toTitleCase(rawListing.location.city || ""),
                     landmark: rawListing.location.landmark || "",
                     coordinates: safeCoordinates
                 } : {
