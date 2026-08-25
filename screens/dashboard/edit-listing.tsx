@@ -84,10 +84,14 @@ export default function EditListingScreen() {
                         ? [Number(rawCoords[1]), Number(rawCoords[0])] // Swap index 1 (Lat) and 0 (Lng)
                         : [5.0377, 7.9128];
 
+                const toTitleCase = (str: string) =>
+                    str ? str.replace(/\b\w/g, (char) => char.toUpperCase()) : "";
+
+                
                 const listingLocation = rawListing.location ? {
                     address: rawListing.location.address || "",
-                    state: rawListing.location.state || "",
-                    city: rawListing.location.city || "",
+                    state: toTitleCase(rawListing.location.state || ""), // Converts "akwa ibom" -> "Akwa Ibom"
+                    city: toTitleCase(rawListing.location.city || "")
                     landmark: rawListing.location.landmark || "",
                     coordinates: safeCoordinates
                 } : {
@@ -98,14 +102,18 @@ export default function EditListingScreen() {
                     coordinates: [5.0377, 7.9128] as [number, number]
                 };
 
-                const extractedPrice = rawListing.price?.amount ?? rawListing.price ?? "";
+                const rawPrice = rawListing.price;
+                const extractedPrice = typeof rawPrice === 'object' && rawPrice !== null 
+                    ? rawPrice.amount 
+                    : rawPrice;
+
                 draftRef.current.basic = {
                     title: rawListing.title || "",
                     description: rawListing.description || "",
                     property_category: rawListing.property_category || "",
                     property_type: rawListing.property_type || "",
                     status: rawListing.status || "",
-                    price: String(extractedPrice),
+                    price: extractedPrice ? String(extractedPrice) : "", // Strictly outputs "600000"
                     furnished: rawListing.details?.furnished ?? false,
                     serviced: rawListing.details?.serviced ?? false,
                     newly_built: rawListing.details?.newly_built ?? false,
