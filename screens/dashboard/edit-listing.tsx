@@ -81,7 +81,7 @@ export default function EditListingScreen() {
                 const rawCoords = rawListing.location?.coordinates;
                 const safeCoordinates: [number, number] = 
                     Array.isArray(rawCoords) && rawCoords.length === 2 && !rawCoords.some(isNaN)
-                        ? [Number(rawCoords[0]), Number(rawCoords[1])]
+                        ? [Number(rawCoords[1]), Number(rawCoords[0])] // Swap index 1 (Lat) and 0 (Lng)
                         : [5.0377, 7.9128];
 
                 const listingLocation = rawListing.location ? {
@@ -98,7 +98,6 @@ export default function EditListingScreen() {
                     coordinates: [5.0377, 7.9128] as [number, number]
                 };
 
-                // 1. Populate Basic Draft
                 const extractedPrice = rawListing.price?.amount ?? rawListing.price ?? "";
                 draftRef.current.basic = {
                     title: rawListing.title || "",
@@ -107,6 +106,10 @@ export default function EditListingScreen() {
                     property_type: rawListing.property_type || "",
                     status: rawListing.status || "",
                     price: String(extractedPrice),
+                    furnished: rawListing.details?.furnished ?? false,
+                    serviced: rawListing.details?.serviced ?? false,
+                    newly_built: rawListing.details?.newly_built ?? false,
+                    features: rawListing.details?.features || [],
                 } as any;
 
                 // 2. Populate Media Draft
