@@ -73,10 +73,6 @@ const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function B
                 living_room: initialData?.details?.living_room ?? 0,
                 land_area: initialData?.details?.land_area || '',
                 parking_space: initialData?.details?.parking_space ?? 0,
-                furnished: initialData?.details?.furnished ?? false,
-                serviced: initialData?.details?.serviced ?? false,
-                newly_built: initialData?.details?.newly_built ?? false,
-                total_floors: initialData?.details?.total_floors ?? 0,
                 features: initialData?.details?.features || []
             },
         },
@@ -102,10 +98,6 @@ const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function B
                     living_room: initialData.details?.living_room ?? 0,
                     land_area: initialData.details?.land_area || '',
                     parking_space: initialData.details?.parking_space ?? 0,
-                    furnished: initialData.details?.furnished ?? false,
-                    serviced: initialData.details?.serviced ?? false,
-                    newly_built: initialData.details?.newly_built ?? false,
-                    total_floors: initialData.details?.total_floors ?? 0,
                     features: initialData.details?.features || []
                 },
             });

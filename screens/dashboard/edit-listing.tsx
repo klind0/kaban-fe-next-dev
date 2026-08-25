@@ -114,9 +114,6 @@ export default function EditListingScreen() {
                     property_type: rawListing.property_type || "",
                     status: rawListing.status || "",
                     price: extractedPrice ? String(extractedPrice) : "", // Strictly outputs "600000"
-                    furnished: rawListing.details?.furnished ?? false,
-                    serviced: rawListing.details?.serviced ?? false,
-                    newly_built: rawListing.details?.newly_built ?? false,
                     features: rawListing.details?.features || [],
                 } as any;
 

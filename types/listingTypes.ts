@@ -57,12 +57,6 @@ export type Detail = {
   living_room: number;
   land_area: string;
   parking_space: number;
-  furnished: boolean;
-  serviced: boolean;
-  newly_built: boolean;
-  year_built: number;
-  floor: number;
-  total_floors: number;
   features: string[];
 };
 
