@@ -96,7 +96,6 @@ async function createDraft(
     if (d.toilet) d.toilet = Number(d.toilet);
     if (d.living_room) d.living_room = Number(d.living_room);
     if (d.parking_space) d.parking_space = Number(d.parking_space);
-    if (d.total_floors) d.total_floors = Number(d.total_floors);
     
     if (d.land_area && d.land_area !== '') {
       d.land_area = parseFloat(d.land_area);

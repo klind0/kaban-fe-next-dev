@@ -23,7 +23,8 @@ const tabOptions = [
 const TAB_ORDER = ['basic', 'media', 'location'] as const;
 type TabType = typeof TAB_ORDER[number];
 
-// --- GraphQL Documents ---
+const toTitleCase = (str: string) => str ? str.replace(/\b\w/g, (char) => char.toUpperCase()) : "";
+
 const GET_LISTING_FOR_EDIT_QUERY = `
     query GetListingForEdit($id: String!) {
         getListingForEdit(id: $id)
@@ -53,6 +54,8 @@ export default function EditListingScreen() {
     const basicFormRef = React.useRef<BasicFormHandle>(null);
     const mediaFormRef = React.useRef<MediaFormHandle>(null);
     
+    const [basicInitial, setBasicInitial] = React.useState<BasicListingData | null>(null);
+    const [mediaInitial, setMediaInitial] = React.useState<MediaListingData | null>(null);
     const [liveLocationData, setLiveLocationData] = React.useState<any>(null);
 
     const draftRef = React.useRef<{
@@ -78,19 +81,16 @@ export default function EditListingScreen() {
                     throw new Error("Listing payload empty or access denied.");
                 }
 
+                // 1. Invert GeoJSON [Lng, Lat] back to Leaflet [Lat, Lng]
                 const rawCoords = rawListing.location?.coordinates;
                 const safeCoordinates: [number, number] = 
                     Array.isArray(rawCoords) && rawCoords.length === 2 && !rawCoords.some(isNaN)
-                        ? [Number(rawCoords[1]), Number(rawCoords[0])] // Swap index 1 (Lat) and 0 (Lng)
+                        ? [Number(rawCoords[1]), Number(rawCoords[0])]
                         : [5.0377, 7.9128];
 
-                const toTitleCase = (str: string) =>
-                    str ? str.replace(/\b\w/g, (char) => char.toUpperCase()) : "";
-
-                
                 const listingLocation = rawListing.location ? {
                     address: rawListing.location.address || "",
-                    state: toTitleCase(rawListing.location.state || ""), // Converts "akwa ibom" -> "Akwa Ibom"
+                    state: toTitleCase(rawListing.location.state || ""),
                     city: toTitleCase(rawListing.location.city || ""),
                     landmark: rawListing.location.landmark || "",
                     coordinates: safeCoordinates
@@ -102,47 +102,47 @@ export default function EditListingScreen() {
                     coordinates: [5.0377, 7.9128] as [number, number]
                 };
 
+                // 2. Safe Price Scalar Extraction
                 const rawPrice = rawListing.price;
                 const extractedPrice = typeof rawPrice === 'object' && rawPrice !== null 
                     ? rawPrice.amount 
                     : rawPrice;
 
-                draftRef.current.basic = {
+                const parsedBasic: any = {
                     title: rawListing.title || "",
                     description: rawListing.description || "",
                     property_category: rawListing.property_category || "",
                     property_type: rawListing.property_type || "",
                     status: rawListing.status || "",
-                    price: extractedPrice ? String(extractedPrice) : "", // Strictly outputs "600000"
+                    price: extractedPrice !== undefined && extractedPrice !== null && extractedPrice !== "" 
+                        ? String(extractedPrice) 
+                        : "",
                     features: rawListing.details?.features || [],
-                } as any;
+                };
 
-                // 2. Populate Media Draft
+                // 3. Media Extraction
                 const mappedImages = Array.isArray(rawListing.images)
                     ? rawListing.images.map((img: any) => typeof img === 'string' ? img : img.url)
                     : [];
 
-                draftRef.current.media = {
+                const parsedMedia: MediaListingData = {
                     images: mappedImages.length > 0 ? mappedImages : (rawListing.cover_image ? [rawListing.cover_image] : []),
                     cover_index: rawListing.cover_index || 0,
                     video_url: rawListing.video || rawListing.video_url || "",
                 };
 
-                // 3. Set Location State directly 
+                // Populate Controlled React State to guarantee sub-form reactivity
+                setBasicInitial(parsedBasic);
+                setMediaInitial(parsedMedia);
                 setLiveLocationData(listingLocation);
 
+                // Initialize draft backup
+                draftRef.current.basic = parsedBasic;
+                draftRef.current.media = parsedMedia;
+
             } catch (err: any) {
-                let errorMessage = "Failed to load listing configuration details.";
-
-                if (typeof err === "string") {
-                    errorMessage = err;
-                } else if (err?.message && typeof err.message === "string") {
-                    errorMessage = err.message;
-                } else if (err?.errors && Array.isArray(err.errors) && err.errors[0]?.message) {
-                    errorMessage = String(err.errors[0].message);
-                }
-
-                console.error("❌ Isolated Prefill Error Text:", errorMessage);
+                let errorMessage = "Failed to load listing details.";
+                if (err?.message) errorMessage = err.message;
                 toast.error(errorMessage);
             } finally {
                 setIsLoading(false);
@@ -152,62 +152,22 @@ export default function EditListingScreen() {
         fetchListingDetails();
     }, [listingId]);
 
-    const scrollToMissingField = (inputName: string) => {
-        const element = document.querySelector(`[name="${inputName}"]`) || 
-                        document.querySelector(`[name$="${inputName}"]`);
-        
-        if (element) {
-            const wrapper = element.closest('.form-control') || element.closest('div') || element;
-            
-            setTimeout(() => {
-                wrapper.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'center', 
-                });
-                
-                if (typeof (element as HTMLElement).focus === 'function') {
-                    (element as HTMLElement).focus({ preventScroll: true });
-                }
-            }, 100);
-        }
-    };
-
     const isTabValid = (tabId: TabType, submittedLocationData?: any): boolean => {
         const liveBasicValues = basicFormRef.current?.getValues?.() || null;
         const liveMediaValues = mediaFormRef.current?.getValues?.() || null;
 
-        const basic = liveBasicValues || draftRef.current.basic;
-        const media = liveMediaValues || draftRef.current.media;
+        const basic = liveBasicValues || draftRef.current.basic || basicInitial;
+        const media = liveMediaValues || draftRef.current.media || mediaInitial;
         const location = submittedLocationData || liveLocationData; 
 
         switch (tabId) {
             case 'basic':
-                if (!basic?.title) return false;
-                if (!basic?.property_category) return false;
-                if (!basic?.property_type) return false;
-                if (!basic?.status) return false;
-                if (!basic?.price) return false;
-                return true;
-
+                return !!(basic?.title && basic?.property_category && basic?.property_type && basic?.status && basic?.price);
             case 'media':
-                if (!media?.images || media.images.length === 0) return false;
-                return true;
-
+                return !!(media?.images && media.images.length > 0);
             case 'location':
-                // FIXED: Normalize both wrapped ({ location: {...} }) and flat location formats
                 const targetLoc = location?.location || location;
-                if (!targetLoc?.address) {
-                    toast.error("Please provide a property address.");
-                    scrollToMissingField('address');
-                    return false;
-                }
-                if (!targetLoc?.state) {
-                    toast.error("Please select a state.");
-                    scrollToMissingField('state');
-                    return false;
-                }
-                return true;
-
+                return !!(targetLoc?.address && targetLoc?.state);
             default:
                 return false;
         }
@@ -220,14 +180,13 @@ export default function EditListingScreen() {
 
         if (targetIdx > currentIdx) {
             if (targetIdx > 0 && !isTabValid('basic')) {
-                toast.error("Please fill out all essential fields before proceeding.");
+                toast.error("Please fill out all mandatory basic fields.");
                 setActiveTab('basic');
                 handleQueryParamsChange('tab', 'basic');
                 return; 
             }
-
             if (cleanTarget === 'location' && !isTabValid('media')) {
-                toast.error("The Media tab is incomplete. Please upload at least one image.");
+                toast.error("Please upload at least one image.");
                 setActiveTab('media');
                 handleQueryParamsChange('tab', 'media');
                 return; 
@@ -238,45 +197,24 @@ export default function EditListingScreen() {
         handleQueryParamsChange('tab', cleanTarget);
     };
 
-    const handleBasicNext = (data: BasicListingData) => {
-        draftRef.current.basic = data;
-        handleTabChange('media');
-    };
-
-    const handleMediaNext = (data: MediaListingData) => {
-        draftRef.current.media = data;
-        handleTabChange('location');
-    };
-
     const handleLocationSubmit = async (data?: LocationListingData | any, submit: boolean = true) => {
-        const basic = basicFormRef.current?.getValues() || draftRef.current.basic;
-        const media = mediaFormRef.current?.getValues() || draftRef.current.media;
-        
+        const basic = basicFormRef.current?.getValues() || draftRef.current.basic || basicInitial;
+        const media = mediaFormRef.current?.getValues() || draftRef.current.media || mediaInitial;
         const effectiveLocation = data || liveLocationData;
-        if (data) setLiveLocationData(data);
 
-        if (!basic) {
-            toast.error("Please fill out essential fields on the Basic tab.");
-            handleTabChange('basic');
-            return;
-        }
-
-        if (submit && !isTabValid('location', effectiveLocation)) {
-            return; 
-        }
+        if (submit && !isTabValid('location', effectiveLocation)) return;
 
         setIsPending(true);
         try {
             const locObj = effectiveLocation?.location || effectiveLocation;
 
-            // FIXED: Added missing images and cover_index properties to update payload
             const updateInput = {
                 title: basic.title,
                 description: basic.description,
                 property_category: basic.property_category,
                 property_type: basic.property_type,
                 status: basic.status,
-                price: typeof basic.price === 'object' ? basic.price : { amount: parseFloat(basic.price as any) },
+                price: { amount: parseFloat(basic.price as any) },
                 images: media?.images || [],
                 cover_index: media?.cover_index || 0,
                 video: media?.video_url || "",
@@ -285,23 +223,19 @@ export default function EditListingScreen() {
                     state: locObj?.state,
                     city: locObj?.city,
                     landmark: locObj?.landmark,
-                    coordinates: locObj?.coordinates || [5.0377, 7.9128]
+                    coordinates: [locObj?.coordinates[1], locObj?.coordinates[0]] // Re-invert to GeoJSON [Lng, Lat] for MongoDB
                 }
             };
 
             await gqlRequest<{ updateListing: any }>(
                 UPDATE_LISTING_MUTATION, 
-                {
-                    id: listingId,
-                    input: updateInput
-                }
+                { id: listingId, input: updateInput }
             );    
             
-            toast.success(submit ? 'Listing updates published successfully!' : 'Changes successfully saved as draft!');
+            toast.success(submit ? 'Listing updated successfully!' : 'Saved as draft!');
             router.push('/dashboard');
             router.refresh();
         } catch (err: any) {
-            console.error("🔴 [CLIENT] CAUGHT EDIT MUTATION ERROR:", err);
             toast.error(err.message || 'Failed to save updates.');
         } finally {
             setIsPending(false);
@@ -313,7 +247,7 @@ export default function EditListingScreen() {
             <DashboardPageContainer>
                 <div className="w-full min-h-[60vh] flex flex-col items-center justify-center gap-2">
                     <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-                    <p className="text-sm font-medium text-neutral-800">Retrieving secure listing record...</p>
+                    <p className="text-sm font-medium text-neutral-800">Retrieving listing record...</p>
                 </div>
             </DashboardPageContainer>
         );
@@ -327,26 +261,28 @@ export default function EditListingScreen() {
                 </Button>
             </DashboardNavbar>
             <DashboardPageContainer>
-                <CustomTab
-                    items={tabOptions}
-                    activeTab={activeTab}
-                    onTabChange={handleTabChange}
-                />
+                <CustomTab items={tabOptions} activeTab={activeTab} onTabChange={handleTabChange} />
                 
                 <div className={activeTab !== 'basic' ? 'hidden' : ''}>
                     <BasicInformationForm 
                         ref={basicFormRef} 
-                        onFormSubmit={handleBasicNext} 
-                        initialData={draftRef.current.basic || undefined}
+                        onFormSubmit={(data) => {
+                            draftRef.current.basic = data;
+                            handleTabChange('media');
+                        }} 
+                        initialData={basicInitial || undefined}
                     />
                 </div>
                 
                 <div className={activeTab !== 'media' ? 'hidden' : ''}>
                     <MediaForm
                         ref={mediaFormRef}
-                        onNext={handleMediaNext}
+                        onNext={(data) => {
+                            draftRef.current.media = data;
+                            handleTabChange('location');
+                        }}
                         onBack={() => handleTabChange('basic')}
-                        initialData={draftRef.current.media || undefined}
+                        initialData={mediaInitial || undefined}
                         isPending={isPending}
                     />
                 </div>
