@@ -208,9 +208,16 @@ export default function EditListingScreen() {
         try {
             const locObj = effectiveLocation?.location || effectiveLocation;
 
+            const basic = draftRef.current.basic ?? basicFormRef.current?.getValues() ?? null;
+
+            if (!basic) {
+                toast.error('Please complete basic property information first.');
+                return;
+            }
+
             const updateInput = {
-                title: basic.title,
-                description: basic.description,
+                title: basic.title || 'Untitled Listing',
+                description: basic.description || '',
                 property_category: basic.property_category,
                 property_type: basic.property_type,
                 status: basic.status,

@@ -212,7 +212,7 @@ export default function CreateListingScreen() {
             toast.error('Please fill in the basic information first.');
             return;
         }
-
+        
         setIsPending(true);
         try {
             await createListing(
