@@ -1,7 +1,7 @@
 "use client";
 
 import BasicInformationForm, { BasicFormHandle } from '@/components/dashboard/create-listing/basic-information-form';
-import LocationForm from '@/components/dashboard/create-listing/location-form';
+import LocationForm, { LocationFormHandle } from '@/components/dashboard/create-listing/location-form';
 import MediaForm, { MediaFormHandle } from '@/components/dashboard/create-listing/media-form';
 import DashboardNavbar from '@/components/dashboard/dashboard-navbar';
 import DashboardPageContainer from '@/components/dashboard/dashboard-page-container';
@@ -35,6 +35,7 @@ export default function CreateListingScreen() {
 
     const basicFormRef = React.useRef<BasicFormHandle>(null);
     const mediaFormRef = React.useRef<MediaFormHandle>(null);
+    const locationFormRef = React.useRef<LocationFormHandle>(null);
     
     const [liveLocationData, setLiveLocationData] = React.useState<any>(null);
 
@@ -187,7 +188,9 @@ export default function CreateListingScreen() {
                 submit
             );
             
-            toast.success(submit ? 'Listing submitted for review!' : 'Draft saved successfully!');
+            toast.success(
+                submit ? 'Listing submitted for review!'
+            );
             router.push('/dashboard');
         } catch (err: any) {
             console.error("🔴 [CLIENT] CAUGHT MUTATION ERROR:", err);
@@ -201,12 +204,30 @@ export default function CreateListingScreen() {
                 // Only trigger this if there are no specialized backend structure arrays
                 toast.error(err.message || err instanceof Error ? err.message : 'Failed to process operation.');
             }
+        } finally {
+            setIsPending(false);
+        };
+    };
+
+    const resolveLocation = (): LocationListingData | null => {
+
+        const fromForm = locationFormRef.current?.getValues?.() ?? null;
+        if (fromForm?.location?.address || fromForm?.location?.state) {
+            return fromForm;
         }
+
+        if (liveLocationData?.location || liveLocationData?.address) {
+            return liveLocationData.location
+            ? liveLocationData
+            : { location: liveLocationData };
+        }
+        return null;
     };
 
     const handleSaveDraft = async () => {
         const basic = draftRef.current.basic ?? basicFormRef.current?.getValues() ?? null;
         const media = draftRef.current.media ?? mediaFormRef.current?.getValues() ?? null;
+        const location = resolveLocation();
 
         if (!basic) {
             toast.error('Please fill in the basic information first.');
@@ -218,18 +239,17 @@ export default function CreateListingScreen() {
             await createListing(
                 basic,
                 media || { images: [], cover_index: 0, video_url: "" },
-                liveLocationData,
-                false
+                location,
+                false,
             );
-            
             toast.success('Listing saved as draft!');
             router.push('/dashboard');
         } catch (err: any) {
             toast.error(err instanceof Error ? err.message : 'Failed to save draft.');
         } finally {
             setIsPending(false);
-        }
-    };
+        };
+    }
 
     return (
         <>
@@ -263,6 +283,7 @@ export default function CreateListingScreen() {
                 
                 <div className={activeTab !== 'location' ? 'hidden' : ''}>
                     <LocationForm
+                        ref={locationFormRef}
                         onFormSubmit={handleLocationSubmit}
                         isPending={isPending}
                         onBack={() => handleTabChange('media')}

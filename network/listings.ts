@@ -74,10 +74,10 @@ async function createDraft(
       city: location.location.city,
       address: location.location.address,
       landmark: location.location.landmark || undefined,
-      // ✨ FIX 1: Provide fallback structures for coordinate pairs
-      coordinates: Array.isArray(sourceCoords) && sourceCoords.length === 2 
-        ? { lat: Number(sourceCoords[0]), lng: Number(sourceCoords[1]) }
-        : undefined
+      coordinates:
+        Array.isArray(sourceCoords) && sourceCoords.length === 2
+          ? [Number(sourceCoords[1]), Number(sourceCoords[0])] // [lng, lat]
+          : undefined,
     };
   }
 
@@ -91,17 +91,14 @@ async function createDraft(
 
   if (rawPayload.details) {
     const d = rawPayload.details;
-    if (d.bedroom) d.bedroom = Number(d.bedroom);
+    if (d.bedroom != null) d.bedroom = Number(d.bedroom);
     if (d.bathroom) d.bathroom = Number(d.bathroom);
     if (d.toilet) d.toilet = Number(d.toilet);
     if (d.living_room) d.living_room = Number(d.living_room);
     if (d.parking_space) d.parking_space = Number(d.parking_space);
     
-    if (d.land_area && d.land_area !== '') {
-      d.land_area = parseFloat(d.land_area);
-    } else {
-      delete d.land_area;
-    }
+    if (d.land_area === "" || d.land_area == null) delete d.land_area;
+    else d.land_area = String(d.land_area);
   }
 
   // ✨ FIX 2: Explicitly clear cover_index out of this payload text schema entirely

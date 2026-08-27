@@ -8,7 +8,7 @@ import FormControl from "@/components/universal/form-control";
 import { Button } from "@/components/ui/button";
 import { ImageIcon } from "@/components/icons/image-icon";
 import Image from "next/image";
-import React from "react";
+import React{ useEffect } from "react";
 import { MediaListingData } from "@/network/listings";
 
 type MediaFormValues = {
@@ -48,6 +48,7 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm(
         clearErrors,
         setError,
         getValues,
+        reset,
     } = useForm<MediaFormValues>({
         defaultValues: {
             images: prefilledImages,
@@ -56,6 +57,16 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm(
         },
         mode: "onChange",
     });
+
+    useEffect(() => {
+        if (initialData?.images) {
+            reset({
+            images: initialData.images,
+            cover_index: initialData.cover_index || 0,
+            video_url: initialData.video_url || "",
+            });
+        }
+    }, [initialData, reset]);
 
     const watchedImages = useWatch({ control, name: "images" }) || [];
     const watchedCoverIndex = useWatch({ control, name: "cover_index" }) || 0;

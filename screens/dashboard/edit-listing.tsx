@@ -114,10 +114,24 @@ export default function EditListingScreen() {
                     property_category: rawListing.property_category || "",
                     property_type: rawListing.property_type || "",
                     status: rawListing.status || "",
-                    price: extractedPrice !== undefined && extractedPrice !== null && extractedPrice !== "" 
-                        ? String(extractedPrice) 
-                        : "",
-                    features: rawListing.details?.features || [],
+                    price: {
+                        amount:
+                        typeof rawListing.price === "object" && rawListing.price !== null
+                            ? Number(rawListing.price.amount ?? 0)
+                            : Number(rawListing.price ?? 0),
+                        per:
+                        typeof rawListing.price === "object" && rawListing.price !== null
+                            ? rawListing.price.per || ""
+                            : "",
+                    },
+                    details: {
+                        bedroom: rawListing.details?.bedroom ?? 0,
+                        bathroom: rawListing.details?.bathroom ?? 0,
+                        living_room: rawListing.details?.living_room ?? 0,
+                        land_area: rawListing.details?.land_area ?? "",
+                        parking_space: rawListing.details?.parking_space ?? 0,
+                        features: rawListing.details?.features || [],
+                    },
                 };
 
                 // 3. Media Extraction
@@ -216,23 +230,32 @@ export default function EditListingScreen() {
             }
 
             const updateInput = {
-                title: basic.title || 'Untitled Listing',
-                description: basic.description || '',
+                title: basic.title || "Untitled Listing",
+                description: basic.description || "",
                 property_category: basic.property_category,
                 property_type: basic.property_type,
                 status: basic.status,
-                price: { amount: parseFloat(basic.price as any) },
-                images: media?.images || [],
-                cover_index: media?.cover_index || 0,
+                price: {
+                    amount: Number(
+                    typeof basic.price === "object"
+                        ? basic.price?.amount
+                        : basic.price
+                    ),
+                    per: typeof basic.price === "object" ? basic.price?.per || "" : "",
+                },
+                details: basic.details || {},
                 video: media?.video_url || "",
                 location: {
                     address: locObj?.address,
                     state: locObj?.state,
                     city: locObj?.city,
                     landmark: locObj?.landmark,
-                    coordinates: [locObj?.coordinates[1], locObj?.coordinates[0]] // Re-invert to GeoJSON [Lng, Lat] for MongoDB
-                }
-            };
+                    coordinates:
+                    Array.isArray(locObj?.coordinates) && locObj.coordinates.length === 2
+                        ? [Number(locObj.coordinates[1]), Number(locObj.coordinates[0])]
+                        : undefined,
+                },
+                };
 
             await gqlRequest<{ updateListing: any }>(
                 UPDATE_LISTING_MUTATION, 
