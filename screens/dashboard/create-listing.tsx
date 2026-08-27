@@ -189,7 +189,7 @@ export default function CreateListingScreen() {
             );
             
             toast.success(
-                submit ? 'Listing submitted for review!'
+                submit ? 'Listing submitted for review!' : 'Draft saved successfully!',
             );
             router.push('/dashboard');
         } catch (err: any) {

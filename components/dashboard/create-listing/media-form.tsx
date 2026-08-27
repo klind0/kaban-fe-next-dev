@@ -8,7 +8,7 @@ import FormControl from "@/components/universal/form-control";
 import { Button } from "@/components/ui/button";
 import { ImageIcon } from "@/components/icons/image-icon";
 import Image from "next/image";
-import React{ useEffect } from "react";
+import React, { useEffect } from "react";
 import { MediaListingData } from "@/network/listings";
 
 type MediaFormValues = {
