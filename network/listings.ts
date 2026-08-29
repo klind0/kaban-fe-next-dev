@@ -97,8 +97,15 @@ async function createDraft(
     if (d.living_room) d.living_room = Number(d.living_room);
     if (d.parking_space) d.parking_space = Number(d.parking_space);
     
-    if (d.land_area === "" || d.land_area == null) delete d.land_area;
-    else d.land_area = String(d.land_area);
+    if (d.land_area === "" || d.land_area == null){
+      delete d.land_area;
+    } else {
+      d.land_area = String(d.land_area);
+    }
+
+    if (!Array.isArray(d.features)) {
+      d.features = [];
+    } 
   }
 
   // ✨ FIX 2: Explicitly clear cover_index out of this payload text schema entirely
