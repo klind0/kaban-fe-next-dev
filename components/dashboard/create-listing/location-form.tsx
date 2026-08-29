@@ -359,7 +359,40 @@ const LocationForm = React.forwardRef<LocationFormHandle, Props>(
                     </div>
 
                     <div className="flex justify-end gap-3">
-                        <Button variant="outline" type="button" className="md:min-w-30" onClick={onBack} disabled={isPending}>Previous</Button>
+                        <Button 
+                            variant="outline" 
+                            type="button" 
+                            className="md:min-w-30" 
+                            onClick={onBack} 
+                            disabled={isPending}
+                        >
+                            Previous
+                        </Button>
+                        
+                        {/* Save edit: Bypasses form validation, updates API, and redirects */}
+                        {hasInitialData && (
+                            <Button
+                                type="button"
+                                variant="outline"
+                                className="md:min-w-30"
+                                disabled={isPending}
+                                onClick={() => {
+                                    const data = getValues();
+                                    const normalizedData: LocationListingData = {
+                                        location: {
+                                            ...data.location,
+                                            address: toTitleCase(data.location.address || ""),
+                                            landmark: toTitleCase(data.location.landmark || ""),
+                                        },
+                                    };
+                                    onFormSubmit(normalizedData, false);
+                                }}
+                            >
+                                Save edit
+                            </Button>
+                        )}
+
+                        {/* Final submit: Runs full validation, updates API, and redirects */}
                         <Button type="submit" className="md:min-w-30" disabled={isPending}>
                             {isPending ? 'Submitting...' : initialData ? 'Save Changes' : 'Submit'}
                         </Button>

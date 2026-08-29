@@ -212,22 +212,28 @@ export default function EditListingScreen() {
     };
 
     const handleLocationSubmit = async (data?: LocationListingData | any, submit: boolean = true) => {
-        const basic = basicFormRef.current?.getValues() || draftRef.current.basic || basicInitial;
-        const media = mediaFormRef.current?.getValues() || draftRef.current.media || mediaInitial;
+        // 1. Collect live values from active form refs or fall back to draft/initial
+        const liveBasic = basicFormRef.current?.getValues?.();
+        const liveMedia = mediaFormRef.current?.getValues?.();
+        
+        const basic = liveBasic || draftRef.current.basic || basicInitial;
+        const media = liveMedia || draftRef.current.media || mediaInitial;
         const effectiveLocation = data || liveLocationData;
 
-        if (submit && !isTabValid('location', effectiveLocation)) return;
+        // 2. Enforce strict tab validation ONLY during final submit
+        if (submit && !isTabValid('location', effectiveLocation)) {
+            toast.error("Please fill out all required location fields.");
+            return;
+        }
+
+        if (!basic) {
+            toast.error('Please complete basic property information first.');
+            return;
+        }
 
         setIsPending(true);
         try {
             const locObj = effectiveLocation?.location || effectiveLocation;
-
-            const basic = draftRef.current.basic ?? basicFormRef.current?.getValues() ?? null;
-
-            if (!basic) {
-                toast.error('Please complete basic property information first.');
-                return;
-            }
 
             const updateInput = {
                 title: basic.title || "Untitled Listing",
@@ -237,34 +243,35 @@ export default function EditListingScreen() {
                 status: basic.status,
                 price: {
                     amount: Number(
-                    typeof basic.price === "object"
-                        ? basic.price?.amount
-                        : basic.price
+                        typeof basic.price === "object" ? basic.price?.amount : basic.price
                     ),
                     per: typeof basic.price === "object" ? basic.price?.per || "" : "",
                 },
                 details: basic.details || {},
+                images: media?.images || [],
                 video: media?.video_url || "",
                 location: {
                     address: locObj?.address,
                     state: locObj?.state,
                     city: locObj?.city,
                     landmark: locObj?.landmark,
-                    coordinates:
-                    Array.isArray(locObj?.coordinates) && locObj.coordinates.length === 2
+                    coordinates: Array.isArray(locObj?.coordinates) && locObj.coordinates.length === 2
                         ? [Number(locObj.coordinates[1]), Number(locObj.coordinates[0])]
                         : undefined,
                 },
-                };
+            };
 
             await gqlRequest<{ updateListing: any }>(
                 UPDATE_LISTING_MUTATION, 
                 { id: listingId, input: updateInput }
             );    
             
-            toast.success(submit ? 'Listing updated successfully!' : 'Saved as draft!');
+            toast.success(submit ? 'Listing submitted successfully!' : 'Edits saved successfully!');
+            
+            // Redirect on both actions (Save edits and Submit)
             router.push('/dashboard');
             router.refresh();
+
         } catch (err: any) {
             toast.error(err.message || 'Failed to save updates.');
         } finally {
