@@ -45,13 +45,17 @@ export default function CreateListingScreen() {
     }>({ basic: null, media: null });
 
     React.useEffect(() => {
-        const handleMobileDraftTrigger = () => {
-            handleSaveDraft();
+        const onNavbarSave = () => {
+            void handleSaveDraft();
         };
 
-        window.addEventListener('trigger-save-draft', handleMobileDraftTrigger);
+        window.addEventListener("trigger-navbar-save", onNavbarSave);
+
+        window.addEventListener("trigger-save-draft", onNavbarSave);
+
         return () => {
-            window.removeEventListener('trigger-save-draft', handleMobileDraftTrigger);
+            window.removeEventListener("trigger-navbar-save", onNavbarSave);
+            window.removeEventListener("trigger-save-draft", onNavbarSave);
         };
     }, []);
 

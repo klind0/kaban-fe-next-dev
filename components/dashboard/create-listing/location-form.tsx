@@ -369,28 +369,6 @@ const LocationForm = React.forwardRef<LocationFormHandle, Props>(
                             Previous
                         </Button>
 
-                        {hasInitialData && (
-                            <Button
-                                type="button"
-                                variant="outline"
-                                className="md:min-w-30"
-                                disabled={isPending}
-                                onClick={() => {
-                                    const data = getValues();
-                                    const normalizedData: LocationListingData = {
-                                        location: {
-                                            ...data.location,
-                                            address: toTitleCase(data.location.address || ""),
-                                            landmark: toTitleCase(data.location.landmark || ""),
-                                        },
-                                    };
-                                    onFormSubmit(normalizedData, false); // Save Changes
-                                }}
-                            >
-                                {isPending ? "Saving..." : "Save Changes"}
-                            </Button>
-                        )}
-
                         {/* Submit for review — runs form validation via type="submit" */}
                         <Button type="submit" className="md:min-w-30" disabled={isPending}>
                             {isPending ? "Submitting..." : "Submit"}

@@ -167,6 +167,23 @@ export default function EditListingScreen() {
         fetchListingDetails();
     }, [listingId]);
 
+    React.useEffect(() => {
+        if (!listingId) return;
+
+        const onNavbarSave = () => {
+            const loc = locationFormRef.current?.getValues?.() ?? undefined;
+            void handleLocationSubmit(loc, false);
+        };
+
+        window.addEventListener("trigger-navbar-save", onNavbarSave);
+        window.addEventListener("trigger-save-draft", onNavbarSave);
+
+        return () => {
+            window.removeEventListener("trigger-navbar-save", onNavbarSave);
+            window.removeEventListener("trigger-save-draft", onNavbarSave);
+        };
+        }, [listingId]);
+
     const isTabValid = (tabId: TabType, submittedLocationData?: any): boolean => {
         const liveBasicValues = basicFormRef.current?.getValues?.() || null;
         const liveMediaValues = mediaFormRef.current?.getValues?.() || null;

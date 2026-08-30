@@ -63,13 +63,18 @@ export function DashboardSidebar() {
     const isCreating = pathName.includes('/create-listing');
     const isFormRoute = isCreating || isEditing;
 
+    const actionLabel = isEditing
+        ? "Save Changes"
+        : isCreating
+            ? "Save as draft"
+            : "Create Listing";
+
     const handleActionButtonClick = (e: React.MouseEvent) => {
         setOpenMobile(false);
 
         if (isFormRoute) {
             e.preventDefault();
-            // Dispatches the exact event listened to by CreateListingScreen
-            window.dispatchEvent(new CustomEvent('trigger-save-draft'));
+            window.dispatchEvent(new CustomEvent('trigger-navbar-save'));
         }
     };
 
@@ -98,13 +103,16 @@ export function DashboardSidebar() {
                     {/* 🛠️ Mobile-only button section */}
                     <SidebarGroupContent className="md:hidden">
                         <SidebarMenu className="p-4 border-y border-neutral-600">
-                            <Button asChild>
-                                <Link 
-                                    href="/dashboard/create-listing" 
-                                    onClick={handleActionButtonClick}
-                                >
-                                    {isFormRoute ? "Save as draft" : "Create Listing"}
-                                </Link>
+                            <Button asChild={!isFormRoute}>
+                                {isFormRoute ? (
+                                    <button type="button" onClick={handleActionButtonClick} className="...">
+                                        {actionLabel}
+                                    </button>
+                                ) : (
+                                    <Link href="/dashboard/create-listing" onClick={() => setOpenMobile(false)}>
+                                        Create Listing
+                                    </Link>
+                                )}
                             </Button>
                         </SidebarMenu>
                     </SidebarGroupContent>
