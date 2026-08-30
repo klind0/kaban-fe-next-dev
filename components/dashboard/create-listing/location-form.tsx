@@ -31,7 +31,8 @@ type Props = {
   onFormSubmit: (data: LocationListingData, submit: boolean) => Promise<void>;
   isSaving?: boolean;
   isSubmitting?: boolean;
-  isPending?: boolean; 
+  /** @deprecated prefer isSaving / isSubmitting */
+  isPending?: boolean;
   onBack: () => void;
   externalErrors?: any;
   initialData?: Partial<IListing["location"]>;
@@ -43,7 +44,15 @@ export type LocationFormHandle = {
 
 const LocationForm = React.forwardRef<LocationFormHandle, Props>(
     function LocationForm(
-        { onFormSubmit, isPending, onBack, externalErrors, initialData },
+        { 
+            onFormSubmit, 
+            isSaving = false,
+            isSubmitting = false,
+            isPending = false,
+            onBack, 
+            externalErrors, 
+            initialData,
+        },
         ref,
     ) {
 
@@ -59,7 +68,7 @@ const LocationForm = React.forwardRef<LocationFormHandle, Props>(
 
         const [scriptLoaded, setScriptLoaded] = useState(false);
 
-        const busy = !!(isSaving || isSubmitting);
+        const busy = !!(isSaving || isSubmitting || isPending);
 
         useEffect(() => {
             setOptions({
