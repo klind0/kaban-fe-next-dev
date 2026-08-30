@@ -29,7 +29,7 @@ export default function ForgotPasswordPage() {
     },
     onError: (err: Error) => {
       // Prefer generic message to avoid email enumeration
-      toast.success("If that email exists, we sent a reset link.");
+      toast.success("We've sent a reset link to this email.");
       console.error(err);
     },
   });
@@ -39,8 +39,8 @@ export default function ForgotPasswordPage() {
   return (
     <div className="mx-auto max-w-md space-y-6 p-6">
       <div>
-        <h1 className="text-2xl font-semibold">Forgot password</h1>
-        <p className="mt-2 text-sm text-neutral-600">
+        <h1 className="text-l font-semibold">Forgot password</h1>
+        <p className="mt-2 text-sm text-neutral-900">
           Enter your email and we&apos;ll send you a link to reset your password.
         </p>
       </div>
