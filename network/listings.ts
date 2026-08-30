@@ -147,7 +147,7 @@ export async function uploadImages(listingId: string, files: File[]): Promise<vo
   return uploadListingImagesAction(listingId, formData);
 }
 
-async function submitListing(listingId: string): Promise<unknown> {
+export async function submitListing(listingId: string): Promise<unknown> {
   return submitListingAction(listingId);
 }
 

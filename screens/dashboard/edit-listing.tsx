@@ -8,7 +8,7 @@ import DashboardPageContainer from '@/components/dashboard/dashboard-page-contai
 import { Button } from '@/components/ui/button';
 import CustomTab from '@/components/universal/custom-tab';
 import { useQueryParams } from '@/hooks/useQueryParams';
-import { BasicListingData, LocationListingData, MediaListingData, uploadImages,} from '@/network/listings';
+import { BasicListingData, LocationListingData, MediaListingData, uploadImages, submitListing } from '@/network/listings';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import React from 'react';
 import { toast } from 'sonner';
@@ -283,7 +283,7 @@ export default function EditListingScreen() {
             }
 
             if (submit) {
-                await submitListingAction(listingId);
+                await submitListing(listingId);
             }
 
             toast.success(
