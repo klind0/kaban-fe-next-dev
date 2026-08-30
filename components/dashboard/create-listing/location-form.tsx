@@ -359,17 +359,16 @@ const LocationForm = React.forwardRef<LocationFormHandle, Props>(
                     </div>
 
                     <div className="flex justify-end gap-3">
-                        <Button 
-                            variant="outline" 
-                            type="button" 
-                            className="md:min-w-30" 
-                            onClick={onBack} 
+                        <Button
+                            variant="outline"
+                            type="button"
+                            className="md:min-w-30"
+                            onClick={onBack}
                             disabled={isPending}
                         >
                             Previous
                         </Button>
-                        
-                        {/* Save edit: Bypasses form validation, updates API, and redirects */}
+
                         {hasInitialData && (
                             <Button
                                 type="button"
@@ -385,16 +384,16 @@ const LocationForm = React.forwardRef<LocationFormHandle, Props>(
                                             landmark: toTitleCase(data.location.landmark || ""),
                                         },
                                     };
-                                    onFormSubmit(normalizedData, false);
+                                    onFormSubmit(normalizedData, false); // Save Changes
                                 }}
                             >
-                                Save edit
+                                {isPending ? "Saving..." : "Save Changes"}
                             </Button>
                         )}
 
-                        {/* Final submit: Runs full validation, updates API, and redirects */}
+                        {/* Submit for review — runs form validation via type="submit" */}
                         <Button type="submit" className="md:min-w-30" disabled={isPending}>
-                            {isPending ? 'Submitting...' : initialData ? 'Save Changes' : 'Submit'}
+                            {isPending ? "Submitting..." : "Submit"}
                         </Button>
                     </div>
                 </form>

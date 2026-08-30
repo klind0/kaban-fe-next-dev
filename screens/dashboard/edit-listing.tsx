@@ -1,19 +1,18 @@
 "use client";
 
 import BasicInformationForm, { BasicFormHandle } from '@/components/dashboard/create-listing/basic-information-form';
-import LocationForm from '@/components/dashboard/create-listing/location-form';
+import LocationForm, { LocationFormHandle } from '@/components/dashboard/create-listing/location-form';
 import MediaForm, { MediaFormHandle } from '@/components/dashboard/create-listing/media-form';
 import DashboardNavbar from '@/components/dashboard/dashboard-navbar';
 import DashboardPageContainer from '@/components/dashboard/dashboard-page-container';
 import { Button } from '@/components/ui/button';
 import CustomTab from '@/components/universal/custom-tab';
 import { useQueryParams } from '@/hooks/useQueryParams';
-import { BasicListingData, LocationListingData, MediaListingData } from '@/network/listings';
+import { BasicListingData, LocationListingData, MediaListingData, uploadImages,} from '@/network/listings';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import React from 'react';
 import { toast } from 'sonner';
 import { gqlRequest } from '@/network/graphql-client';
-import { uploadListingImagesAction } from "@app/actions/listing-actions.ts";
 
 const tabOptions = [
     { name: 'Basic', value: 'basic' },
@@ -54,6 +53,7 @@ export default function EditListingScreen() {
 
     const basicFormRef = React.useRef<BasicFormHandle>(null);
     const mediaFormRef = React.useRef<MediaFormHandle>(null);
+    const locationFormRef = React.useRef<LocationFormHandle>(null);
     
     const [basicInitial, setBasicInitial] = React.useState<BasicListingData | null>(null);
     const [mediaInitial, setMediaInitial] = React.useState<MediaListingData | null>(null);
@@ -230,7 +230,6 @@ export default function EditListingScreen() {
             return;
         }
 
-        // ─── HERE: split existing vs new images ───
         const allImages = media?.images || [];
         const newFiles = allImages.filter((img: any) => img instanceof File);
         const existingImages = allImages
@@ -280,11 +279,11 @@ export default function EditListingScreen() {
             });
 
             if (newFiles.length > 0) {
-                const formData = new FormData();
-                newFiles.forEach((file: File) => {
-                    formData.append("images", file);
-                });
-                await uploadListingImagesAction(listingId, formData);
+                await uploadImages(listingId, newFiles);
+            }
+
+            if (submit) {
+                await submitListingAction(listingId);
             }
 
             toast.success(
@@ -313,8 +312,15 @@ export default function EditListingScreen() {
     return (
         <>
             <DashboardNavbar pageTitle="Edit Listing">
-                <Button className="hidden md:inline-flex" onClick={() => handleLocationSubmit(liveLocationData, false)} disabled={isPending}>
-                    {isPending ? "Saving..." : "Save edits"}
+                <Button
+                    className="hidden md:inline-flex"
+                    onClick={() => {
+                        const loc = locationFormRef.current?.getValues() ?? undefined;
+                        handleLocationSubmit(loc, false);
+                    }}
+                    disabled={isPending}
+                >
+                    {isPending ? "Saving..." : "Save Changes"}
                 </Button>
             </DashboardNavbar>
             <DashboardPageContainer>
@@ -346,9 +352,10 @@ export default function EditListingScreen() {
                 
                 <div className={activeTab !== 'location' ? 'hidden' : ''}>
                     <LocationForm
-                        onFormSubmit={(data) => handleLocationSubmit(data, true)}
+                        ref={locationFormRef}
+                        onFormSubmit={handleLocationSubmit}
                         isPending={isPending}
-                        onBack={() => handleTabChange('media')}
+                        onBack={() => handleTabChange("media")}
                         initialData={liveLocationData || undefined}
                     />
                 </div>

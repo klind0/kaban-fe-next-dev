@@ -122,7 +122,7 @@ async function createDraft(
   return result.id;
 }
 
-async function uploadImages(listingId: string, files: File[]): Promise<void> {
+export async function uploadImages(listingId: string, files: File[]): Promise<void> {
   if (!files || files.length === 0) {
     console.log("🟡 [NETWORK] No images array provided for upload execution.");
     return;
