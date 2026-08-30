@@ -13,6 +13,7 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import React from 'react';
 import { toast } from 'sonner';
 import { gqlRequest } from '@/network/graphql-client';
+import { uploadListingImagesAction } from "@app/actions/listing-actions.ts";
 
 const tabOptions = [
     { name: 'Basic', value: 'basic' },
@@ -211,16 +212,14 @@ export default function EditListingScreen() {
         handleQueryParamsChange('tab', cleanTarget);
     };
 
-    const handleLocationSubmit = async (data?: LocationListingData | any, submit: boolean = true) => {
-        // 1. Collect live values from active form refs or fall back to draft/initial
+    const handleLocationSubmit = async (data?: LocationListingData | any, submit: boolean = true,) => {
         const liveBasic = basicFormRef.current?.getValues?.();
         const liveMedia = mediaFormRef.current?.getValues?.();
-        
+
         const basic = liveBasic || draftRef.current.basic || basicInitial;
         const media = liveMedia || draftRef.current.media || mediaInitial;
         const effectiveLocation = data || liveLocationData;
 
-        // 2. Enforce strict tab validation ONLY during final submit
         if (submit && !isTabValid('location', effectiveLocation)) {
             toast.error("Please fill out all required location fields.");
             return;
@@ -230,6 +229,19 @@ export default function EditListingScreen() {
             toast.error('Please complete basic property information first.');
             return;
         }
+
+        // ─── HERE: split existing vs new images ───
+        const allImages = media?.images || [];
+        const newFiles = allImages.filter((img: any) => img instanceof File);
+        const existingImages = allImages
+            .filter(
+            (img: any) =>
+                !(img instanceof File) &&
+                (typeof img === "string" || (img && typeof img.url === "string")),
+            )
+            .map((img: any) =>
+            typeof img === "string" ? { url: img } : { url: img.url, publicId: img.publicId },
+            );
 
         setIsPending(true);
         try {
@@ -243,41 +255,49 @@ export default function EditListingScreen() {
                 status: basic.status,
                 price: {
                     amount: Number(
-                        typeof basic.price === "object" ? basic.price?.amount : basic.price
+                    typeof basic.price === "object" ? basic.price?.amount : basic.price,
                     ),
                     per: typeof basic.price === "object" ? basic.price?.per || "" : "",
                 },
                 details: basic.details || {},
-                images: media?.images || [],
+                images: existingImages,
                 video: media?.video_url || "",
                 location: {
                     address: locObj?.address,
                     state: locObj?.state,
                     city: locObj?.city,
                     landmark: locObj?.landmark,
-                    coordinates: Array.isArray(locObj?.coordinates) && locObj.coordinates.length === 2
+                    coordinates:
+                    Array.isArray(locObj?.coordinates) && locObj.coordinates.length === 2
                         ? [Number(locObj.coordinates[1]), Number(locObj.coordinates[0])]
                         : undefined,
                 },
             };
 
-            await gqlRequest<{ updateListing: any }>(
-                UPDATE_LISTING_MUTATION, 
-                { id: listingId, input: updateInput }
-            );    
-            
-            toast.success(submit ? 'Listing submitted successfully!' : 'Edits saved successfully!');
-            
-            // Redirect on both actions (Save edits and Submit)
-            router.push('/dashboard');
-            router.refresh();
+            await gqlRequest(UPDATE_LISTING_MUTATION, {
+                id: listingId,
+                input: updateInput,
+            });
 
+            if (newFiles.length > 0) {
+                const formData = new FormData();
+                newFiles.forEach((file: File) => {
+                    formData.append("images", file);
+                });
+                await uploadListingImagesAction(listingId, formData);
+            }
+
+            toast.success(
+                submit ? "Listing submitted successfully!" : "Edits saved successfully!",
+            );
+            router.push("/dashboard");
+            router.refresh();
         } catch (err: any) {
-            toast.error(err.message || 'Failed to save updates.');
+            toast.error(err.message || "Failed to save updates.");
         } finally {
             setIsPending(false);
         }
-    };
+        };
 
     if (isLoading) {
         return (

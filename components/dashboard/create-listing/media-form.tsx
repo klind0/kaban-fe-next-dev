@@ -133,23 +133,22 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm(
                 const imagesCopy = [...(currentData.images || [])];
                 const targetCoverIdx = currentData.cover_index || 0;
 
-                // Safely mirror submission reordering logic if parent steps query values out via imperative ref
                 if (targetCoverIdx > 0 && targetCoverIdx < imagesCopy.length) {
                     const [coverImg] = imagesCopy.splice(targetCoverIdx, 1);
                     imagesCopy.unshift(coverImg);
-                    return {
-                        images: imagesCopy as any,
-                        cover_index: 0,
-                        video_url: currentData.video_url,
-                    };
                 }
 
                 return {
-                    images: currentData.images as any,
-                    cover_index: targetCoverIdx,
-                    video_url: currentData.video_url,
+                    images: imagesCopy as any[],
+                    cover_index: 0,
+                    video_url: currentData.video_url || "",
+                    // helpers for parent (optional)
+                    newFiles: imagesCopy.filter((img): img is File => img instanceof File),
+                    existingImages: imagesCopy.filter(
+                    (img: any) => img && typeof img?.url === "string" && !(img instanceof File),
+                    ),
                 };
-            },
+                },
         }),
         [getValues]
     );
