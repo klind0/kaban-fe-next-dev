@@ -12,14 +12,14 @@ import Cookies from 'js-cookie'
 import { gqlRequest } from '@/network/graphql-client'
 import { useUserStore } from '@/app/stores/user-store'
 import { Checkbox } from '../ui/checkbox'
-import { useRouter } from 'next/navigation' // Added for redirection
+import { useRouter } from 'next/navigation'
 
 interface SignUpFormProps {
     onOpenChange: () => void;
 }
 
 export default function SignUpForm({ onOpenChange }: SignUpFormProps) {
-    const router = useRouter(); // Initialize router
+    const router = useRouter();
     const { control, handleSubmit, reset, formState: { errors } } = useForm<ISignUpVariables['input']>({
         defaultValues: {
             full_name: '',
@@ -38,7 +38,6 @@ export default function SignUpForm({ onOpenChange }: SignUpFormProps) {
         onSuccess: (response) => {
             console.log("Raw Signup Response Data:", response);
             
-            // Unpack the GraphQLJSONObject structure
             const signupPayload = response?.signup;
             const token = signupPayload?.accessToken;
             
@@ -57,7 +56,6 @@ export default function SignUpForm({ onOpenChange }: SignUpFormProps) {
                     setUser({
                         id: rawUser.id,
                         email: rawUser.email,
-                        // Account for both camelCase and snake_case variations gracefully
                         fullName: rawUser.fullName || rawUser.full_name, 
                         role: rawUser.role
                     });
@@ -67,13 +65,13 @@ export default function SignUpForm({ onOpenChange }: SignUpFormProps) {
                     setRealtor(signupPayload.realtor);
                 }
 
-                toast.success("Signed up successfully!");
+                toast.success("Signed up successfully! Please complete your profile.");
                 reset();
                 onOpenChange();
 
-                // 3. Clear window location transition to register cookie data
+                // 3. Redirect first-time users to the profile completion page
                 setTimeout(() => {
-                    window.location.href = '/dashboard';
+                    window.location.href = '/dashboard/profile'; // Or your designated profile path (e.g. '/profile')
                 }, 500);
             } else {
                 console.error("Payload validation failed. Check keys:", response);
@@ -92,7 +90,6 @@ export default function SignUpForm({ onOpenChange }: SignUpFormProps) {
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
-            {/* UI remains the same, but we added the logic above to handle the 'stuck' state */}
             <div className='flex items-center gap-3'>
                 <div className='w-full h-px bg-neutral-600'></div>
                 <span className='whitespace-nowrap font-medium text-sm'>Sign Up as a Realtor</span>
@@ -135,7 +132,7 @@ export default function SignUpForm({ onOpenChange }: SignUpFormProps) {
                         />
                     )}
                 />
-                <div className='relative'> {/* Added relative wrapper to help with icon spacing */}
+                <div className='relative'>
                     <Controller
                         name="password"
                         control={control}
