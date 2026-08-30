@@ -15,3 +15,15 @@ export const LOGIN_WITH_GOOGLE_MUTATION = `
     loginWithGoogle(idToken: $idToken)
   }
 `;
+
+export const FORGOT_PASSWORD_MUTATION = `
+  mutation ForgotPassword($email: String!) {
+    forgotPassword(email: $email)
+  }
+`;
+
+export const RESET_PASSWORD_MUTATION = `
+  mutation ResetPassword($token: String!, $newPassword: String!) {
+    resetPassword(token: $token, newPassword: $newPassword)
+  }
+`;

@@ -116,7 +116,13 @@ export default function SignInForm({ onOpenChange }: SignInFormProps) {
                                 Keep me logged in
                             </label>
                         </div>
-                        <Link href='#' className='text-sm text-primary font-semibold hover:underline'>Forgot password?</Link>
+                        <Link
+                            href="/forgot-password"
+                            className="text-sm text-primary font-semibold hover:underline"
+                            onClick={onOpenChange} // close modal if sign-in is in a dialog
+                        >
+                            Forgot password?
+                        </Link>
                     </div>
                 </div>
             </div>
