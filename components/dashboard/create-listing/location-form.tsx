@@ -28,11 +28,13 @@ const toTitleCase = (str: string): string => {
 };
 
 type Props = {
-    onFormSubmit: (data: LocationListingData, submit: boolean) => Promise<void>;
-    isPending: boolean;
-    onBack: () => void;
-    externalErrors?: any;
-    initialData?: Partial<IListing["location"]>;
+  onFormSubmit: (data: LocationListingData, submit: boolean) => Promise<void>;
+  isSaving?: boolean;
+  isSubmitting?: boolean;
+  isPending?: boolean; 
+  onBack: () => void;
+  externalErrors?: any;
+  initialData?: Partial<IListing["location"]>;
 };
 
 export type LocationFormHandle = {
@@ -56,6 +58,8 @@ const LocationForm = React.forwardRef<LocationFormHandle, Props>(
         const circleInstanceRef = useRef<any>(null);
 
         const [scriptLoaded, setScriptLoaded] = useState(false);
+
+        const busy = !!(isSaving || isSubmitting);
 
         useEffect(() => {
             setOptions({
@@ -364,14 +368,13 @@ const LocationForm = React.forwardRef<LocationFormHandle, Props>(
                             type="button"
                             className="md:min-w-30"
                             onClick={onBack}
-                            disabled={isPending}
+                            disabled={busy}
                         >
                             Previous
                         </Button>
 
-                        {/* Submit for review — runs form validation via type="submit" */}
-                        <Button type="submit" className="md:min-w-30" disabled={isPending}>
-                            {isPending ? "Submitting..." : "Submit"}
+                        <Button type="submit" className="md:min-w-30" disabled={busy}>
+                            {isSubmitting ? "Submitting..." : "Submit"}
                         </Button>
                     </div>
                 </form>

@@ -47,7 +47,8 @@ export default function EditListingScreen() {
         (searchParams.get('tab') as TabType) || 'basic'
     );
     const [isLoading, setIsLoading] = React.useState(true);
-    const [isPending, setIsPending] = React.useState(false);
+    const [isSaving, setIsSaving] = React.useState(false);
+    const [isSubmitting, setIsSubmitting] = React.useState(false);
 
     const { handleQueryParamsChange } = useQueryParams();
 
@@ -63,6 +64,8 @@ export default function EditListingScreen() {
         basic: BasicListingData | null;
         media: MediaListingData | null;
     }>({ basic: null, media: null });
+
+    const isBusy = isSaving || isSubmitting;
 
     React.useEffect(() => {
         if (!listingId) return;
@@ -82,7 +85,6 @@ export default function EditListingScreen() {
                     throw new Error("Listing payload empty or access denied.");
                 }
 
-                // 1. Invert GeoJSON [Lng, Lat] back to Leaflet [Lat, Lng]
                 const rawCoords = rawListing.location?.coordinates;
                 const safeCoordinates: [number, number] = 
                     Array.isArray(rawCoords) && rawCoords.length === 2 && !rawCoords.some(isNaN)
@@ -102,12 +104,6 @@ export default function EditListingScreen() {
                     landmark: "",
                     coordinates: [5.0377, 7.9128] as [number, number]
                 };
-
-                // 2. Safe Price Scalar Extraction
-                const rawPrice = rawListing.price;
-                const extractedPrice = typeof rawPrice === 'object' && rawPrice !== null 
-                    ? rawPrice.amount 
-                    : rawPrice;
 
                 const parsedBasic: any = {
                     title: rawListing.title || "",
@@ -135,7 +131,6 @@ export default function EditListingScreen() {
                     },
                 };
 
-                // 3. Media Extraction
                 const mappedImages = Array.isArray(rawListing.images)
                     ? rawListing.images.map((img: any) => typeof img === 'string' ? img : img.url)
                     : [];
@@ -146,12 +141,10 @@ export default function EditListingScreen() {
                     video_url: rawListing.video || rawListing.video_url || "",
                 };
 
-                // Populate Controlled React State to guarantee sub-form reactivity
                 setBasicInitial(parsedBasic);
                 setMediaInitial(parsedMedia);
                 setLiveLocationData(listingLocation);
 
-                // Initialize draft backup
                 draftRef.current.basic = parsedBasic;
                 draftRef.current.media = parsedMedia;
 
@@ -182,7 +175,7 @@ export default function EditListingScreen() {
             window.removeEventListener("trigger-navbar-save", onNavbarSave);
             window.removeEventListener("trigger-save-draft", onNavbarSave);
         };
-        }, [listingId]);
+    }, [listingId]);
 
     const isTabValid = (tabId: TabType, submittedLocationData?: any): boolean => {
         const liveBasicValues = basicFormRef.current?.getValues?.() || null;
@@ -229,7 +222,7 @@ export default function EditListingScreen() {
         handleQueryParamsChange('tab', cleanTarget);
     };
 
-    const handleLocationSubmit = async (data?: LocationListingData | any, submit: boolean = true,) => {
+    const handleLocationSubmit = async (data?: LocationListingData | any, submit: boolean = true) => {
         const liveBasic = basicFormRef.current?.getValues?.();
         const liveMedia = mediaFormRef.current?.getValues?.();
 
@@ -251,15 +244,17 @@ export default function EditListingScreen() {
         const newFiles = allImages.filter((img: any) => img instanceof File);
         const existingImages = allImages
             .filter(
-            (img: any) =>
-                !(img instanceof File) &&
-                (typeof img === "string" || (img && typeof img.url === "string")),
+                (img: any) =>
+                    !(img instanceof File) &&
+                    (typeof img === "string" || (img && typeof img.url === "string")),
             )
             .map((img: any) =>
-            typeof img === "string" ? { url: img } : { url: img.url, publicId: img.publicId },
+                typeof img === "string" ? { url: img } : { url: img.url, publicId: img.publicId },
             );
 
-        setIsPending(true);
+        if (submit) setIsSubmitting(true);
+        else setIsSaving(true);
+
         try {
             const locObj = effectiveLocation?.location || effectiveLocation;
 
@@ -271,7 +266,7 @@ export default function EditListingScreen() {
                 status: basic.status,
                 price: {
                     amount: Number(
-                    typeof basic.price === "object" ? basic.price?.amount : basic.price,
+                        typeof basic.price === "object" ? basic.price?.amount : basic.price,
                     ),
                     per: typeof basic.price === "object" ? basic.price?.per || "" : "",
                 },
@@ -284,9 +279,9 @@ export default function EditListingScreen() {
                     city: locObj?.city,
                     landmark: locObj?.landmark,
                     coordinates:
-                    Array.isArray(locObj?.coordinates) && locObj.coordinates.length === 2
-                        ? [Number(locObj.coordinates[1]), Number(locObj.coordinates[0])]
-                        : undefined,
+                        Array.isArray(locObj?.coordinates) && locObj.coordinates.length === 2
+                            ? [Number(locObj.coordinates[1]), Number(locObj.coordinates[0])]
+                            : undefined,
                 },
             };
 
@@ -311,9 +306,10 @@ export default function EditListingScreen() {
         } catch (err: any) {
             toast.error(err.message || "Failed to save updates.");
         } finally {
-            setIsPending(false);
+            setIsSaving(false);
+            setIsSubmitting(false);
         }
-        };
+    };
 
     if (isLoading) {
         return (
@@ -335,9 +331,9 @@ export default function EditListingScreen() {
                         const loc = locationFormRef.current?.getValues() ?? undefined;
                         handleLocationSubmit(loc, false);
                     }}
-                    disabled={isPending}
+                    disabled={isBusy}
                 >
-                    {isPending ? "Saving..." : "Save Changes"}
+                    {isSaving ? "Saving..." : "Save Changes"}
                 </Button>
             </DashboardNavbar>
             <DashboardPageContainer>
@@ -363,7 +359,7 @@ export default function EditListingScreen() {
                         }}
                         onBack={() => handleTabChange('basic')}
                         initialData={mediaInitial || undefined}
-                        isPending={isPending}
+                        isPending={isBusy}
                     />
                 </div>
                 
@@ -371,7 +367,8 @@ export default function EditListingScreen() {
                     <LocationForm
                         ref={locationFormRef}
                         onFormSubmit={handleLocationSubmit}
-                        isPending={isPending}
+                        isSaving={isSaving}
+                        isSubmitting={isSubmitting}
                         onBack={() => handleTabChange("media")}
                         initialData={liveLocationData || undefined}
                     />
