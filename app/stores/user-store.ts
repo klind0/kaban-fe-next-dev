@@ -12,6 +12,7 @@ interface UserStore {
   clearUser: () => void;
   updateUser: (updates: Partial<IUser>) => void;
   setHasHydrated: (hasHydrated: boolean) => void;
+  logout: () => void;
 }
 
 export const useUserStore = create<UserStore>()(
@@ -23,6 +24,7 @@ export const useUserStore = create<UserStore>()(
       hasHydrated: false,
       setUser: (user: IUser) => set({ user, isAuthenticated: true }),
       setRealtor: (realtor: IRealtor | null) => set({ realtor }),
+      logout: () => set({ user: null, realtor: null }),
       clearUser: () =>
         set({ user: null, realtor: null, isAuthenticated: false }),
       updateUser: (updates: Partial<IUser>) =>
