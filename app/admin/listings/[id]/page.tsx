@@ -11,7 +11,7 @@ import {
   PUBLISH_LISTING_MUTATION,
   REJECT_LISTING_MUTATION,
 } from "@/network/gql/admin.ql";
-import RejectDialog from "@/components/admin/reject-dialog";
+import RejectDialog from "@/components/admin/reject";
 
 function unwrapListing(raw: unknown): any {
   if (!raw) return null;
