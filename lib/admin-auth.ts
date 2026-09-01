@@ -12,7 +12,7 @@ export const Role = {
 const USER_KEY = "kaban_admin_user";
 
 export function getAccessToken(): string | undefined {
-  return Cookies.get(TOKEN_KEY) || Cookies.get("EzxqowpoqiaQa");
+  return Cookies.get(QUERY_KEY.ACCESS_TOKEN) || Cookies.get("EzxqowpoqiaQa");
 }
 
 export function setAdminSession(accessToken: string, user: unknown) {
