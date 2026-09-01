@@ -1,4 +1,5 @@
 import Cookies from "js-cookie";
+import { QUERY_KEY } from "@/enum/queryKeys";
 
 /** Match your app's Role enum (backend uses numbers). Adjust if needed. */
 export const Role = {
@@ -8,7 +9,6 @@ export const Role = {
   ADMIN: 3,
 } as const;
 
-const TOKEN_KEY = "QUERY_KEY.ACCESS_TOKEN"; // align with QUERY_KEY.ACCESS_TOKEN if different
 const USER_KEY = "kaban_admin_user";
 
 export function getAccessToken(): string | undefined {
@@ -16,8 +16,8 @@ export function getAccessToken(): string | undefined {
 }
 
 export function setAdminSession(accessToken: string, user: unknown) {
-  Cookies.set(TOKEN_KEY, accessToken, {
-    expires: 7,
+  Cookies.set(QUERY_KEY.ACCESS_TOKEN, accessToken, {
+    expires: 30,
     secure: true,
     path: "/",
     sameSite: "lax",
@@ -28,7 +28,7 @@ export function setAdminSession(accessToken: string, user: unknown) {
 }
 
 export function clearAdminSession() {
-  Cookies.remove(TOKEN_KEY, { path: "/" });
+  Cookies.remove(QUERY_KEY.ACCESS_TOKEN, { path: "/" });
   Cookies.remove("EzxqowpoqiaQa", { path: "/" });
   if (typeof window !== "undefined") {
     localStorage.removeItem(USER_KEY);
