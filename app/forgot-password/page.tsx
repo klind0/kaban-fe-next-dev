@@ -25,11 +25,11 @@ export default function ForgotPasswordPage() {
     mutationFn: (email: string) =>
       gqlRequest(FORGOT_PASSWORD_MUTATION, { email }),
     onSuccess: () => {
-      toast.success("If that email exists, we sent a reset link.");
+      toast.success("We've sent a reset link to your email.");
     },
     onError: (err: Error) => {
       // Prefer generic message to avoid email enumeration
-      toast.success("We've sent a reset link to this email.");
+      toast.success("Email not found, please check again.");
       console.error(err);
     },
   });
