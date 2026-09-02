@@ -13,6 +13,7 @@ import { formatPrice } from '@/lib/formatPrice';
 import ListingStateBadge from '@/components/dashboard/listing-state-badge';
 import { IListing } from '@/types/listingTypes';
 import { generateListingSlug } from '@/lib/manageSlug';
+import { getListingCoverUrl } from "@/lib/listingCover";
 
 interface ListingCardProps {
   listing: IListing;
@@ -81,6 +82,8 @@ export default function ListingCard({
     }
   };
 
+  const coverSrc = getListingCoverUrl(listing) || DefaultPropertyImg;
+
   // Safe location extraction with fallbacks
   const addressParts = [
     listing?.location?.address,
@@ -106,7 +109,7 @@ export default function ListingCard({
           </span>
         </div>
         <Image
-          src={listing?.images?.[0]?.url || DefaultPropertyImg}
+          src={coverSrc}
           fill
           alt={listing?.title || 'Property image'}
           className="object-cover rounded-md w-full"
