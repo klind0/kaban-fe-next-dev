@@ -13,8 +13,8 @@ export const PENDING_LISTINGS_QUERY = `
 `;
 
 export const LISTING_FOR_REVIEW_QUERY = `
-  query GetListingForReview($id: String!) {
-    publicListing(id: $id)
+  query ListingForReview($id: String!) {
+    listingForReview(id: $id)
   }
 `;
 

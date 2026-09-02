@@ -45,8 +45,11 @@ export default function AdminListingReviewPage() {
     setLoading(true);
     try {
       try {
-        const data = await gqlRequest(LISTING_FOR_REVIEW_QUERY, { id });
-        const item = unwrapListing(data);
+        const data = await gqlRequest<{ listingForReview: any }>(
+          LISTING_FOR_REVIEW_QUERY,
+          { id },
+        );
+        const item = data?.listingForReview;
         if (item && (item.id || item._id || item.title)) {
           setListing(item);
           return;
