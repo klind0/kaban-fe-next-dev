@@ -243,44 +243,44 @@ export default function EditListingScreen() {
             return;
         }
 
-        // --- Cover-aware image list ---
-        const allImages = [...(media?.images || [])];
+        // media.images can be File | string | { url, publicId } during edit
+        const allImages: any[] = [...((media?.images as any[]) || [])];
         let coverIndex =
             typeof media?.cover_index === "number" ? media.cover_index : 0;
 
-        // If MediaForm didn't already move cover to index 0, do it here
         if (coverIndex > 0 && coverIndex < allImages.length) {
             const [coverItem] = allImages.splice(coverIndex, 1);
             allImages.unshift(coverItem);
             coverIndex = 0;
         }
 
-        const newFiles = allImages.filter((img: any) => img instanceof File);
-        const existingImages = allImages
-            .filter(
-            (img: any) =>
-                !(img instanceof File) &&
-                (typeof img === "string" || (img && typeof img.url === "string")),
-            )
-            .map((img: any) =>
-                typeof img === "string"
-                    ? { url: img }
-                    : { url: img.url, publicId: img.publicId },
-            );
+        const newFiles: File[] = allImages.filter(
+            (img): img is File => img instanceof File,
+        );
 
-        // Cover URL if the selected cover is already an existing image
-        const coverCandidate = allImages[coverIndex];
+        const existingImages: { url: string; publicId?: string }[] = allImages
+            .filter((img) => !(img instanceof File))
+            .map((img) => {
+                if (typeof img === "string") return { url: img };
+                if (img && typeof img === "object" && typeof img.url === "string") {
+                    return { url: img.url, publicId: img.publicId };
+                }
+                return null;
+            })
+            .filter((x): x is { url: string; publicId?: string } => Boolean(x?.url));
+
+        const coverCandidate: any = allImages[coverIndex];
         let cover_image: string | undefined;
+
         if (typeof coverCandidate === "string") {
             cover_image = coverCandidate;
         } else if (
             coverCandidate &&
             !(coverCandidate instanceof File) &&
-            typeof coverCandidate.url === "string"
+            typeof coverCandidate?.url === "string"
         ) {
             cover_image = coverCandidate.url;
         } else if (existingImages[0]?.url) {
-            // Fallback: first existing URL (after reorder)
             cover_image = existingImages[0].url;
         }
 
