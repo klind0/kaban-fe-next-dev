@@ -30,6 +30,12 @@ export const REJECT_LISTING_MUTATION = `
   }
 `;
 
+export const PUBLIC_LISTINGS_FOR_ADMIN_QUERY = `
+  query PublicListingsForAdmin($filter: JSONObject) {
+    publicListings(filter: $filter)
+  }
+`;
+
 export const SET_FEATURED_MUTATION = `
   mutation SetFeaturedListings($listingIds: [String!]!) {
     setFeaturedListings(listingIds: $listingIds)
