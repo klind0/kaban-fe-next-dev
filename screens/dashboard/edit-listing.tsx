@@ -222,7 +222,10 @@ export default function EditListingScreen() {
         handleQueryParamsChange('tab', cleanTarget);
     };
 
-    const handleLocationSubmit = async (data?: LocationListingData | any, submit: boolean = true) => {
+    const handleLocationSubmit = async (
+        data?: LocationListingData | any,
+        submit: boolean = true,
+    ) => {
         const liveBasic = basicFormRef.current?.getValues?.();
         const liveMedia = mediaFormRef.current?.getValues?.();
 
@@ -230,32 +233,66 @@ export default function EditListingScreen() {
         const media = liveMedia || draftRef.current.media || mediaInitial;
         const effectiveLocation = data || liveLocationData;
 
-        if (submit && !isTabValid('location', effectiveLocation)) {
+        if (submit && !isTabValid("location", effectiveLocation)) {
             toast.error("Please fill out all required location fields.");
             return;
         }
 
         if (!basic) {
-            toast.error('Please complete basic property information first.');
+            toast.error("Please complete basic property information first.");
             return;
         }
 
-        const allImages = media?.images || [];
+        // --- Cover-aware image list ---
+        const allImages = [...(media?.images || [])];
+        let coverIndex =
+            typeof media?.cover_index === "number" ? media.cover_index : 0;
+
+        // If MediaForm didn't already move cover to index 0, do it here
+        if (coverIndex > 0 && coverIndex < allImages.length) {
+            const [coverItem] = allImages.splice(coverIndex, 1);
+            allImages.unshift(coverItem);
+            coverIndex = 0;
+        }
+
         const newFiles = allImages.filter((img: any) => img instanceof File);
         const existingImages = allImages
             .filter(
-                (img: any) =>
-                    !(img instanceof File) &&
-                    (typeof img === "string" || (img && typeof img.url === "string")),
+            (img: any) =>
+                !(img instanceof File) &&
+                (typeof img === "string" || (img && typeof img.url === "string")),
             )
             .map((img: any) =>
-                typeof img === "string" ? { url: img } : { url: img.url, publicId: img.publicId },
+                typeof img === "string"
+                    ? { url: img }
+                    : { url: img.url, publicId: img.publicId },
             );
+
+        // Cover URL if the selected cover is already an existing image
+        const coverCandidate = allImages[coverIndex];
+        let cover_image: string | undefined;
+        if (typeof coverCandidate === "string") {
+            cover_image = coverCandidate;
+        } else if (
+            coverCandidate &&
+            !(coverCandidate instanceof File) &&
+            typeof coverCandidate.url === "string"
+        ) {
+            cover_image = coverCandidate.url;
+        } else if (existingImages[0]?.url) {
+            // Fallback: first existing URL (after reorder)
+            cover_image = existingImages[0].url;
+        }
 
         if (submit) setIsSubmitting(true);
         else setIsSaving(true);
 
         try {
+            // Upload NEW files first so they exist on the listing
+            if (newFiles.length > 0) {
+            await uploadImages(listingId, newFiles);
+            }
+
             const locObj = effectiveLocation?.location || effectiveLocation;
 
             const updateInput = {
@@ -266,12 +303,15 @@ export default function EditListingScreen() {
                 status: basic.status,
                 price: {
                     amount: Number(
-                        typeof basic.price === "object" ? basic.price?.amount : basic.price,
+                    typeof basic.price === "object" ? basic.price?.amount : basic.price,
                     ),
                     per: typeof basic.price === "object" ? basic.price?.per || "" : "",
                 },
                 details: basic.details || {},
+                // Keep known URLs in UI order (cover first when possible)
                 images: existingImages,
+                cover_image, // ← critical for cards
+                cover_index: coverIndex,
                 video: media?.video_url || "",
                 location: {
                     address: locObj?.address,
@@ -279,9 +319,9 @@ export default function EditListingScreen() {
                     city: locObj?.city,
                     landmark: locObj?.landmark,
                     coordinates:
-                        Array.isArray(locObj?.coordinates) && locObj.coordinates.length === 2
-                            ? [Number(locObj.coordinates[1]), Number(locObj.coordinates[0])]
-                            : undefined,
+                    Array.isArray(locObj?.coordinates) && locObj.coordinates.length === 2
+                        ? [Number(locObj.coordinates[1]), Number(locObj.coordinates[0])]
+                        : undefined,
                 },
             };
 
@@ -289,10 +329,6 @@ export default function EditListingScreen() {
                 id: listingId,
                 input: updateInput,
             });
-
-            if (newFiles.length > 0) {
-                await uploadImages(listingId, newFiles);
-            }
 
             if (submit) {
                 await submitListing(listingId);
