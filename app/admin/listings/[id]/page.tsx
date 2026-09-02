@@ -21,6 +21,15 @@ function unwrapListing(raw: unknown): any {
   return raw;
 }
 
+function normalizeList(raw: unknown): any[] {
+  if (Array.isArray(raw)) return raw;
+  if (raw && typeof raw === "object") {
+    const obj = raw as Record<string, unknown>;
+    if (Array.isArray(obj.data)) return obj.data as any[];
+  }
+  return [];
+}
+
 export default function AdminListingReviewPage() {
   const params = useParams();
   const router = useRouter();
@@ -49,11 +58,7 @@ export default function AdminListingReviewPage() {
       const pending = await gqlRequest<{ pendingListings: unknown }>(
         PENDING_LISTINGS_QUERY,
       );
-      const list = Array.isArray(pending?.pendingListings)
-        ? pending.pendingListings
-        : Array.isArray((pending as any)?.data)
-          ? (pending as any).data
-          : [];
+      const list = normalizeList(pending?.pendingListings);
       const found = list.find((l: any) => String(l.id || l._id) === id);
       if (!found) throw new Error("Listing not found in pending queue");
       setListing(found);
