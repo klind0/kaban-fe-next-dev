@@ -196,7 +196,7 @@ export default function PropertyMediaTabs({ listing }: { listing: IListing }) {
                 className={`pb-3 text-foreground font-semibold md:text-lg tracking-tight border-b-2 -mb-px transition-colors ${
                     tab === "video"
                     ? "border-primary text-primary"
-                    : "border-transparent text-neutral-600 hover:text-foreground"
+                    : "border-transparent text-neutral-900 hover:text-foreground"
                 }`}
                 >
                 Video
@@ -208,7 +208,7 @@ export default function PropertyMediaTabs({ listing }: { listing: IListing }) {
                 className={`pb-3 text-foreground font-semibold md:text-lg tracking-tight border-b-2 -mb-px transition-colors ${
                 tab === "map"
                     ? "border-primary text-primary"
-                    : "border-transparent text-neutral-600 hover:text-foreground"
+                    : "border-transparent text-neutral-900 hover:text-foreground"
                 }`}
             >
                 Location &amp; Neighborhood Boundary
