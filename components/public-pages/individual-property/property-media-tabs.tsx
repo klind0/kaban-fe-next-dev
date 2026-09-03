@@ -189,30 +189,30 @@ export default function PropertyMediaTabs({ listing }: { listing: IListing }) {
       <div className="rounded-xl border border-neutral-200 bg-white overflow-hidden shadow-sm">
         {/* Navigation Tabs Header */}
         <div className="flex items-center gap-6 px-4 pt-3 border-b border-neutral-100">
-          {hasVideo && (
+            {hasVideo && (
+                <button
+                type="button"
+                onClick={() => setTab("video")}
+                className={`pb-3 text-foreground font-semibold md:text-lg tracking-tight border-b-2 -mb-px transition-colors ${
+                    tab === "video"
+                    ? "border-primary text-primary"
+                    : "border-transparent text-neutral-600 hover:text-foreground"
+                }`}
+                >
+                Video
+                </button>
+            )}
             <button
-              type="button"
-              onClick={() => setTab("video")}
-              className={`pb-3 text-sm font-medium border-b-2 -mb-px transition-colors ${
-                tab === "video"
-                  ? "border-primary text-primary"
-                  : "border-transparent text-neutral-600 hover:text-foreground"
-              }`}
+                type="button"
+                onClick={() => setTab("map")}
+                className={`pb-3 text-foreground font-semibold md:text-lg tracking-tight border-b-2 -mb-px transition-colors ${
+                tab === "map"
+                    ? "border-primary text-primary"
+                    : "border-transparent text-neutral-600 hover:text-foreground"
+                }`}
             >
-              Video
+                Location &amp; Neighborhood Boundary
             </button>
-          )}
-          <button
-            type="button"
-            onClick={() => setTab("map")}
-            className={`pb-3 text-sm font-medium border-b-2 -mb-px transition-colors ${
-              tab === "map"
-                ? "border-primary text-primary"
-                : "border-transparent text-neutral-600 hover:text-foreground"
-            }`}
-          >
-            Location &amp; Neighborhood Boundary
-          </button>
         </div>
 
         {/* Tab Body View */}
