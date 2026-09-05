@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { gqlRequest } from "@/network/graphql-client";
 import { ADMIN_LOGIN_MUTATION } from "@/network/gql/admin.ql";
-import { isAdminRole, setAdminSession } from "@/lib/admin-auth";
+import { isAdminRole, setAdminSession, clearAdminSession } from "@/lib/admin-auth";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -16,22 +16,28 @@ export default function AdminLoginPage() {
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setLoading(true);
-    try {
-      const data = await gqlRequest<{ login: any }>(ADMIN_LOGIN_MUTATION, {
-        email: email.trim().toLowerCase(),
-        password,
-      });
 
-      const payload = data?.login ?? data;
+    try {
+      const data = await gqlRequest<{ login?: any; adminLogin?: any }>(
+        ADMIN_LOGIN_MUTATION,
+        {
+          email: email.trim().toLowerCase(),
+          password,
+        }
+      );
+
+      // Support payload variations across schemas
+      const payload = data?.adminLogin ?? data?.login ?? data;
       const accessToken = payload?.accessToken || payload?.data?.accessToken;
       const user = payload?.user || payload?.data?.user;
 
       if (!accessToken || !user) {
-        throw new Error("Unexpected login response shape");
+        throw new Error("Invalid response format received from server.");
       }
 
       if (!isAdminRole(user.role)) {
-        throw new Error("This account is not an admin.");
+        clearAdminSession();
+        throw new Error("Access denied. Account lacks administrator privileges.");
       }
 
       setAdminSession(accessToken, {
@@ -44,7 +50,13 @@ export default function AdminLoginPage() {
       toast.success("Welcome, admin");
       router.replace("/admin/listings/pending");
     } catch (err: any) {
-      toast.error(err?.message || "Sign-in failed");
+      // Safely extract error message regardless of throw structure
+      const errorMessage =
+        err?.message ||
+        err?.error ||
+        (typeof err === "string" ? err : "Sign-in failed. Please check your credentials.");
+
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

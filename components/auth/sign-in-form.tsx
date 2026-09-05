@@ -53,8 +53,9 @@ export default function SignInForm({ onOpenChange }: SignInFormProps) {
             
             window.location.href = '/dashboard';
         },
-        onError: (error) => {
-            toast.error(error.message || "Something went wrong. Please try again.")
+        onError: (error: any) => {
+            const errorMsg = error?.message || "Invalid credentials. Please check your email and password.";
+            toast.error(errorMsg);
         }
     })
 
