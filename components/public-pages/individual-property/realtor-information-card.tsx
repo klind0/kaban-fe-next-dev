@@ -1,13 +1,9 @@
-import { Building2 } from '@/components/icons/buildings';
-import { Location } from '@/components/icons/location';
 import { Button } from '@/components/ui/button';
 import { IListing } from '@/types/listingTypes';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Bookmark } from '@/components/icons/bookmark';
 import { Call } from '@/components/icons/call';
 import { Whatsapp } from '@/components/icons/whatsapp';
-import { ExternalLink } from '@/components/icons/external-link';
 
 interface RealtorInformationCardProps {
     listing: IListing;
