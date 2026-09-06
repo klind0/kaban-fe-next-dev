@@ -3,8 +3,8 @@
 import { useEffect, useState, useRef, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useSearchParams } from 'next/navigation';
-import { useQuery } from '@tanstack/react-query';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { ChevronDown, ChevronUp, SlidersHorizontal, LayoutGrid, Rows, MapPin, Check } from "lucide-react";
 
 // Core UI Components
@@ -17,18 +17,12 @@ import { PUBLIC_LISTINGS_QUERY } from '@/network/gql/listings.ql';
 import { IListingResponse, PropertyCategory, PropertyType, Status } from '@/types/listingTypes';
 import useResponsiveNav from '@/hooks/useResponsiveNav';
 import { IQueryParamsType } from '@/types/queryParamsType';
+import { AMENITIES } from "@/lib/selectOptions";
+import { Button } from '@/components/ui/button';
 
 type ResultsProps = {
     initialSearchTerm?: string;
 };
-
-// Available Amenities Core Matrix Data
-const ALL_AMENITIES = [
-    "Swimming Pool", "Fitted Kitchen", "In-built Speaker", "En-suite",
-    "Boys Quarter", "Gym", "CCTV Cameras", "Security",
-    "Furnished", "Elevator", "24-hrs Electricity", "Pre-paid Meter",
-    "Installed Wardrobe", "Laundry Room", "Walk-in Closet", "Family Room"
-];
 
 // Sort Options Matrix
 const SORT_OPTIONS = [
@@ -141,8 +135,11 @@ function CustomSelect({
     );
 }
 
+const DEFAULT_LIMIT = 12;
+
 export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
     const searchParams = useSearchParams();
+    const router = useRouter();
 
     const [position, setPosition] = useState<'portrait' | 'landscape'>('portrait');
     const [stackOrder, setStackOrder] = useState<'listings' | 'map'>('listings');
@@ -157,7 +154,7 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
     const [radiusValue, setRadiusValue] = useState(0);
     const [showOtherFeatures, setShowOtherFeatures] = useState(false);
 
-    // Active Amenities Checklist State Array
+    // Active amenity SLUGS only (must match create-listing / DB values)
     const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
 
     // Filter Variables State Tracker
@@ -172,6 +169,10 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
     const [bathroomValue, setBathroomValue] = useState("");
     const [minPrice, setMinPrice] = useState("");
     const [maxPrice, setMaxPrice] = useState("");
+
+    // ── Pagination from URL ──────────────────────────────────────────────
+    const page = Math.max(1, Number(searchParams.get('page')) || 1);
+    const limit = Number(searchParams.get('limit')) || DEFAULT_LIMIT;
 
     // 🚀 Sync URL parameters (Status, Location, Bedroom, Property Type, PriceMax) on page load/navigation
     useEffect(() => {
@@ -195,36 +196,53 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
         }
     }, [searchParams, initialSearchTerm]);
 
+    // Shared filter payload (used by query + pagination resets)
+    const filterPayload = useMemo(() => ({
+        page,
+        limit,
+        ...(activeFilters.search && { search: activeFilters.search }),
+        ...(activeFilters.status && { status: activeFilters.status }),
+        ...(activeFilters.category && { category: activeFilters.category }),
+        ...(activeFilters.property_type && { property_type: activeFilters.property_type }),
+        ...(activeFilters.bedroom && { "details.bedroom": Number(activeFilters.bedroom) }),
+        ...(bathroomValue && { "details.bathroom": Number(bathroomValue) }),
+        ...(minPrice && { min_price: Number(minPrice) }),
+        ...(maxPrice && { max_price: Number(maxPrice) }),
+        ...(selectedAmenities.length > 0 && { amenities: selectedAmenities }),
+        ...(isRadiusActive && radiusValue > 0 && { radius: radiusValue }),
+    }), [
+        page,
+        limit,
+        activeFilters,
+        bathroomValue,
+        minPrice,
+        maxPrice,
+        selectedAmenities,
+        isRadiusActive,
+        radiusValue,
+    ]);
+
     // Query Execution Pipeline
-    const { data: searchData, isLoading } = useQuery({
-        queryKey: [
-            QUERY_KEY.PUBLIC_LISTINGS,
-            activeFilters,
-            minPrice,
-            maxPrice,
-            bathroomValue,
-            selectedAmenities,
-            isRadiusActive ? radiusValue : null
-        ],
+    const { data: searchData, isLoading, isFetching } = useQuery({
+        queryKey: [QUERY_KEY.PUBLIC_LISTINGS, filterPayload],
         queryFn: () =>
             gqlRequest<{ publicListings: IListingResponse }>(PUBLIC_LISTINGS_QUERY, {
-                filter: {
-                    ...(activeFilters.search && { search: activeFilters.search }),
-                    ...(activeFilters.status && { status: activeFilters.status }),
-                    ...(activeFilters.category && { category: activeFilters.category }),
-                    ...(activeFilters.property_type && { property_type: activeFilters.property_type }),
-                    ...(activeFilters.bedroom && { "details.bedroom": Number(activeFilters.bedroom) }),
-                    ...(bathroomValue && { "details.bathroom": Number(bathroomValue) }),
-                    ...(minPrice && { min_price: Number(minPrice) }),
-                    ...(maxPrice && { max_price: Number(maxPrice) }),
-                    ...(selectedAmenities.length > 0 && { amenities: selectedAmenities }),
-                    ...(isRadiusActive && radiusValue > 0 && { radius: radiusValue }),
-                },
-                limit: 50,
+                filter: filterPayload,
             }),
+        placeholderData: keepPreviousData,
     });
 
     const rawListings = searchData?.publicListings?.data ?? [];
+    const meta = (searchData?.publicListings as any)?.meta;
+
+    // Prefer backend meta; fall back only if meta is missing
+    const totalResults = typeof meta?.total === 'number' ? meta.total : rawListings.length;
+    const currentPage = typeof meta?.page === 'number' ? meta.page : page;
+    const pageLimit = typeof meta?.limit === 'number' ? meta.limit : limit;
+    const totalPages =
+        typeof meta?.totalPages === 'number'
+            ? meta.totalPages
+            : Math.max(1, Math.ceil(totalResults / pageLimit));
 
     // 🎲 Stable random shuffle created once whenever rawListings update
     const randomizedRawListings = useMemo(() => {
@@ -271,7 +289,6 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
         return [...featuredList, ...nonFeaturedList];
     }, [rawListings, randomizedRawListings, sortOrder]);
 
-    const totalResults = listings.length;
     const { mediasize } = useResponsiveNav({});
 
     useEffect(() => {
@@ -284,18 +301,39 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
 
     const handleSelectAllChange = (checked: boolean) => {
         if (checked) {
-            setSelectedAmenities(ALL_AMENITIES);
+            setSelectedAmenities(AMENITIES.map((a) => a.value));
         } else {
             setSelectedAmenities([]);
         }
     };
 
-    const handleAmenityToggle = (amenity: string) => {
-        setSelectedAmenities(prev => 
-            prev.includes(amenity) 
-                ? prev.filter(a => a !== amenity) 
-                : [...prev, amenity]
+    const handleAmenityToggle = (amenityValue: string) => {
+        setSelectedAmenities((prev) =>
+            prev.includes(amenityValue)
+                ? prev.filter((a) => a !== amenityValue)
+                : [...prev, amenityValue]
         );
+    };
+
+    /** Navigate to a page while preserving every other query param */
+    const goToPage = (newPage: number) => {
+        const next = Math.min(Math.max(1, newPage), totalPages);
+        const params = new URLSearchParams(searchParams.toString());
+        params.set('page', String(next));
+        params.set('limit', String(pageLimit));
+        router.push(`/search?${params.toString()}`);
+        // Optional: scroll results into view
+        if (typeof window !== 'undefined') {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    };
+
+    /** When filters change, always reset to page 1 */
+    const resetToFirstPage = () => {
+        const params = new URLSearchParams(searchParams.toString());
+        params.set('page', '1');
+        params.set('limit', String(DEFAULT_LIMIT));
+        router.replace(`/search?${params.toString()}`);
     };
 
     const listingsPage = stackOrder === 'listings' ? 'relative' : 'fixed w-0 overflow-hidden md:relative md:w-full md:overflow-auto';
@@ -332,6 +370,11 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
                     <div className="flex items-center justify-between bg-card border border-border rounded-xl p-3.5 shadow-sm w-full mb-4">
                         <span className="text-sm font-semibold text-gray-50">
                             {totalResults} {totalResults === 1 ? 'Result' : 'Results'} Found
+                            {totalPages > 1 && (
+                                <span className="text-gray-25 font-normal ml-1">
+                                    · Page {currentPage} of {totalPages}
+                                </span>
+                            )}
                         </span>
 
                         <div className="flex items-center gap-3">
@@ -536,7 +579,7 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
                                                 <input 
                                                     type="checkbox" 
                                                     id="select-all" 
-                                                    checked={selectedAmenities.length === ALL_AMENITIES.length}
+                                                    checked={selectedAmenities.length === AMENITIES.length}
                                                     onChange={(e) => handleSelectAllChange(e.target.checked)}
                                                     className="rounded border-border accent-primary h-4 w-4 cursor-pointer" 
                                                 />
@@ -546,23 +589,22 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
                                             </div>
 
                                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                                                {ALL_AMENITIES.map((amenity) => {
-                                                    const domId = amenity.toLowerCase().replace(/\s+/g, '-');
-                                                    const isChecked = selectedAmenities.includes(amenity);
+                                                {AMENITIES.map((amenity) => {
+                                                    const isChecked = selectedAmenities.includes(amenity.value);
                                                     return (
-                                                        <div key={amenity} className="flex items-center gap-2.5 py-1">
+                                                        <div key={amenity.value} className="flex items-center gap-2.5 py-1">
                                                             <input 
                                                                 type="checkbox" 
-                                                                id={domId} 
+                                                                id={amenity.value} 
                                                                 checked={isChecked}
-                                                                onChange={() => handleAmenityToggle(amenity)}
+                                                                onChange={() => handleAmenityToggle(amenity.value)}
                                                                 className="rounded border-border accent-primary h-4 w-4 cursor-pointer"
                                                             />
                                                             <label 
-                                                                htmlFor={domId} 
+                                                                htmlFor={amenity.value} 
                                                                 className="text-sm text-gray-50 font-medium cursor-pointer hover:text-foreground transition-colors select-none"
                                                             >
-                                                                {amenity}
+                                                                {amenity.label}
                                                             </label>
                                                         </div>
                                                     );
@@ -583,13 +625,15 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
                                             setIsRadiusActive(false);
                                             setRadiusValue(0);
                                             setSelectedAmenities([]);
+                                            resetToFirstPage();
                                         }}
                                         className="px-5 py-2.5 rounded-lg border border-border text-gray-50 font-semibold text-sm hover:bg-neutral-100 transition-colors"
                                     >
                                         Reset
                                     </button>
                                     <button 
-                                        type="submit" 
+                                        type="button"
+                                        onClick={() => resetToFirstPage()}
                                         className="bg-primary hover:opacity-90 text-primary-foreground font-semibold text-sm px-6 py-2.5 rounded-lg transition-all shadow-sm"
                                     >
                                         Apply Filters
@@ -610,11 +654,41 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
                         No properties found matching those search criteria.
                     </div>
                 ) : (
-                    <div className={`top-4 grid gap-4 transition-all delay-100 ${listingsPage} ${order}`}>
-                        {listings.map((listing) => (
-                            <ListingCard key={listing?.id} listingData={listing} />
-                        ))}
-                    </div>
+                    <>
+                        <div className={`top-4 grid gap-4 transition-all delay-100 ${listingsPage} ${order}`}>
+                            {listings.map((listing) => (
+                                <ListingCard key={listing?.id} listingData={listing} />
+                            ))}
+                        </div>
+
+                        {/* Pagination */}
+                        {totalPages > 1 && (
+                            <div className="flex flex-wrap items-center justify-center gap-3 pt-6">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    disabled={currentPage <= 1 || isFetching}
+                                    onClick={() => goToPage(currentPage - 1)}
+                                >
+                                    Previous
+                                </Button>
+
+                                <span className="text-sm text-neutral-600 tabular-nums">
+                                    Page {currentPage} of {totalPages}
+                                    <span className="text-neutral-400"> · {totalResults} total</span>
+                                </span>
+
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    disabled={currentPage >= totalPages || isFetching}
+                                    onClick={() => goToPage(currentPage + 1)}
+                                >
+                                    Next
+                                </Button>
+                            </div>
+                        )}
+                    </>
                 )}
             </div>
         </Container>

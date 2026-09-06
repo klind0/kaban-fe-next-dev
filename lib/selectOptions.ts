@@ -66,7 +66,17 @@ export const property_type = [
   { name: "Event Centre", value: "Event Centre" },
 ];
 
-export const featureOptions = [
+
+export const bedroomOptions = [
+  { name: "1", value: "1" },
+  { name: "2", value: "2" },
+  { name: "3", value: "3" },
+  { name: "4", value: "4" },
+  { name: "5", value: "5" },
+  { name: "5+", value: "5+" },
+];
+
+export const AMENITIES = [
   { label: "Swimming Pool", value: "swimming-pool" },
   { label: "Fitted Kitchen", value: "fitted-kitchen" },
   { label: "In-built Speaker", value: "in-built-speaker" },
@@ -83,23 +93,11 @@ export const featureOptions = [
   { label: "Laundry Room", value: "laundry-room" },
   { label: "Walk-in Closet", value: "walk-in-closet" },
   { label: "Family Room", value: "family-room" },
-];
+] as const;
 
-// Clone map matching their exact variable casing for structural safety
-export const otherFeatures = featureOptions.map(f => ({
-  title: f.label,
-  checked: false
-}));
+export type AmenitySlug = (typeof AMENITIES)[number]["value"];
 
-
-export const bedroomOptions = [
-  { name: "1", value: "1" },
-  { name: "2", value: "2" },
-  { name: "3", value: "3" },
-  { name: "4", value: "4" },
-  { name: "5", value: "5" },
-  { name: "5+", value: "5+" },
-];
+export const AMENITY_VALUES = AMENITIES.map((a) => a.value);
 
 // Normalizing their raw arrays to use standard { name, value } matching yours
 export const bedroom = [{ name: "Bedroom", value: "" }, ...bedroomOptions];
