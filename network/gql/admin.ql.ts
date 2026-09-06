@@ -7,8 +7,8 @@ export const ADMIN_LOGIN_MUTATION = `
 `;
 
 export const PENDING_LISTINGS_QUERY = `
-  query PendingListings($page: Float, $limit: Float) {
-    pendingListings(page: $page, limit: $limit)
+  query PendingListings {
+    pendingListings
   }
 `;
 

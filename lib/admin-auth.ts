@@ -15,23 +15,24 @@ export function getAccessToken(): string | undefined {
   return Cookies.get(QUERY_KEY.ACCESS_TOKEN) || Cookies.get("EzxqowpoqiaQa");
 }
 
-export function setAdminSession(accessToken: string, user: unknown) {
+export function setAdminSession(accessToken: string, user: { id: string; email: string; fullName?: string; role: number | string }) {
   Cookies.set(QUERY_KEY.ACCESS_TOKEN, accessToken, {
-    expires: 30,
-    secure: true,
     path: "/",
     sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    expires: 1,
   });
+  // optional: store admin user in localStorage/sessionStorage if you already do
   if (typeof window !== "undefined") {
-    localStorage.setItem(USER_KEY, JSON.stringify(user));
+    localStorage.setItem("kaban_admin_user", JSON.stringify(user));
   }
 }
 
 export function clearAdminSession() {
   Cookies.remove(QUERY_KEY.ACCESS_TOKEN, { path: "/" });
-  Cookies.remove("EzxqowpoqiaQa", { path: "/" });
+  Cookies.remove(QUERY_KEY.REFRESH_TOKEN, { path: "/" });
   if (typeof window !== "undefined") {
-    localStorage.removeItem(USER_KEY);
+    localStorage.removeItem("kaban_admin_user");
   }
 }
 

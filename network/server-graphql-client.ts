@@ -2,6 +2,10 @@
  * Server-side GraphQL client that calls the backend directly.
  * Use this in Server Components / generateMetadata instead of gqlRequest,
  * which relies on the client-side axios proxy ("/api").
+ *
+ * Expected:
+ *   API_URL = https://kaban-ai-be-graphql.onrender.com/api
+ *   → GraphQL = https://kaban-ai-be-graphql.onrender.com/api/graphql
  */
 
 import { ENDPOINTS } from "./endpoints";
@@ -14,7 +18,38 @@ interface GraphQLResponse<T> {
   errors?: { message: string }[];
 }
 
-const BACKEND_URL = process.env.API_URL || "https://kaban-ai-be-graphql.onrender.com";
+const RAW_API_URL =
+  process.env.API_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
+  "https://kaban-ai-be-graphql.onrender.com/api";
+
+/** Strip trailing slashes only */
+function normalizeBase(url: string): string {
+  return url.trim().replace(/\/+$/, "");
+}
+
+/**
+ * API root that always ends with /api
+ * - if env is .../api  → keep it
+ * - if env is host only → append /api
+ */
+function getApiRoot(): string {
+  const base = normalizeBase(RAW_API_URL);
+  if (/\/api$/i.test(base)) return base;
+  return `${base}/api`;
+}
+
+/** Full GraphQL URL: .../api/graphql */
+function getGraphqlUrl(): string {
+  const endpoint = String(ENDPOINTS.GRAPHQL || "graphql").replace(/^\/+/, "");
+  return `${getApiRoot()}/${endpoint}`;
+}
+
+/** Full REST path under /api (e.g. auth/refresh) */
+function getApiUrl(path: string): string {
+  const clean = path.replace(/^\/+/, "");
+  return `${getApiRoot()}/${clean}`;
+}
 
 async function execGqlFetch<T>(
   token: string | undefined,
@@ -26,38 +61,34 @@ async function execGqlFetch<T>(
     ? { Authorization: `Bearer ${token}` }
     : {};
 
-  // Clean edge-case trailing slashes from the base URL configuration
-  const cleanBaseUrl = BACKEND_URL.replace(/\/+$/, "");
-  // Clean edge-case leading slashes from the endpoint constant configuration
-  const cleanEndpoint = ENDPOINTS.GRAPHQL.replace(/^\/+/, "");
-
-  // ✨ FIX: Intercept the string interpolation to enforce the global '/api' prefix path
-  const targetUrl = `${cleanBaseUrl}/${cleanEndpoint}`;
+  const targetUrl = getGraphqlUrl();
 
   const res = await fetch(targetUrl, {
     method: "POST",
     cache: "no-store",
-    headers: { "Content-Type": "application/json", ...authHeader, ...headers },
+    headers: {
+      "Content-Type": "application/json",
+      ...authHeader,
+      ...headers,
+    },
     body: JSON.stringify({ query, variables }),
   });
 
   if (!res.ok) {
-    // Read the body as raw text first (safeguards against non-JSON crashes like 502/504 errors)
     const responseText = await res.text();
-    
+
     console.error("==========================================");
     console.error(`❌ GRAPHQL SERVER ERROR DETAILS (Status ${res.status}):`);
-    
+    console.error(`URL: ${targetUrl}`);
+
     try {
-      // Attempt to parse and print the formatted NestJS/GraphQL validation error array
       const parsedJson = JSON.parse(responseText);
       console.error(JSON.stringify(parsedJson, null, 2));
     } catch {
-      // Fallback if the backend returned a flat string or HTML page error
       console.error(responseText || "[Empty Response Body]");
     }
     console.error("==========================================");
-    
+
     throw new Error(`GraphQL request failed with status ${res.status}`);
   }
 
@@ -70,20 +101,27 @@ async function refreshAccessToken(): Promise<string> {
 
   if (!refreshToken) redirect("/");
 
-  const cleanBaseUrl = BACKEND_URL.replace(/\/+$/, "");
-  const res = await fetch(
-    `${cleanBaseUrl}/${ENDPOINTS.AUTH.REFRESH_TOKEN}`,
-    {
-      method: "GET",
-      headers: { Authorization: `Bearer ${refreshToken}` },
-    },
-  );
+  const refreshPath = String(
+    ENDPOINTS.AUTH?.REFRESH_TOKEN || "auth/refresh",
+  ).replace(/^\/+/, "");
+
+  const res = await fetch(getApiUrl(refreshPath), {
+    method: "GET",
+    headers: { Authorization: `Bearer ${refreshToken}` },
+  });
 
   if (!res.ok) redirect("/");
 
   const body = await res.json();
-  const newAccessToken: string | undefined = body?.data?.tokens?.accessToken;
-  const newRefreshToken: string | undefined = body?.data?.tokens?.refreshToken;
+  // Support both wrapped and unwrapped token shapes
+  const newAccessToken: string | undefined =
+    body?.data?.tokens?.accessToken ??
+    body?.data?.accessToken ??
+    body?.accessToken;
+  const newRefreshToken: string | undefined =
+    body?.data?.tokens?.refreshToken ??
+    body?.data?.refreshToken ??
+    body?.refreshToken;
 
   if (!newAccessToken) redirect("/");
 
@@ -115,7 +153,11 @@ export async function serverGqlRequest<T, V = Record<string, unknown>>(
 
   if (json.errors?.length) {
     const msg = json.errors[0].message;
-    if (msg === "Token has expired" || msg === "Unauthorized") {
+    if (
+      msg === "Token has expired" ||
+      msg === "Unauthorized" ||
+      /jwt expired|unauthenticated/i.test(msg)
+    ) {
       accessToken = await refreshAccessToken();
       json = await execGqlFetch<T>(accessToken, query, variables, headers);
     }

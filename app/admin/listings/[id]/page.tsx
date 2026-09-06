@@ -21,14 +21,14 @@ function unwrapListing(raw: unknown): any {
   return raw;
 }
 
-function normalizeList(raw: unknown): any[] {
+function normalizeList(raw: any): any[] {
   if (Array.isArray(raw)) return raw;
-  if (raw && typeof raw === "object") {
-    const obj = raw as Record<string, unknown>;
-    if (Array.isArray(obj.data)) return obj.data as any[];
-  }
+  if (Array.isArray(raw?.data)) return raw.data;
+  if (Array.isArray(raw?.pendingListings)) return raw.pendingListings;
   return [];
 }
+
+const listings = normalizeList(data?.pendingListings);
 
 export default function AdminListingReviewPage() {
   const params = useParams();
@@ -58,7 +58,7 @@ export default function AdminListingReviewPage() {
         /* fall through */
       }
 
-      const pending = await gqlRequest<{ pendingListings: unknown }>(
+      const pending = await gqlRequest<{ pendingListings: any }>(
         PENDING_LISTINGS_QUERY,
       );
       const list = normalizeList(pending?.pendingListings);

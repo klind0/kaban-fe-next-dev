@@ -4,8 +4,6 @@ import Cookies from "js-cookie";
 import { useUserStore } from "@/app/stores/user-store";
 import { QUERY_KEY } from "@/enum/queryKeys";
 
-const AUTH_COOKIE_NAME = QUERY_KEY.ACCESS_TOKEN || "EzxqowpoqiaQa";
-
 interface GraphQLErrorExtensions {
   code?: string;
   originalError?: {
@@ -24,14 +22,11 @@ export async function gqlRequest<T, V = Record<string, unknown>>(
   query: string,
   variables?: V,
 ): Promise<T> {
-  const token =
-    Cookies.get(AUTH_COOKIE_NAME) ||
-    Cookies.get("EzxqowpoqiaQa") ||
-    Cookies.get(QUERY_KEY.ACCESS_TOKEN);
+  const token = Cookies.get(QUERY_KEY.ACCESS_TOKEN);
 
-  // Check if this request is a login/auth mutation (e.g. LOGIN_MUTATION or admin login)
-  const isAuthMutation =
-    /login|signup|adminlogin|signin/i.test(query);
+  const isAuthMutation = /login|signup|adminlogin|signin|forgotpassword|resetpassword/i.test(
+    query,
+  );
 
   try {
     const response = await axiosInstance.post<GraphQLResponse<T>>(
@@ -59,7 +54,6 @@ export async function gqlRequest<T, V = Record<string, unknown>>(
         msg.includes("authentication token required") ||
         msg.includes("token has expired");
 
-      // ONLY treat as an expired session if it's NOT an explicit login/signup attempt
       if (isUnauthenticated && !isAuthMutation) {
         handleSessionExpiration();
       }
@@ -85,24 +79,16 @@ function handleSessionExpiration() {
 
   const currentPath = window.location.pathname;
 
-  // Clear token cookies
-  Cookies.remove(AUTH_COOKIE_NAME, { path: "/" });
-  Cookies.remove("EzxqowpoqiaQa", { path: "/" });
-  if (QUERY_KEY.ACCESS_TOKEN) {
-    Cookies.remove(QUERY_KEY.ACCESS_TOKEN, { path: "/" });
-  }
+  Cookies.remove(QUERY_KEY.ACCESS_TOKEN, { path: "/" });
+  Cookies.remove(QUERY_KEY.REFRESH_TOKEN, { path: "/" });
 
   useUserStore.getState().logout?.();
 
-  // Route-aware redirect: Send admin users to admin login, others stay put or go home
   if (currentPath.startsWith("/admin")) {
     if (currentPath !== "/admin/login") {
       window.location.href = "/admin/login";
     }
-  } else {
-    // For non-admin paths, stay on current page or redirect to public home
-    if (currentPath.startsWith("/dashboard")) {
-      window.location.href = "/";
-    }
+  } else if (currentPath.startsWith("/dashboard")) {
+    window.location.href = "/";
   }
 }

@@ -129,26 +129,26 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm(
         ref,
         () => ({
             getValues: () => {
-                const currentData = getValues();
-                const imagesCopy = [...(currentData.images || [])];
-                const targetCoverIdx = currentData.cover_index || 0;
+                const current = getValues();
+                const imagesCopy = [...(current.images || [])];
+                const idx = current.cover_index || 0;
 
-                if (targetCoverIdx > 0 && targetCoverIdx < imagesCopy.length) {
-                    const [coverImg] = imagesCopy.splice(targetCoverIdx, 1);
-                    imagesCopy.unshift(coverImg);
+                if (idx > 0 && idx < imagesCopy.length) {
+                    const [cover] = imagesCopy.splice(idx, 1);
+                    imagesCopy.unshift(cover);
+                    return {
+                    images: imagesCopy,
+                    cover_index: 0,
+                    video_url: current.video_url ?? "",
+                    };
                 }
 
                 return {
-                    images: imagesCopy as any[],
-                    cover_index: 0,
-                    video_url: currentData.video_url || "",
-                    // helpers for parent (optional)
-                    newFiles: imagesCopy.filter((img): img is File => img instanceof File),
-                    existingImages: imagesCopy.filter(
-                    (img: any) => img && typeof img?.url === "string" && !(img instanceof File),
-                    ),
+                    images: current.images ?? [],
+                    cover_index: idx,
+                    video_url: current.video_url ?? "",
                 };
-                },
+            },
         }),
         [getValues]
     );

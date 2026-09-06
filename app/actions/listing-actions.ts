@@ -4,7 +4,7 @@ import {
   CREATE_LISTING_MUTATION,
   SUBMIT_LISTING_MUTATION,
   DELETE_LISTING_MUTATION,
-  UPGRADE_FEATURED_MUTATION,
+  SET_FEATURED_LISTINGS_MUTATION,
 } from "@/network/gql/listings.ql";
 import { serverGqlRequest } from "@/network/server-graphql-client";
 import { QUERY_KEY } from "@/enum/queryKeys";
@@ -159,12 +159,34 @@ export async function deleteListingAction(id: string): Promise<{ success: boolea
   }
 }
 
-export async function upgradeListingToFeaturedAction(id: string): Promise<{ success: boolean }> {
+/** Admin path today. Later you can add a realtor/token path that calls a different mutation. */
+export async function setFeaturedListingsAction(
+  listingIds: string[],
+): Promise<{ success: boolean; error?: string }> {
   try {
-    await serverGqlRequest(UPGRADE_FEATURED_MUTATION, { id });
+    const ids = listingIds.filter(Boolean);
+    if (ids.length === 0) {
+      return { success: false, error: "At least one listing ID is required" };
+    }
+
+    await serverGqlRequest(SET_FEATURED_LISTINGS_MUTATION, {
+      listingIds: ids,
+    });
+
     return { success: true };
   } catch (error: any) {
-    console.error("❌ Failed to upgrade listing to featured status:", error);
-    throw new Error(error?.message || "Failed to upgrade listing.");
+    console.error("❌ confFailed to set featured listings:", error);
+    const message =
+      error?.errors?.[0]?.message ||
+      error?.message ||
+      "Failed to update featured listings.";
+    return { success: false, error: message };
   }
+}
+
+/** Convenience wrapper for a single listing (still uses the same backend mutation). */
+export async function upgradeListingToFeaturedAction(
+  id: string,
+): Promise<{ success: boolean; error?: string }> {
+  return setFeaturedListingsAction([id]);
 }

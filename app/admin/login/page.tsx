@@ -3,9 +3,17 @@
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import Cookies from "js-cookie";
 import { gqlRequest } from "@/network/graphql-client";
 import { ADMIN_LOGIN_MUTATION } from "@/network/gql/admin.ql";
 import { isAdminRole, setAdminSession, clearAdminSession } from "@/lib/admin-auth";
+import { QUERY_KEY } from "@/enum/queryKeys";
+
+const cookieOpts = {
+  path: "/",
+  sameSite: "lax" as const,
+  secure: process.env.NODE_ENV === "production",
+};
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -23,12 +31,13 @@ export default function AdminLoginPage() {
         {
           email: email.trim().toLowerCase(),
           password,
-        }
+        },
       );
 
-      // Support payload variations across schemas
       const payload = data?.adminLogin ?? data?.login ?? data;
       const accessToken = payload?.accessToken || payload?.data?.accessToken;
+      const refreshToken =
+        payload?.refreshToken || payload?.data?.refreshToken;
       const user = payload?.user || payload?.data?.user;
 
       if (!accessToken || !user) {
@@ -37,7 +46,21 @@ export default function AdminLoginPage() {
 
       if (!isAdminRole(user.role)) {
         clearAdminSession();
-        throw new Error("Access denied. Account lacks administrator privileges.");
+        throw new Error(
+          "Access denied. Account lacks administrator privileges.",
+        );
+      }
+
+      // Canonical cookies (same names as realtor login)
+      Cookies.set(QUERY_KEY.ACCESS_TOKEN, accessToken, {
+        ...cookieOpts,
+        expires: 1,
+      });
+      if (refreshToken) {
+        Cookies.set(QUERY_KEY.REFRESH_TOKEN, refreshToken, {
+          ...cookieOpts,
+          expires: 30,
+        });
       }
 
       setAdminSession(accessToken, {
@@ -50,11 +73,12 @@ export default function AdminLoginPage() {
       toast.success("Welcome, admin");
       router.replace("/admin/listings/pending");
     } catch (err: any) {
-      // Safely extract error message regardless of throw structure
       const errorMessage =
         err?.message ||
         err?.error ||
-        (typeof err === "string" ? err : "Sign-in failed. Please check your credentials.");
+        (typeof err === "string"
+          ? err
+          : "Sign-in failed. Please check your credentials.");
 
       toast.error(errorMessage);
     } finally {
@@ -70,7 +94,9 @@ export default function AdminLoginPage() {
       >
         <div>
           <h1 className="text-xl font-bold text-slate-900">Kaban Admin</h1>
-          <p className="mt-1 text-sm text-slate-500">Sign in to review listings</p>
+          <p className="mt-1 text-sm text-slate-500">
+            Sign in to review listings
+          </p>
         </div>
 
         <label className="block text-sm font-medium">

@@ -1,136 +1,168 @@
 "use client";
 
-import { Button } from '../ui/button'
-import Link from 'next/link'
-import FormControl from '../universal/form-control'
-import { getErrorMessage } from '@/lib/getErrorMessage'
-import { Controller, useForm } from 'react-hook-form'
-import { toast } from 'sonner'
-import { useMutation } from '@tanstack/react-query'
-import { LOGIN_MUTATION } from '@/network/gql/auth.ql'
-import { ILoginResponse, ILoginVariables } from '@/types/authTypes'
-import { QUERY_KEY } from '@/enum/queryKeys'
-import Cookies from 'js-cookie'
-import { gqlRequest } from '@/network/graphql-client'
-import { useUserStore } from '@/app/stores/user-store'
-import { Checkbox } from '../ui/checkbox'
-import { useRouter } from 'next/navigation'
+import { Button } from "../ui/button";
+import Link from "next/link";
+import FormControl from "../universal/form-control";
+import { getErrorMessage } from "@/lib/getErrorMessage";
+import { Controller, useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { useMutation } from "@tanstack/react-query";
+import { LOGIN_MUTATION } from "@/network/gql/auth.ql";
+import { ILoginResponse, ILoginVariables } from "@/types/authTypes";
+import { QUERY_KEY } from "@/enum/queryKeys";
+import Cookies from "js-cookie";
+import { gqlRequest } from "@/network/graphql-client";
+import { useUserStore } from "@/app/stores/user-store";
+import { Checkbox } from "../ui/checkbox";
+import { useRouter } from "next/navigation";
 
 interface SignInFormProps {
-    onOpenChange: () => void;
+  onOpenChange: () => void;
 }
 
+const cookieOpts = {
+  path: "/",
+  sameSite: "lax" as const,
+  secure: process.env.NODE_ENV === "production",
+};
+
 export default function SignInForm({ onOpenChange }: SignInFormProps) {
-    const router = useRouter()
-    
-    const { control, handleSubmit, reset, formState: { errors } } = useForm<ILoginVariables>({
-        defaultValues: {
-            email: '',
-            password: '',
-        },
-        mode: 'all'
-    })
+  const router = useRouter();
 
-    const { setUser, setRealtor } = useUserStore()
+  const {
+    control,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<ILoginVariables>({
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+    mode: "all",
+  });
 
-    const { mutateAsync: mutateLogin, isPending: isLoginPending } = useMutation({
-        mutationFn: (variables: ILoginVariables) =>
-            gqlRequest<ILoginResponse, ILoginVariables>(LOGIN_MUTATION, variables),
-        onSuccess: (response) => {
-            toast.success("Welcome back! Sign-in successful.");
-            const { accessToken, user, realtor } = response.login;
-            
-            Cookies.set(QUERY_KEY.ACCESS_TOKEN, accessToken, { 
-                expires: 30, 
-                secure: true,
-                path: '/'
-            });
+  const { setUser, setRealtor } = useUserStore();
 
-            setUser(user);
-            setRealtor(realtor);
-            reset();
-            onOpenChange();
-            
-            window.location.href = '/dashboard';
-        },
-        onError: (error: any) => {
-            const errorMsg = error?.message || "Invalid credentials. Please check your email and password.";
-            toast.error(errorMsg);
-        }
-    })
+  const { mutateAsync: mutateLogin, isPending: isLoginPending } = useMutation({
+    mutationFn: (variables: ILoginVariables) =>
+      gqlRequest<ILoginResponse, ILoginVariables>(LOGIN_MUTATION, variables),
+    onSuccess: (response) => {
+      toast.success("Welcome back! Sign-in successful.");
 
-    const onSubmit = async (data: ILoginVariables) => {
-        mutateLogin(data)
-    }
+      const payload = (response as any)?.login ?? response;
+      const accessToken = payload?.accessToken;
+      const refreshToken = payload?.refreshToken;
+      const user = payload?.user;
+      const realtor = payload?.realtor;
 
-    return (
-        <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
-            <div className='space-y-4'>
-                <Controller
-                    name="email"
-                    control={control}
-                    rules={{
-                        required: 'Email is required',
-                        pattern: {
-                            value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                            message: 'Enter a valid email address',
-                        },
-                    }}
-                    render={({ field }) => (
-                        <FormControl
-                            as='input'
-                            labelText='Email address'
-                            placeholder='you@example.com'
-                            type='email'
-                            {...field}
-                            error={getErrorMessage(errors.email)}
-                        />
-                    )}
-                />
-                <div>
-                    <Controller
-                        name="password"
-                        control={control}
-                        rules={{
-                            required: 'Password is required',
-                            minLength: {
-                                value: 8,
-                                message: 'Password must be at least 8 characters',
-                            },
-                        }}
-                        render={({ field }) => (
-                            <FormControl
-                                as='input'
-                                labelText='Password'
-                                placeholder='xxxxxxxxxxxxxxx'
-                                type='password'
-                                autoComplete='off'
-                                {...field}
-                                error={getErrorMessage(errors.password)}
-                            />
-                        )}
-                    />
-                    <div className='flex items-center justify-between mt-4'>
-                        <div className='flex gap-2 items-center'>
-                            <Checkbox id="keep-logged-in" /> 
-                            <label htmlFor="keep-logged-in" className='font-medium text-sm select-none cursor-pointer'>
-                                Keep me logged in
-                            </label>
-                        </div>
-                        <Link
-                            href="/forgot-password"
-                            className="text-sm text-primary font-semibold hover:underline"
-                            onClick={onOpenChange} // close modal if sign-in is in a dialog
-                        >
-                            Forgot password?
-                        </Link>
-                    </div>
-                </div>
+      if (!accessToken) {
+        toast.error("Sign-in succeeded but no access token was returned.");
+        return;
+      }
+
+      Cookies.set(QUERY_KEY.ACCESS_TOKEN, accessToken, {
+        ...cookieOpts,
+        expires: 1, // short-lived access; refresh renews it
+      });
+
+      if (refreshToken) {
+        Cookies.set(QUERY_KEY.REFRESH_TOKEN, refreshToken, {
+          ...cookieOpts,
+          expires: 30,
+        });
+      }
+
+      if (user) setUser(user);
+      if (realtor) setRealtor(realtor);
+
+      reset();
+      onOpenChange();
+      window.location.href = "/dashboard";
+    },
+    onError: (error: any) => {
+      const errorMsg =
+        error?.message ||
+        "Invalid credentials. Please check your email and password.";
+      toast.error(errorMsg);
+    },
+  });
+
+  const onSubmit = async (data: ILoginVariables) => {
+    mutateLogin(data);
+  };
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <div className="space-y-4">
+        <Controller
+          name="email"
+          control={control}
+          rules={{
+            required: "Email is required",
+            pattern: {
+              value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+              message: "Enter a valid email address",
+            },
+          }}
+          render={({ field }) => (
+            <FormControl
+              as="input"
+              labelText="Email address"
+              placeholder="you@example.com"
+              type="email"
+              {...field}
+              error={getErrorMessage(errors.email)}
+            />
+          )}
+        />
+        <div>
+          <Controller
+            name="password"
+            control={control}
+            rules={{
+              required: "Password is required",
+              minLength: {
+                value: 8,
+                message: "Password must be at least 8 characters",
+              },
+            }}
+            render={({ field }) => (
+              <FormControl
+                as="input"
+                labelText="Password"
+                placeholder="xxxxxxxxxxxxxxx"
+                type="password"
+                autoComplete="off"
+                {...field}
+                error={getErrorMessage(errors.password)}
+              />
+            )}
+          />
+          <div className="flex items-center justify-between mt-4">
+            <div className="flex gap-2 items-center">
+              <Checkbox id="keep-logged-in" />
+              <label
+                htmlFor="keep-logged-in"
+                className="font-medium text-sm select-none cursor-pointer"
+              >
+                Keep me logged in
+              </label>
             </div>
+            <Link
+              href="/forgot-password"
+              className="text-sm text-primary font-semibold hover:underline"
+              onClick={onOpenChange}
+            >
+              Forgot password?
+            </Link>
+          </div>
+        </div>
+      </div>
 
-            <Button type='submit' className='w-full' loading={isLoginPending}>
-                Sign In
-            </Button>
-        </form>
-    )
+      <Button type="submit" className="w-full" loading={isLoginPending}>
+        Sign In
+      </Button>
+    </form>
+  );
 }

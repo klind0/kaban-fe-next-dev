@@ -17,8 +17,13 @@ export type BasicListingData = Pick<
   | "details"
 >;
 
+export type ListingImageItem =
+  | File
+  | string
+  | { url: string; publicId?: string };
+
 export type MediaListingData = {
-  images: File[];
+  images: ListingImageItem[];
   cover_index: number;
   video_url: string;
 };
@@ -123,9 +128,16 @@ async function createDraft(
   return result.id;
 }
 
-export async function uploadImages( listingId: string, files: File[], ): Promise<void> {
-  if (!files || files.length === 0) {
-    console.log("🟡 [NETWORK] No images array provided for upload execution.");
+// network/listings.ts — uploadImages
+
+export async function uploadImages(
+  listingId: string,
+  files: ListingImageItem[],
+): Promise<void> {
+  const realFiles = files.filter((f): f is File => f instanceof File);
+
+  if (realFiles.length === 0) {
+    console.log("🟡 [NETWORK] No new File objects to upload.");
     return;
   }
 
@@ -135,72 +147,28 @@ export async function uploadImages( listingId: string, files: File[], ): Promise
     useWebWorker: true,
   };
 
-  // Stay safely under Vercel ~4.5MB body limit (multipart overhead included)
-  const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
-
-  console.log("==========================================");
-  console.log(
-    `📦 [NETWORK] PROCESSING ${files.length} IMAGE(S) FOR ID: ${listingId}`,
-  );
-
-  // 1. Compress large images client-side
   const processedFiles = await Promise.all(
-    files.map(async (file) => {
+    realFiles.map(async (file) => {
       if (file.size <= 1024 * 1024 || !file.type.startsWith("image/")) {
-        console.log(
-          `ℹ️ [SKIP COMPRESS] "${file.name}" is already small (${(file.size / 1024 / 1024).toFixed(2)} MB)`,
-        );
         return file;
       }
-
       try {
-        console.log(
-          `⏳ [COMPRESSING] "${file.name}" (${(file.size / 1024 / 1024).toFixed(2)} MB)...`,
-        );
-        const compressed = await imageCompression(file, compressionOptions);
-        console.log(
-          `✅ [COMPRESSED] "${file.name}" -> (${(compressed.size / 1024 / 1024).toFixed(2)} MB)`,
-        );
-        return compressed;
-      } catch (err) {
-        console.warn(
-          `⚠️ [COMPRESS FAILED] Could not compress "${file.name}". Falling back to original.`,
-          err,
-        );
+        return await imageCompression(file, compressionOptions);
+      } catch {
         return file;
       }
     }),
   );
 
-  // 2. Reject anything still too large for a single Vercel request
-  for (const file of processedFiles) {
-    if (file.size > MAX_UPLOAD_BYTES) {
-      throw new Error(
-        `"${file.name}" is still too large (${(file.size / 1024 / 1024).toFixed(2)} MB) after compression. Try a smaller image or export as JPEG.`,
-      );
-    }
-  }
-
-  // 3. Upload one file per request (sequential = clearer errors, safer limits)
-  console.log(
-    `🚀 [UPLOADING] Dispatching ${processedFiles.length} sequential request(s)...`,
-  );
-
-  for (let index = 0; index < processedFiles.length; index++) {
-    const file = processedFiles[index];
+  // One file per request (Vercel payload limit)
+  for (const [index, file] of processedFiles.entries()) {
     const formData = new FormData();
     formData.append("images", file);
-
     console.log(
-      `👉 Request #${index + 1} | File: "${file.name}" | Size: ${file.size} bytes`,
+      `👉 Upload #${index + 1} | "${file.name}" | ${file.size} bytes`,
     );
     await uploadListingImagesAction(listingId, formData);
   }
-
-  console.log("==========================================");
-  console.log(
-    `🎉 [NETWORK] ALL IMAGES UPLOADED SUCCESSFULLY FOR ID: ${listingId}`,
-  );
 }
 
 export async function submitListing(listingId: string): Promise<unknown> {
