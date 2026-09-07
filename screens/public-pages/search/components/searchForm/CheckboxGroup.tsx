@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
-import { otherFeatures } from '@/lib/selectOptions';
+import { AMENITIES } from '@/lib/selectOptions';
 
 type SearchCheckboxGroupProps = {
   className?: string;
@@ -19,8 +19,8 @@ export default function SearchCheckboxGroup({
   // Check if every available option is checked
   const allChecked = useMemo(() => {
     return (
-      otherFeatures.length > 0 &&
-      selectedFeatures.length === otherFeatures.length
+      AMENITIES.length > 0 &&
+      selectedFeatures.length === AMENITIES.length
     );
   }, [selectedFeatures]);
 
@@ -37,7 +37,7 @@ export default function SearchCheckboxGroup({
   const handleCheckAll = () => {
     const updated = allChecked
       ? []
-      : otherFeatures.map((item) => item.title);
+      : AMENITIES.map((item) => item.title);
 
     onChange(updated);
   };
@@ -62,7 +62,7 @@ export default function SearchCheckboxGroup({
 
       {/* Feature Checkbox Grid Layer */}
       <div className="grid gap-2 grid-cols-2 lg:grid-cols-4">
-        {otherFeatures.map((feature) => {
+        {AMENITIES.map((feature) => {
           const isChecked = selectedFeatures.includes(feature.title);
           const inputId = `feature-${feature.title.replace(/\s+/g, '-').toLowerCase()}`;
 
