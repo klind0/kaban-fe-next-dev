@@ -28,8 +28,6 @@ function normalizeList(raw: any): any[] {
   return [];
 }
 
-const listings = normalizeList(data?.pendingListings);
-
 export default function AdminListingReviewPage() {
   const params = useParams();
   const router = useRouter();
