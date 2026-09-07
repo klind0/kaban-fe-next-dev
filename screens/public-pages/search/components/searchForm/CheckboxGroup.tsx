@@ -24,11 +24,11 @@ export default function SearchCheckboxGroup({
     );
   }, [selectedFeatures]);
 
-  // Toggles an individual amenity checkmark
-  const handleSingleCheck = (featureTitle: string, checked: boolean) => {
+  // Toggles an individual amenity checkmark using value
+  const handleSingleCheck = (featureValue: string, checked: boolean) => {
     const updated = checked
-      ? [...selectedFeatures, featureTitle]
-      : selectedFeatures.filter((item) => item !== featureTitle);
+      ? [...selectedFeatures, featureValue]
+      : selectedFeatures.filter((item) => item !== featureValue);
 
     onChange(updated);
   };
@@ -37,7 +37,7 @@ export default function SearchCheckboxGroup({
   const handleCheckAll = () => {
     const updated = allChecked
       ? []
-      : AMENITIES.map((item) => item.title);
+      : AMENITIES.map((item) => item.value);
 
     onChange(updated);
   };
@@ -63,19 +63,19 @@ export default function SearchCheckboxGroup({
       {/* Feature Checkbox Grid Layer */}
       <div className="grid gap-2 grid-cols-2 lg:grid-cols-4">
         {AMENITIES.map((feature) => {
-          const isChecked = selectedFeatures.includes(feature.title);
-          const inputId = `feature-${feature.title.replace(/\s+/g, '-').toLowerCase()}`;
+          const isChecked = selectedFeatures.includes(feature.value);
+          const inputId = `feature-${feature.value}`;
 
           return (
             <div
               className="flex gap-2 items-center"
-              key={feature.title}
+              key={feature.value}
             >
               <Checkbox
                 id={inputId}
                 checked={isChecked}
                 onCheckedChange={(value) =>
-                  handleSingleCheck(feature.title, Boolean(value))
+                  handleSingleCheck(feature.value, Boolean(value))
                 }
                 className="text-black"
               />
@@ -83,7 +83,7 @@ export default function SearchCheckboxGroup({
                 htmlFor={inputId} 
                 className="text-sm cursor-pointer select-none text-neutral-700 hover:text-neutral-900"
               >
-                {feature.title}
+                {feature.label}
               </label>
             </div>
           );
