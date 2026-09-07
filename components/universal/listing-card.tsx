@@ -13,6 +13,7 @@ import { formatPrice } from "@/lib/formatPrice"
 import React from "react"
 import { generateListingSlug } from "@/lib/manageSlug"
 import { toTitleCase } from "@/utils/formatText"
+import { getListingCoverUrl } from "@/lib/listingCover";
 
 interface ListingCardProps {
     listingData: IListing;
@@ -22,6 +23,24 @@ const listingTypeConfig = {
     sale: { label: "Sale" },
     rent: { label: "Rent" },
     shortlet: { label: "Shortlet" },
+};
+
+const resolveListingImageUrl = (data: IListing): string | undefined => {
+  const imgs = data.images ?? [];
+  const urls = imgs
+    .map((img) => (typeof img === "string" ? img : img?.url))
+    .filter((u): u is string => Boolean(u));
+
+  // Prefer explicit cover only if it is one of the listing images
+  if (data.cover_image && urls.includes(data.cover_image)) {
+    return data.cover_image;
+  }
+
+  // Otherwise first image (MediaForm often puts the selected cover at index 0)
+  if (urls[0]) return urls[0];
+
+  // Last resort
+  return data.cover_image || undefined;
 };
 
 export default function ListingCard({
@@ -41,7 +60,7 @@ export default function ListingCard({
     if (!listingData) return null;
     const { title, property_type, price, details, images, cover_image, location, isFeatured, realtor, status } = listingData;
     const listing = listingTypeConfig[status];
-    const imageUrl = cover_image || images?.[0]?.url;
+    const imageUrl = getListingCoverUrl(listingData);
     const photoCount = images?.length ?? 0;
 
     const publishDate = listingData.publishedAt || listingData.createdAt;

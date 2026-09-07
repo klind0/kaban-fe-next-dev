@@ -8,7 +8,7 @@ import { IListing, PropertyCategory, PropertyType, Status } from "@/types/listin
 import FormCard from "./form-card";
 import { 
     bedroomOptions, 
-    featureOptions, 
+    AMENITIES, 
     priceSuffixOptions, 
     propertyCategoryOptions, 
     propertyStatusOptions, 
@@ -427,7 +427,9 @@ const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function B
                         control={control}
                         render={({ field }) => {
                             const selected: string[] = field.value ?? [];
-                            const allSelected = featureOptions.every((f) => selected.includes(f.value));
+                            const allSelected =
+                                AMENITIES.length > 0 &&
+                                AMENITIES.every((f) => selected.includes(f.value));
 
                             const toggle = (value: string) => {
                                 const next = selected.includes(value)
@@ -437,7 +439,9 @@ const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function B
                             };
 
                             const toggleAll = () => {
-                                field.onChange(allSelected ? [] : featureOptions.map((f) => f.value));
+                                field.onChange(
+                                    allSelected ? [] : AMENITIES.map((f) => f.value)
+                                );
                             };
 
                             return (
@@ -452,8 +456,11 @@ const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function B
                                         <span className="text-sm font-medium">Select all</span>
                                     </label>
                                     <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-4">
-                                        {featureOptions.map((feature) => (
-                                            <label key={feature.value} className="flex items-center gap-2 cursor-pointer">
+                                        {AMENITIES.map((feature) => (
+                                            <label
+                                                key={feature.value}
+                                                className="flex items-center gap-2 cursor-pointer"
+                                            >
                                                 <Checkbox
                                                     checked={selected.includes(feature.value)}
                                                     onCheckedChange={() => toggle(feature.value)}

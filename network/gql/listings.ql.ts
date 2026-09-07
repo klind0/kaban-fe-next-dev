@@ -43,11 +43,8 @@ export const DELETE_LISTING_MUTATION = `
   }
 `;
 
-export const UPGRADE_FEATURED_MUTATION = `
-  mutation UpgradeToFeatured($id: String!) {
-    upgradeToFeatured(id: $id) {
-      id
-      isFeatured
-    }
+export const SET_FEATURED_LISTINGS_MUTATION = `
+  mutation SetFeaturedListings($listingIds: [String!]!) {
+    setFeaturedListings(listingIds: $listingIds)
   }
 `;
