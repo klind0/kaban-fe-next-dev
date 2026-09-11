@@ -17,7 +17,13 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "Kaban",
-  description: "Smartest way to find real estate",
+  description: "Smartest way to scout real estate",
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico", sizes: "any" },
+    ],
+  },
 };
 
 export default function RootLayout({
@@ -41,10 +47,10 @@ export default function RootLayout({
           position="top-center"
           toastOptions={{
             classNames: {
-              error: '!bg-[#FFEDED] !border-[#FFB8B7] !text-[#1A1A1A]',
-              success: '!bg-[#E5FBEC] !border-[#66E78E] !text-[#1A1A1A]',
-              warning: '!bg-[#FFF7E5] !border-[#FFD266] !text-[#1A1A1A]',
-              info: '!bg-[#E9F5FF] !border-[#7AC5FF] !text-[#1A1A1A]',
+              error: "!bg-[#FFEDED] !border-[#FFB8B7] !text-[#1A1A1A]",
+              success: "!bg-[#E5FBEC] !border-[#66E78E] !text-[#1A1A1A]",
+              warning: "!bg-[#FFF7E5] !border-[#FFD266] !text-[#1A1A1A]",
+              info: "!bg-[#E9F5FF] !border-[#7AC5FF] !text-[#1A1A1A]",
             },
           }}
           icons={{
@@ -54,12 +60,10 @@ export default function RootLayout({
             info: <InformationCircle className="text-[#007AFF]" />,
           }}
         />
-        <ReactQueryProvider>
-          {children}
-        </ReactQueryProvider>
+        <ReactQueryProvider>{children}</ReactQueryProvider>
         <GoogleAuthCallback />
         <CookiesPolicy />
-        
+
         {/* Google One Tap / Identity Authentication Engine */}
         <Script
           src="https://accounts.google.com/gsi/client"
