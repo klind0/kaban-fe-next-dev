@@ -69,7 +69,7 @@ export default function HeroSection() {
             <div className='container mx-auto px-4 md:px-20 space-y-8 md:space-y-16'>
                 <div>
                     <p className='text-white text-center h2'>Discover your customized fit with ease</p>
-                    <h1 className='text-white text-center'>Smartest way to scout real estate</h1>
+                    <h1 className='text-white text-center'>Smartest way to find real estate</h1>
                 </div>
                 <div className="bg-card p-4 rounded-3xl sm:p-8 xl:p-12 shadow-lg border border-border">
                     <CustomTab
