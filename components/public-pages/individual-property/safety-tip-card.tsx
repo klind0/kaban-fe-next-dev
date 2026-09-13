@@ -3,7 +3,7 @@ export default function SafetyTipCard() {
         "Do not make any upfront payment, such as inspection fees, before physically seeing the property or meeting the agent you contacted.",
         "Conduct thorough research to determine the correct recipient of rent and other fees associated with the property.",
         "All meetings with agents should be done in open & public locations.",
-        "This listing realtor is NOT a representative from Kaban neither does Kaban control the affairs of this realtor as both parties are different entities.",
+        "This listing realtor is NOT a representative from Kaban.ng neither does Kaban.ng control the affairs of this realtor as both parties are different entities.",
     ]
     return (
         <div className="bg-[#F2DDDA] rounded-[10px] shadow">

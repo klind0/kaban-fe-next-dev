@@ -117,7 +117,7 @@ export default function CookiesPolicy() {
                 >
                     <div className='container mx-auto px-4 flex flex-col 2xl:px-0 md:flex-row md:justify-between md:items-center gap-6'>
                         <span className='text-sm font-medium pr-8'>
-                            Kaban uses essential cookies to improve your website experience. By clicking &quot;Accept&quot;, you agree to our website&apos;s cookies use. Learn more in our <Link href="/privacy-policy" className='text-primary hover:underline' aria-label='Privacy Policy'>Privacy Policy</Link>.
+                            Kaban.ng uses essential cookies to improve your website experience. By clicking &quot;Accept&quot;, you agree to our website&apos;s cookies use. Learn more in our <Link href="/privacy-policy" className='text-primary hover:underline' aria-label='Privacy Policy'>Privacy Policy</Link>.
                         </span>
                         <div className='flex items-center gap-2.5 shrink-0'>
                             <Button

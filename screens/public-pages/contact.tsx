@@ -28,7 +28,7 @@ export default function ContactUsSection() {
 		<section className="flex flex-col gap-15 items-center px-4 mt-25">
 			<div className={`flex flex-col items-center max-w-90`}>
 				<h3 className={`text-center text-black text-2xl lg:text-3xl font-bold`}>
-					Get in Touch With Kaban
+					Get in Touch With Kaban.ng
 				</h3>
 				<p className="text-center">
 					Reach out today for personalized assistance and guidance on your

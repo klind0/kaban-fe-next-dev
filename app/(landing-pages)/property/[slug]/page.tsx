@@ -39,20 +39,20 @@ export async function generateMetadata({ params }: PropertyPageProps): Promise<M
         const canonicalSlug = generateListingSlug(listing);
 
         return {
-            title: `${title} | Kaban`,
+            title: `${title} | Kaban.ng`,
             description,
             alternates: {
                 canonical: `/property/${canonicalSlug}`,
             },
             openGraph: {
-                title: `${title} | Kaban`,
+                title: `${title} | Kaban.ng`,
                 description,
                 url: `/property/${canonicalSlug}`,
                 ...(image && { images: [{ url: image }] }),
             },
             twitter: {
                 card: "summary_large_image",
-                title: `${title} | Kaban`,
+                title: `${title} | Kaban.ng`,
                 description,
                 ...(image && { images: [image] }),
             },
@@ -62,8 +62,8 @@ export async function generateMetadata({ params }: PropertyPageProps): Promise<M
     // Clean fallback if listing isn't loaded yet
     const fallbackTitle = slugToTitle(slug);
     return {
-        title: fallbackTitle ? `${fallbackTitle} | Kaban` : "Property Details | Kaban",
-        description: "View property details on Kaban",
+        title: fallbackTitle ? `${fallbackTitle} | Kaban.ng` : "Property Details | Kaban.ng",
+        description: "View property details on Kaban.ng",
     };
 }
 

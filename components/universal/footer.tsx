@@ -60,7 +60,6 @@ export default function Footer() {
             title: "Contact",
             links: [
                 { name: "+234707 322 7880", href: "https://wa.me/+2347073227880" },
-                { name: "Uyo, Akwa Ibom State", href: "https://goo.gl/maps/xyz" },
                 { name: "info@kaban.ng", href: "mailto:info@kaban.ng" },
             ]
         },
@@ -74,7 +73,7 @@ export default function Footer() {
                         <div className="flex flex-col gap-4">
                             <Logo />
                             <div className="w-full">
-                                <p>As we strive to make real estate accessible and stress-free, Kaban welcomes our valued customers seeking rental or investment opportunities.</p>
+                                <p>Finding a house shouldn't feel so stressful. Let's take the stress off your shoulders—whether you’re hunting for a cozy apartment near campus or looking for a smart spot to invest. Welcome aboard, let's get you sorted!</p>
                             </div>
                         </div>
                         <div className="flex space-x-6">

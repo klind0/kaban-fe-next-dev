@@ -1,4 +1,4 @@
-/** GraphQL documents for Kaban admin review */
+/** GraphQL documents for Kaban.ng admin review */
 
 export const ADMIN_LOGIN_MUTATION = `
   mutation Login($email: String!, $password: String!) {

@@ -16,7 +16,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Kaban",
+  title: "Kaban.ng",
   description: "Smartest way to scout real estate",
   icons: {
     icon: [
