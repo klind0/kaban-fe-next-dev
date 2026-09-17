@@ -9,11 +9,11 @@ export const metadata: Metadata = {
 
 export default function PrivacyPolicyPage() {
   return (
-    <main className="min-h-screen bg-neutral-50 py-12 px-4 sm:px-6 lg:px-8 text-neutral-800">
+    <main className="min-h-screen bg-neutral-50 py-12 px-4 sm:px-6 lg:px-8 text-neutral-900">
       <article className="max-w-4xl mx-auto bg-white rounded-2xl shadow-sm border border-neutral-200/80 p-6 sm:p-10 lg:p-12">
         {/* Header */}
         <header className="border-b border-neutral-200 pb-8 mb-8">
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-neutral-1100 tracking-tight">
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-neutral-950 tracking-tight">
             Privacy Policy
           </h1>
           <p className="mt-2 text-sm text-neutral-500 font-medium">
@@ -26,7 +26,7 @@ export default function PrivacyPolicyPage() {
             use{' '}
             <Link
               href="https://kaban.ng"
-              className="text-emerald-900 hover:text-emerald-700 underline underline-offset-2 transition-colors"
+              className="text-emerald-700 hover:text-emerald-800 underline underline-offset-2 transition-colors font-medium"
             >
               https://kaban.ng
             </Link>{' '}
@@ -40,31 +40,31 @@ export default function PrivacyPolicyPage() {
         </header>
 
         {/* Content Body */}
-        <div className="space-y-8 text-neutral-700 text-sm sm:text-base leading-relaxed">
+        <div className="space-y-8 text-neutral-800 text-sm sm:text-base leading-relaxed">
           {/* Section 1 */}
           <section>
-            <h2 className="text-xl font-bold text-neutral-1100 mb-3">
+            <h2 className="text-xl font-bold text-neutral-950 mb-3">
               1. Data controller
             </h2>
             <p className="mb-3">
               Kaban / Kaban Technologies is the data controller for personal
               information collected under this policy.
             </p>
-            <div className="p-4 bg-neutral-50 rounded-lg border border-neutral-200/80 space-y-1 font-mono text-xs sm:text-sm text-neutral-700">
+            <div className="p-4 bg-neutral-50 rounded-lg border border-neutral-200 space-y-1 font-mono text-xs sm:text-sm text-neutral-800">
               <p>
-                <strong>Email:</strong>{' '}
+                <strong className="text-neutral-950">Email:</strong>{' '}
                 <a
                   href="mailto:contact@kaban.ng"
-                  className="text-emerald-900 hover:text-emerald-700 underline underline-offset-2 transition-colors"
+                  className="text-emerald-700 hover:text-emerald-800 underline underline-offset-2 transition-colors font-medium"
                 >
                   contact@kaban.ng
                 </a>
               </p>
               <p>
-                <strong>Website:</strong>{' '}
+                <strong className="text-neutral-950">Website:</strong>{' '}
                 <Link
                   href="https://kaban.ng"
-                  className="text-emerald-900 hover:text-emerald-700 underline underline-offset-2 transition-colors"
+                  className="text-emerald-700 hover:text-emerald-800 underline underline-offset-2 transition-colors font-medium"
                 >
                   https://kaban.ng
                 </Link>
@@ -74,19 +74,19 @@ export default function PrivacyPolicyPage() {
 
           {/* Section 2 */}
           <section>
-            <h2 className="text-xl font-bold text-neutral-1100 mb-3">
+            <h2 className="text-xl font-bold text-neutral-950 mb-3">
               2. Information we collect
             </h2>
             <p className="mb-4">
               We collect information you provide and data generated when you use
               the Service:
             </p>
-            <div className="space-y-4 pl-2 sm:pl-4 border-l-2 border-emerald-500/30">
+            <div className="space-y-4 pl-2 sm:pl-4 border-l-2 border-emerald-500/40">
               <div>
-                <h3 className="font-semibold text-neutral-1100">
+                <h3 className="font-semibold text-neutral-950">
                   Account and identity
                 </h3>
-                <p className="text-neutral-900 mt-1">
+                <p className="text-neutral-800 mt-1">
                   Full name, email address, phone/WhatsApp number, password
                   (stored as a hash), role (e.g. seeker, agent, agency, admin),
                   profile/realtor photo.
@@ -94,10 +94,10 @@ export default function PrivacyPolicyPage() {
               </div>
 
               <div>
-                <h3 className="font-semibold text-neutral-1100">
+                <h3 className="font-semibold text-neutral-950">
                   Realtor / KYC
                 </h3>
-                <p className="text-neutral-900 mt-1">
+                <p className="text-neutral-800 mt-1">
                   Bio, company/agency name, office address, service area,
                   social links, verification documents (e.g. government ID,
                   certifications), and verification status.
@@ -105,10 +105,10 @@ export default function PrivacyPolicyPage() {
               </div>
 
               <div>
-                <h3 className="font-semibold text-neutral-1100">
+                <h3 className="font-semibold text-neutral-950">
                   Listings and related content
                 </h3>
-                <p className="text-neutral-900 mt-1">
+                <p className="text-neutral-800 mt-1">
                   Property descriptions, prices, details, locations/coordinates,
                   images, videos/links, submission, approval, rejection,
                   publication, featured status, and expiry metadata.
@@ -116,20 +116,20 @@ export default function PrivacyPolicyPage() {
               </div>
 
               <div>
-                <h3 className="font-semibold text-neutral-1100">
+                <h3 className="font-semibold text-neutral-950">
                   Communications
                 </h3>
-                <p className="text-neutral-900 mt-1">
+                <p className="text-neutral-800 mt-1">
                   Inquiries, contact requests, reports/complaints, support
                   messages, feedback.
                 </p>
               </div>
 
               <div>
-                <h3 className="font-semibold text-neutral-1100">
+                <h3 className="font-semibold text-neutral-950">
                   Technical and usage data
                 </h3>
-                <p className="text-neutral-900 mt-1">
+                <p className="text-neutral-800 mt-1">
                   IP address, browser/device type, OS, approximate location from
                   IP, logs, cookies or similar technologies, page views, search
                   activity, referral URLs.
@@ -137,10 +137,10 @@ export default function PrivacyPolicyPage() {
               </div>
 
               <div>
-                <h3 className="font-semibold text-neutral-1100">
+                <h3 className="font-semibold text-neutral-950">
                   Authentication providers
                 </h3>
-                <p className="text-neutral-900 mt-1">
+                <p className="text-neutral-800 mt-1">
                   Data from sign-in providers (e.g. Google) if you choose
                   social login, as permitted by that provider.
                 </p>
@@ -154,7 +154,7 @@ export default function PrivacyPolicyPage() {
 
           {/* Section 3 */}
           <section>
-            <h2 className="text-xl font-bold text-neutral-1100 mb-3">
+            <h2 className="text-xl font-bold text-neutral-950 mb-3">
               3. Legal grounds for processing
             </h2>
             <p className="mb-3">
@@ -163,20 +163,20 @@ export default function PrivacyPolicyPage() {
             </p>
             <ul className="list-disc pl-5 space-y-2">
               <li>
-                <strong>Contract:</strong> Creating accounts, publishing
+                <strong className="text-neutral-950">Contract:</strong> Creating accounts, publishing
                 listings, facilitating User–Realtor connections.
               </li>
               <li>
-                <strong>Legitimate interests:</strong> Security, fraud prevention,
+                <strong className="text-neutral-950">Legitimate interests:</strong> Security, fraud prevention,
                 moderation, analytics, and product improvement (balanced against
                 your rights).
               </li>
               <li>
-                <strong>Consent:</strong> e.g. optional marketing or certain
+                <strong className="text-neutral-950">Consent:</strong> e.g. optional marketing or certain
                 non-essential cookies.
               </li>
               <li>
-                <strong>Legal obligation:</strong> Compliance with Nigerian law
+                <strong className="text-neutral-950">Legal obligation:</strong> Compliance with Nigerian law
                 and lawful requests.
               </li>
             </ul>
@@ -184,7 +184,7 @@ export default function PrivacyPolicyPage() {
 
           {/* Section 4 */}
           <section>
-            <h2 className="text-xl font-bold text-neutral-1100 mb-3">
+            <h2 className="text-xl font-bold text-neutral-950 mb-3">
               4. How we use your data
             </h2>
             <p className="mb-3">We use personal data to:</p>
@@ -213,7 +213,7 @@ export default function PrivacyPolicyPage() {
 
           {/* Section 5 */}
           <section>
-            <h2 className="text-xl font-bold text-neutral-1100 mb-3">
+            <h2 className="text-xl font-bold text-neutral-950 mb-3">
               5. Data sharing and processors
             </h2>
             <p className="mb-3">
@@ -221,25 +221,25 @@ export default function PrivacyPolicyPage() {
             </p>
             <ul className="list-disc pl-5 space-y-2">
               <li>
-                <strong>Verified Realtors:</strong> When a User submits an inquiry
+                <strong className="text-neutral-950">Verified Realtors:</strong> When a User submits an inquiry
                 on a listing, relevant contact details may be shared so the Realtor
                 can respond.
               </li>
               <li>
-                <strong>Other users:</strong> As needed for public listing
+                <strong className="text-neutral-950">Other users:</strong> As needed for public listing
                 display (e.g. realtor name/contact shown on a listing you
                 publish).
               </li>
               <li>
-                <strong>Service providers:</strong> Hosting, databases, email
+                <strong className="text-neutral-950">Service providers:</strong> Hosting, databases, email
                 delivery, image/media storage, analytics, and similar processors
                 acting on our behalf.
               </li>
               <li>
-                <strong>Authentication providers:</strong> If you use social login.
+                <strong className="text-neutral-950">Authentication providers:</strong> If you use social login.
               </li>
               <li>
-                <strong>Professional advisers and authorities:</strong> When
+                <strong className="text-neutral-950">Professional advisers and authorities:</strong> When
                 required by law, court order, or to protect rights, safety, and
                 security.
               </li>
@@ -248,7 +248,7 @@ export default function PrivacyPolicyPage() {
 
           {/* Section 6 */}
           <section>
-            <h2 className="text-xl font-bold text-neutral-1100 mb-3">
+            <h2 className="text-xl font-bold text-neutral-950 mb-3">
               6. International transfers
             </h2>
             <p>
@@ -260,7 +260,7 @@ export default function PrivacyPolicyPage() {
 
           {/* Section 7 */}
           <section>
-            <h2 className="text-xl font-bold text-neutral-1100 mb-3">
+            <h2 className="text-xl font-bold text-neutral-950 mb-3">
               7. Data retention
             </h2>
             <p className="mb-3">
@@ -288,7 +288,7 @@ export default function PrivacyPolicyPage() {
 
           {/* Section 8 */}
           <section>
-            <h2 className="text-xl font-bold text-neutral-1100 mb-3">
+            <h2 className="text-xl font-bold text-neutral-950 mb-3">
               8. Security measures
             </h2>
             <p>
@@ -300,7 +300,7 @@ export default function PrivacyPolicyPage() {
 
           {/* Section 9 */}
           <section>
-            <h2 className="text-xl font-bold text-neutral-1100 mb-3">
+            <h2 className="text-xl font-bold text-neutral-950 mb-3">
               9. Your data protection rights
             </h2>
             <p className="mb-3">
@@ -323,7 +323,7 @@ export default function PrivacyPolicyPage() {
               To exercise these rights, contact{' '}
               <a
                 href="mailto:contact@kaban.ng"
-                className="text-emerald-1100 hover:text-emerald-700 underline underline-offset-2 transition-colors"
+                className="text-emerald-700 hover:text-emerald-800 underline underline-offset-2 transition-colors font-medium"
               >
                 contact@kaban.ng
               </a>{' '}
@@ -336,7 +336,7 @@ export default function PrivacyPolicyPage() {
 
           {/* Section 10 */}
           <section>
-            <h2 className="text-xl font-bold text-neutral-1100 mb-3">
+            <h2 className="text-xl font-bold text-neutral-950 mb-3">
               10. Cookies and similar technologies
             </h2>
             <p>
@@ -349,7 +349,7 @@ export default function PrivacyPolicyPage() {
 
           {/* Section 11 */}
           <section>
-            <h2 className="text-xl font-bold text-neutral-1100 mb-3">
+            <h2 className="text-xl font-bold text-neutral-950 mb-3">
               11. Third-party links
             </h2>
             <p>
@@ -361,7 +361,7 @@ export default function PrivacyPolicyPage() {
 
           {/* Section 12 */}
           <section>
-            <h2 className="text-xl font-bold text-neutral-900 mb-3">
+            <h2 className="text-xl font-bold text-neutral-950 mb-3">
               12. Updates to this policy
             </h2>
             <p>
@@ -375,24 +375,24 @@ export default function PrivacyPolicyPage() {
 
           {/* Section 13 */}
           <section className="pt-4 border-t border-neutral-200">
-            <h2 className="text-xl font-bold text-neutral-900 mb-3">
+            <h2 className="text-xl font-bold text-neutral-950 mb-3">
               13. Contact
             </h2>
             <p className="mb-1">For privacy questions or requests:</p>
             <p className="mb-1">
-              <strong>Email:</strong>{' '}
+              <strong className="text-neutral-950">Email:</strong>{' '}
               <a
                 href="mailto:contact@kaban.ng"
-                className="text-emerald-900 hover:text-emerald-700 underline underline-offset-2 transition-colors"
+                className="text-emerald-700 hover:text-emerald-800 underline underline-offset-2 transition-colors font-medium"
               >
                 contact@kaban.ng
               </a>
             </p>
             <p>
-              <strong>Website:</strong>{' '}
+              <strong className="text-neutral-950">Website:</strong>{' '}
               <Link
                 href="https://kaban.ng"
-                className="text-emerald-900 hover:text-emerald-700 underline underline-offset-2 transition-colors"
+                className="text-emerald-700 hover:text-emerald-800 underline underline-offset-2 transition-colors font-medium"
               >
                 https://kaban.ng
               </Link>

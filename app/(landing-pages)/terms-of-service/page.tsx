@@ -9,21 +9,21 @@ export const metadata: Metadata = {
 
 export default function TermsOfServicePage() {
   return (
-    <main className="min-h-screen bg-neutral-50 py-12 px-4 sm:px-6 lg:px-8 text-neutral-800">
+    <main className="min-h-screen bg-neutral-50 py-12 px-4 sm:px-6 lg:px-8 text-neutral-900">
       <article className="max-w-4xl mx-auto bg-white rounded-2xl shadow-sm border border-neutral-200/80 p-6 sm:p-10 lg:p-12">
         {/* Header */}
         <header className="border-b border-neutral-200 pb-8 mb-8">
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-neutral-1100 tracking-tight">
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-neutral-950 tracking-tight">
             Terms of Service
           </h1>
           <p className="mt-2 text-sm text-neutral-500 font-medium">
             Kaban.ng &bull; Last updated: 13 September 2026
           </p>
-          <p className="mt-4 text-base text-neutral-1100 leading-relaxed">
+          <p className="mt-4 text-base text-neutral-900 leading-relaxed">
             Welcome to Kaban (
             <Link
               href="https://kaban.ng"
-              className="text-emerald-900 hover:text-emerald-700 underline underline-offset-2 transition-colors"
+              className="text-emerald-700 hover:text-emerald-800 underline underline-offset-2 transition-colors"
             >
               https://kaban.ng
             </Link>
@@ -40,10 +40,10 @@ export default function TermsOfServicePage() {
         </header>
 
         {/* Content Body */}
-        <div className="space-y-8 text-neutral-700 text-sm sm:text-base leading-relaxed">
+        <div className="space-y-8 text-neutral-800 text-sm sm:text-base leading-relaxed">
           {/* Section 1 */}
           <section>
-            <h2 className="text-xl font-bold text-neutral-1100 mb-3">
+            <h2 className="text-xl font-bold text-neutral-950 mb-3">
               1. Platform overview and scope
             </h2>
             <p className="mb-3">
@@ -63,7 +63,7 @@ export default function TermsOfServicePage() {
 
           {/* Section 2 */}
           <section>
-            <h2 className="text-xl font-bold text-neutral-1100 mb-3">
+            <h2 className="text-xl font-bold text-neutral-950 mb-3">
               2. Eligibility and accounts
             </h2>
             <ul className="list-disc pl-5 space-y-2">
@@ -93,7 +93,7 @@ export default function TermsOfServicePage() {
 
           {/* Section 3 */}
           <section>
-            <h2 className="text-xl font-bold text-neutral-1100 mb-3">
+            <h2 className="text-xl font-bold text-neutral-950 mb-3">
               3. Specific terms for Realtors
             </h2>
             <p className="mb-4">
@@ -102,10 +102,10 @@ export default function TermsOfServicePage() {
             </p>
             <div className="space-y-4 pl-2 sm:pl-4 border-l-2 border-emerald-500/30">
               <div>
-                <h3 className="font-semibold text-neutral-1100">
+                <h3 className="font-semibold text-neutral-950">
                   Professional conduct and integrity
                 </h3>
-                <p className="text-neutral-900 mt-1">
+                <p className="text-neutral-800 mt-1">
                   You will maintain high ethical standards, provide true and
                   non-misleading information about prices, specifications,
                   availability, ownership, and your authority to market a property,
@@ -114,10 +114,10 @@ export default function TermsOfServicePage() {
               </div>
 
               <div>
-                <h3 className="font-semibold text-neutral-900">
+                <h3 className="font-semibold text-neutral-950">
                   Authority to list
                 </h3>
-                <p className="text-neutral-900 mt-1">
+                <p className="text-neutral-800 mt-1">
                   You warrant that you have the necessary rights, mandate, or
                   authority to list and market each property, and that your content
                   does not infringe third-party rights.
@@ -125,10 +125,10 @@ export default function TermsOfServicePage() {
               </div>
 
               <div>
-                <h3 className="font-semibold text-neutral-900">
+                <h3 className="font-semibold text-neutral-950">
                   Accuracy of listings
                 </h3>
-                <p className="text-neutral-900 mt-1">
+                <p className="text-neutral-800 mt-1">
                   You are solely responsible for listing content (descriptions,
                   prices, details, location, images, videos, and contact
                   information).
@@ -136,10 +136,10 @@ export default function TermsOfServicePage() {
               </div>
 
               <div>
-                <h3 className="font-semibold text-neutral-900">
+                <h3 className="font-semibold text-neutral-950">
                   Licensing and legal compliance
                 </h3>
-                <p className="text-neutral-900 mt-1">
+                <p className="text-neutral-800 mt-1">
                   You will comply with applicable Nigerian laws (federal and
                   state), including real-estate practice and advertising rules,
                   fair housing / non-discrimination obligations, tax rules, and
@@ -148,10 +148,10 @@ export default function TermsOfServicePage() {
               </div>
 
               <div>
-                <h3 className="font-semibold text-neutral-900">
+                <h3 className="font-semibold text-neutral-950">
                   KYC and verification
                 </h3>
-                <p className="text-neutral-900 mt-1">
+                <p className="text-neutral-800 mt-1">
                   You may be required to submit identity or professional documents
                   (e.g. government ID, certifications). False documents may result
                   in immediate suspension. Verification status is not a guarantee
@@ -160,8 +160,8 @@ export default function TermsOfServicePage() {
               </div>
 
               <div>
-                <h3 className="font-semibold text-neutral-900">Moderation</h3>
-                <p className="text-neutral-900 mt-1">
+                <h3 className="font-semibold text-neutral-950">Moderation</h3>
+                <p className="text-neutral-800 mt-1">
                   Listings may require submission for review. We may approve,
                   reject, unpublish, expire, remove, or limit visibility of
                   listings (including featured placement) for quality, safety,
@@ -171,10 +171,10 @@ export default function TermsOfServicePage() {
               </div>
 
               <div>
-                <h3 className="font-semibold text-neutral-900">
+                <h3 className="font-semibold text-neutral-950">
                   Ratings, reviews, complaints, and sanctions
                 </h3>
-                <p className="text-neutral-900 mt-1">
+                <p className="text-neutral-800 mt-1">
                   In cases of fraud, misleading listings, or verified complaints, we
                   may investigate and issue warnings, restrict features, suspend,
                   or permanently deactivate your account, without financial
@@ -183,8 +183,8 @@ export default function TermsOfServicePage() {
               </div>
 
               <div>
-                <h3 className="font-semibold text-neutral-900">Cooperation</h3>
-                <p className="text-neutral-900 mt-1">
+                <h3 className="font-semibold text-neutral-950">Cooperation</h3>
+                <p className="text-neutral-800 mt-1">
                   You agree to cooperate reasonably with Kaban and lawful
                   authorities during inquiries relating to your listings or
                   conduct, including providing relevant records when required by
@@ -193,20 +193,20 @@ export default function TermsOfServicePage() {
               </div>
 
               <div>
-                <h3 className="font-semibold text-neutral-900">
+                <h3 className="font-semibold text-neutral-950">
                   No exclusive agency with Kaban
                 </h3>
-                <p className="text-neutral-600 mt-1">
+                <p className="text-neutral-700 mt-1">
                   Unless agreed separately in writing, listing on Kaban does not
                   create employment or exclusive agency with Kaban.
                 </p>
               </div>
 
               <div>
-                <h3 className="font-semibold text-neutral-900">
+                <h3 className="font-semibold text-neutral-950">
                   Non-broker liability
                 </h3>
-                <p className="text-neutral-600 mt-1">
+                <p className="text-neutral-700 mt-1">
                   Disputes about agency fees, deposits, or contractual performance
                   remain between the Realtor and the User.
                 </p>
@@ -216,7 +216,7 @@ export default function TermsOfServicePage() {
 
           {/* Section 4 */}
           <section>
-            <h2 className="text-xl font-bold text-neutral-900 mb-3">
+            <h2 className="text-xl font-bold text-neutral-950 mb-3">
               4. Listings, media, and content
             </h2>
             <ul className="list-disc pl-5 space-y-2">
@@ -249,7 +249,7 @@ export default function TermsOfServicePage() {
 
           {/* Section 5 */}
           <section>
-            <h2 className="text-xl font-bold text-neutral-900 mb-3">
+            <h2 className="text-xl font-bold text-neutral-950 mb-3">
               5. Prohibited activities
             </h2>
             <p className="mb-3">Users and Realtors agree not to:</p>
@@ -276,7 +276,7 @@ export default function TermsOfServicePage() {
 
           {/* Section 6 */}
           <section>
-            <h2 className="text-xl font-bold text-neutral-900 mb-3">
+            <h2 className="text-xl font-bold text-neutral-950 mb-3">
               6. Transactions, payments, and third-party services
             </h2>
             <ul className="list-disc pl-5 space-y-2">
@@ -298,7 +298,7 @@ export default function TermsOfServicePage() {
 
           {/* Section 7 */}
           <section>
-            <h2 className="text-xl font-bold text-neutral-900 mb-3">
+            <h2 className="text-xl font-bold text-neutral-950 mb-3">
               7. Intellectual property
             </h2>
             <p>
@@ -311,10 +311,10 @@ export default function TermsOfServicePage() {
 
           {/* Section 8 */}
           <section>
-            <h2 className="text-xl font-bold text-neutral-900 mb-3">
+            <h2 className="text-xl font-bold text-neutral-950 mb-3">
               8. Disclaimers
             </h2>
-            <p className="font-semibold text-neutral-900 mb-2">
+            <p className="font-semibold text-neutral-950 mb-2">
               THE SERVICE IS PROVIDED ON AN “AS IS” AND “AS AVAILABLE” BASIS. TO
               THE MAXIMUM EXTENT PERMITTED BY LAW, KABAN DISCLAIMS ALL WARRANTIES,
               EXPRESS OR IMPLIED, INCLUDING MERCHANTABILITY, FITNESS FOR A
@@ -329,10 +329,10 @@ export default function TermsOfServicePage() {
 
           {/* Section 9 */}
           <section>
-            <h2 className="text-xl font-bold text-neutral-900 mb-3">
+            <h2 className="text-xl font-bold text-neutral-950 mb-3">
               9. Limitation of liability
             </h2>
-            <p className="font-semibold text-neutral-900 mb-2">
+            <p className="font-semibold text-neutral-950 mb-2">
               TO THE MAXIMUM EXTENT PERMITTED BY LAW, KABAN AND ITS OFFICERS,
               EMPLOYEES, AND AGENTS SHALL NOT BE LIABLE FOR INDIRECT,
               INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR ANY LOSS
@@ -353,7 +353,7 @@ export default function TermsOfServicePage() {
 
           {/* Section 10 */}
           <section>
-            <h2 className="text-xl font-bold text-neutral-900 mb-3">
+            <h2 className="text-xl font-bold text-neutral-950 mb-3">
               10. Indemnity
             </h2>
             <p>
@@ -366,7 +366,7 @@ export default function TermsOfServicePage() {
 
           {/* Section 11 */}
           <section>
-            <h2 className="text-xl font-bold text-neutral-900 mb-3">
+            <h2 className="text-xl font-bold text-neutral-950 mb-3">
               11. Suspension and termination
             </h2>
             <p>
@@ -381,7 +381,7 @@ export default function TermsOfServicePage() {
 
           {/* Section 12 */}
           <section>
-            <h2 className="text-xl font-bold text-neutral-900 mb-3">
+            <h2 className="text-xl font-bold text-neutral-950 mb-3">
               12. Changes to these Terms
             </h2>
             <p>
@@ -394,7 +394,7 @@ export default function TermsOfServicePage() {
 
           {/* Section 13 */}
           <section>
-            <h2 className="text-xl font-bold text-neutral-900 mb-3">
+            <h2 className="text-xl font-bold text-neutral-950 mb-3">
               13. Governing law and dispute resolution
             </h2>
             <p className="mb-2">
@@ -407,7 +407,7 @@ export default function TermsOfServicePage() {
               Contact{' '}
               <a
                 href="mailto:contact@kaban.ng"
-                className="text-emerald-900 hover:text-emerald-700 underline underline-offset-2 transition-colors"
+                className="text-emerald-700 hover:text-emerald-800 underline underline-offset-2 transition-colors"
               >
                 contact@kaban.ng
               </a>{' '}
@@ -417,14 +417,14 @@ export default function TermsOfServicePage() {
 
           {/* Section 14 */}
           <section className="pt-4 border-t border-neutral-200">
-            <h2 className="text-xl font-bold text-neutral-900 mb-3">
+            <h2 className="text-xl font-bold text-neutral-950 mb-3">
               14. Contact
             </h2>
             <p className="mb-1">
               <strong>Email:</strong>{' '}
               <a
                 href="mailto:contact@kaban.ng"
-                className="text-emerald-900 hover:text-emerald-700 underline underline-offset-2 transition-colors"
+                className="text-emerald-700 hover:text-emerald-800 underline underline-offset-2 transition-colors"
               >
                 contact@kaban.ng
               </a>
@@ -433,7 +433,7 @@ export default function TermsOfServicePage() {
               <strong>Website:</strong>{' '}
               <Link
                 href="https://kaban.ng"
-                className="text-emerald-900 hover:text-emerald-700 underline underline-offset-2 transition-colors"
+                className="text-emerald-700 hover:text-emerald-800 underline underline-offset-2 transition-colors"
               >
                 https://kaban.ng
               </Link>
