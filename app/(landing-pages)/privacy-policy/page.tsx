@@ -39,54 +39,38 @@ export default function PrivacyPolicyPage() {
           </p>
         </header>
 
-        {/* Content Body */}
-        <div className="space-y-8 text-neutral-800 text-sm sm:text-base leading-relaxed">
+        {/* Content Body with Scoped Typography Styles */}
+        <div className="space-y-8 text-neutral-800 text-sm sm:text-base leading-relaxed [&_p]:text-neutral-800 [&_p]:leading-relaxed [&_a]:text-emerald-700 hover:[&_a]:text-emerald-800 [&_a]:underline [&_a]:underline-offset-2 [&_a]:transition-colors [&_a]:font-medium [&_h2]:text-xl [&_h2]:font-bold [&_h2]:text-neutral-950 [&_h2]:mb-3 [&_h3]:font-semibold [&_h3]:text-neutral-950 [&_strong]:text-neutral-950 [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-2">
           {/* Section 1 */}
           <section>
-            <h2 className="text-xl font-bold text-neutral-950 mb-3">
-              1. Data controller
-            </h2>
+            <h2>1. Data controller</h2>
             <p className="mb-3">
               Kaban / Kaban Technologies is the data controller for personal
               information collected under this policy.
             </p>
             <div className="p-4 bg-neutral-50 rounded-lg border border-neutral-200 space-y-1 font-mono text-xs sm:text-sm text-neutral-800">
               <p>
-                <strong className="text-neutral-950">Email:</strong>{' '}
-                <a
-                  href="mailto:contact@kaban.ng"
-                  className="text-emerald-700 hover:text-emerald-800 underline underline-offset-2 transition-colors font-medium"
-                >
-                  contact@kaban.ng
-                </a>
+                <strong>Email:</strong>{' '}
+                <a href="mailto:contact@kaban.ng">contact@kaban.ng</a>
               </p>
               <p>
-                <strong className="text-neutral-950">Website:</strong>{' '}
-                <Link
-                  href="https://kaban.ng"
-                  className="text-emerald-700 hover:text-emerald-800 underline underline-offset-2 transition-colors font-medium"
-                >
-                  https://kaban.ng
-                </Link>
+                <strong>Website:</strong>{' '}
+                <Link href="https://kaban.ng">https://kaban.ng</Link>
               </p>
             </div>
           </section>
 
           {/* Section 2 */}
           <section>
-            <h2 className="text-xl font-bold text-neutral-950 mb-3">
-              2. Information we collect
-            </h2>
+            <h2>2. Information we collect</h2>
             <p className="mb-4">
               We collect information you provide and data generated when you use
               the Service:
             </p>
             <div className="space-y-4 pl-2 sm:pl-4 border-l-2 border-emerald-500/40">
               <div>
-                <h3 className="font-semibold text-neutral-950">
-                  Account and identity
-                </h3>
-                <p className="text-neutral-800 mt-1">
+                <h3>Account and identity</h3>
+                <p className="mt-1">
                   Full name, email address, phone/WhatsApp number, password
                   (stored as a hash), role (e.g. seeker, agent, agency, admin),
                   profile/realtor photo.
@@ -94,10 +78,8 @@ export default function PrivacyPolicyPage() {
               </div>
 
               <div>
-                <h3 className="font-semibold text-neutral-950">
-                  Realtor / KYC
-                </h3>
-                <p className="text-neutral-800 mt-1">
+                <h3>Realtor / KYC</h3>
+                <p className="mt-1">
                   Bio, company/agency name, office address, service area,
                   social links, verification documents (e.g. government ID,
                   certifications), and verification status.
@@ -105,10 +87,8 @@ export default function PrivacyPolicyPage() {
               </div>
 
               <div>
-                <h3 className="font-semibold text-neutral-950">
-                  Listings and related content
-                </h3>
-                <p className="text-neutral-800 mt-1">
+                <h3>Listings and related content</h3>
+                <p className="mt-1">
                   Property descriptions, prices, details, locations/coordinates,
                   images, videos/links, submission, approval, rejection,
                   publication, featured status, and expiry metadata.
@@ -116,20 +96,16 @@ export default function PrivacyPolicyPage() {
               </div>
 
               <div>
-                <h3 className="font-semibold text-neutral-950">
-                  Communications
-                </h3>
-                <p className="text-neutral-800 mt-1">
+                <h3>Communications</h3>
+                <p className="mt-1">
                   Inquiries, contact requests, reports/complaints, support
                   messages, feedback.
                 </p>
               </div>
 
               <div>
-                <h3 className="font-semibold text-neutral-950">
-                  Technical and usage data
-                </h3>
-                <p className="text-neutral-800 mt-1">
+                <h3>Technical and usage data</h3>
+                <p className="mt-1">
                   IP address, browser/device type, OS, approximate location from
                   IP, logs, cookies or similar technologies, page views, search
                   activity, referral URLs.
@@ -137,10 +113,8 @@ export default function PrivacyPolicyPage() {
               </div>
 
               <div>
-                <h3 className="font-semibold text-neutral-950">
-                  Authentication providers
-                </h3>
-                <p className="text-neutral-800 mt-1">
+                <h3>Authentication providers</h3>
+                <p className="mt-1">
                   Data from sign-in providers (e.g. Google) if you choose
                   social login, as permitted by that provider.
                 </p>
@@ -154,29 +128,27 @@ export default function PrivacyPolicyPage() {
 
           {/* Section 3 */}
           <section>
-            <h2 className="text-xl font-bold text-neutral-950 mb-3">
-              3. Legal grounds for processing
-            </h2>
+            <h2>3. Legal grounds for processing</h2>
             <p className="mb-3">
               Depending on context and applicable law, we process personal data
               on the basis of:
             </p>
-            <ul className="list-disc pl-5 space-y-2">
+            <ul>
               <li>
-                <strong className="text-neutral-950">Contract:</strong> Creating accounts, publishing
+                <strong>Contract:</strong> Creating accounts, publishing
                 listings, facilitating User–Realtor connections.
               </li>
               <li>
-                <strong className="text-neutral-950">Legitimate interests:</strong> Security, fraud prevention,
+                <strong>Legitimate interests:</strong> Security, fraud prevention,
                 moderation, analytics, and product improvement (balanced against
                 your rights).
               </li>
               <li>
-                <strong className="text-neutral-950">Consent:</strong> e.g. optional marketing or certain
+                <strong>Consent:</strong> e.g. optional marketing or certain
                 non-essential cookies.
               </li>
               <li>
-                <strong className="text-neutral-950">Legal obligation:</strong> Compliance with Nigerian law
+                <strong>Legal obligation:</strong> Compliance with Nigerian law
                 and lawful requests.
               </li>
             </ul>
@@ -184,11 +156,9 @@ export default function PrivacyPolicyPage() {
 
           {/* Section 4 */}
           <section>
-            <h2 className="text-xl font-bold text-neutral-950 mb-3">
-              4. How we use your data
-            </h2>
+            <h2>4. How we use your data</h2>
             <p className="mb-3">We use personal data to:</p>
-            <ul className="list-disc pl-5 space-y-2">
+            <ul>
               <li>Operate, maintain, and personalise the Service</li>
               <li>Authenticate users and manage password reset</li>
               <li>
@@ -213,33 +183,31 @@ export default function PrivacyPolicyPage() {
 
           {/* Section 5 */}
           <section>
-            <h2 className="text-xl font-bold text-neutral-950 mb-3">
-              5. Data sharing and processors
-            </h2>
+            <h2>5. Data sharing and processors</h2>
             <p className="mb-3">
               We do not sell your personal data. We may share information with:
             </p>
-            <ul className="list-disc pl-5 space-y-2">
+            <ul>
               <li>
-                <strong className="text-neutral-950">Verified Realtors:</strong> When a User submits an inquiry
+                <strong>Verified Realtors:</strong> When a User submits an inquiry
                 on a listing, relevant contact details may be shared so the Realtor
                 can respond.
               </li>
               <li>
-                <strong className="text-neutral-950">Other users:</strong> As needed for public listing
+                <strong>Other users:</strong> As needed for public listing
                 display (e.g. realtor name/contact shown on a listing you
                 publish).
               </li>
               <li>
-                <strong className="text-neutral-950">Service providers:</strong> Hosting, databases, email
+                <strong>Service providers:</strong> Hosting, databases, email
                 delivery, image/media storage, analytics, and similar processors
                 acting on our behalf.
               </li>
               <li>
-                <strong className="text-neutral-950">Authentication providers:</strong> If you use social login.
+                <strong>Authentication providers:</strong> If you use social login.
               </li>
               <li>
-                <strong className="text-neutral-950">Professional advisers and authorities:</strong> When
+                <strong>Professional advisers and authorities:</strong> When
                 required by law, court order, or to protect rights, safety, and
                 security.
               </li>
@@ -248,9 +216,7 @@ export default function PrivacyPolicyPage() {
 
           {/* Section 6 */}
           <section>
-            <h2 className="text-xl font-bold text-neutral-950 mb-3">
-              6. International transfers
-            </h2>
+            <h2>6. International transfers</h2>
             <p>
               Our providers may process data outside Nigeria. Where required by
               law, we use appropriate safeguards permitted under applicable
@@ -260,14 +226,12 @@ export default function PrivacyPolicyPage() {
 
           {/* Section 7 */}
           <section>
-            <h2 className="text-xl font-bold text-neutral-950 mb-3">
-              7. Data retention
-            </h2>
+            <h2>7. Data retention</h2>
             <p className="mb-3">
               We retain personal data only as long as needed for the purposes in
               this policy, including:
             </p>
-            <ul className="list-disc pl-5 space-y-2">
+            <ul>
               <li>
                 Account data while active and for a reasonable period after
                 closure
@@ -288,9 +252,7 @@ export default function PrivacyPolicyPage() {
 
           {/* Section 8 */}
           <section>
-            <h2 className="text-xl font-bold text-neutral-950 mb-3">
-              8. Security measures
-            </h2>
+            <h2>8. Security measures</h2>
             <p>
               We implement reasonable technical and organisational measures,
               including HTTPS, access controls, and secure data-handling
@@ -300,14 +262,12 @@ export default function PrivacyPolicyPage() {
 
           {/* Section 9 */}
           <section>
-            <h2 className="text-xl font-bold text-neutral-950 mb-3">
-              9. Your data protection rights
-            </h2>
+            <h2>9. Your data protection rights</h2>
             <p className="mb-3">
               Under applicable law (including the NDPA), you may have the right
               to:
             </p>
-            <ul className="list-disc pl-5 space-y-2">
+            <ul>
               <li>Access the personal data we hold about you</li>
               <li>Rectify inaccurate data</li>
               <li>
@@ -321,14 +281,9 @@ export default function PrivacyPolicyPage() {
             </ul>
             <p className="mt-4">
               To exercise these rights, contact{' '}
-              <a
-                href="mailto:contact@kaban.ng"
-                className="text-emerald-700 hover:text-emerald-800 underline underline-offset-2 transition-colors font-medium"
-              >
-                contact@kaban.ng
-              </a>{' '}
-              and include the email on your account plus a clear description of
-              your request. You may also lodge a complaint with the relevant
+              <a href="mailto:contact@kaban.ng">contact@kaban.ng</a> and include
+              the email on your account plus a clear description of your
+              request. You may also lodge a complaint with the relevant
               data-protection authority in Nigeria (or in your country of
               residence, if applicable).
             </p>
@@ -336,9 +291,7 @@ export default function PrivacyPolicyPage() {
 
           {/* Section 10 */}
           <section>
-            <h2 className="text-xl font-bold text-neutral-950 mb-3">
-              10. Cookies and similar technologies
-            </h2>
+            <h2>10. Cookies and similar technologies</h2>
             <p>
               We may use essential cookies for login/session security and
               optional cookies for analytics or preferences. You can control
@@ -349,9 +302,7 @@ export default function PrivacyPolicyPage() {
 
           {/* Section 11 */}
           <section>
-            <h2 className="text-xl font-bold text-neutral-950 mb-3">
-              11. Third-party links
-            </h2>
+            <h2>11. Third-party links</h2>
             <p>
               The Service may link to third-party sites (e.g. maps or video
               platforms). Their privacy practices are governed by their own
@@ -361,9 +312,7 @@ export default function PrivacyPolicyPage() {
 
           {/* Section 12 */}
           <section>
-            <h2 className="text-xl font-bold text-neutral-950 mb-3">
-              12. Updates to this policy
-            </h2>
+            <h2>12. Updates to this policy</h2>
             <p>
               We may update this Privacy Policy periodically. Material changes
               will be reflected by an updated “Last updated” date and may be
@@ -375,27 +324,15 @@ export default function PrivacyPolicyPage() {
 
           {/* Section 13 */}
           <section className="pt-4 border-t border-neutral-200">
-            <h2 className="text-xl font-bold text-neutral-950 mb-3">
-              13. Contact
-            </h2>
+            <h2>13. Contact</h2>
             <p className="mb-1">For privacy questions or requests:</p>
             <p className="mb-1">
-              <strong className="text-neutral-950">Email:</strong>{' '}
-              <a
-                href="mailto:contact@kaban.ng"
-                className="text-emerald-700 hover:text-emerald-800 underline underline-offset-2 transition-colors font-medium"
-              >
-                contact@kaban.ng
-              </a>
+              <strong>Email:</strong>{' '}
+              <a href="mailto:contact@kaban.ng">contact@kaban.ng</a>
             </p>
             <p>
-              <strong className="text-neutral-950">Website:</strong>{' '}
-              <Link
-                href="https://kaban.ng"
-                className="text-emerald-700 hover:text-emerald-800 underline underline-offset-2 transition-colors font-medium"
-              >
-                https://kaban.ng
-              </Link>
+              <strong>Website:</strong>{' '}
+              <Link href="https://kaban.ng">https://kaban.ng</Link>
             </p>
           </section>
         </div>

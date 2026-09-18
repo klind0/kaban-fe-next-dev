@@ -23,7 +23,7 @@ export default function TermsOfServicePage() {
             Welcome to Kaban (
             <Link
               href="https://kaban.ng"
-              className="text-emerald-700 hover:text-emerald-800 underline underline-offset-2 transition-colors"
+              className="text-emerald-700 hover:text-emerald-800 underline underline-offset-2 transition-colors font-medium"
             >
               https://kaban.ng
             </Link>
@@ -39,13 +39,11 @@ export default function TermsOfServicePage() {
           </p>
         </header>
 
-        {/* Content Body */}
-        <div className="space-y-8 text-neutral-800 text-sm sm:text-base leading-relaxed">
+        {/* Content Body with Scoped Typography Styles */}
+        <div className="space-y-8 text-neutral-800 text-sm sm:text-base leading-relaxed [&_p]:text-neutral-800 [&_p]:leading-relaxed [&_a]:text-emerald-700 hover:[&_a]:text-emerald-800 [&_a]:underline [&_a]:underline-offset-2 [&_a]:transition-colors [&_a]:font-medium [&_h2]:text-xl [&_h2]:font-bold [&_h2]:text-neutral-950 [&_h2]:mb-3 [&_h3]:font-semibold [&_h3]:text-neutral-950 [&_strong]:text-neutral-950 [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-2">
           {/* Section 1 */}
           <section>
-            <h2 className="text-xl font-bold text-neutral-950 mb-3">
-              1. Platform overview and scope
-            </h2>
+            <h2>1. Platform overview and scope</h2>
             <p className="mb-3">
               Kaban is a digital real-estate marketplace connecting property
               seekers (“Users”) with real estate agents, agencies, and developers
@@ -63,10 +61,8 @@ export default function TermsOfServicePage() {
 
           {/* Section 2 */}
           <section>
-            <h2 className="text-xl font-bold text-neutral-950 mb-3">
-              2. Eligibility and accounts
-            </h2>
-            <ul className="list-disc pl-5 space-y-2">
+            <h2>2. Eligibility and accounts</h2>
+            <ul>
               <li>
                 You must be at least 18 years old and able to form a binding
                 contract under Nigerian law.
@@ -93,19 +89,15 @@ export default function TermsOfServicePage() {
 
           {/* Section 3 */}
           <section>
-            <h2 className="text-xl font-bold text-neutral-950 mb-3">
-              3. Specific terms for Realtors
-            </h2>
+            <h2>3. Specific terms for Realtors</h2>
             <p className="mb-4">
               By registering or using a Realtor profile on Kaban.ng, you agree
               that:
             </p>
             <div className="space-y-4 pl-2 sm:pl-4 border-l-2 border-emerald-500/30">
               <div>
-                <h3 className="font-semibold text-neutral-950">
-                  Professional conduct and integrity
-                </h3>
-                <p className="text-neutral-800 mt-1">
+                <h3>Professional conduct and integrity</h3>
+                <p className="mt-1">
                   You will maintain high ethical standards, provide true and
                   non-misleading information about prices, specifications,
                   availability, ownership, and your authority to market a property,
@@ -114,10 +106,8 @@ export default function TermsOfServicePage() {
               </div>
 
               <div>
-                <h3 className="font-semibold text-neutral-950">
-                  Authority to list
-                </h3>
-                <p className="text-neutral-800 mt-1">
+                <h3>Authority to list</h3>
+                <p className="mt-1">
                   You warrant that you have the necessary rights, mandate, or
                   authority to list and market each property, and that your content
                   does not infringe third-party rights.
@@ -125,10 +115,8 @@ export default function TermsOfServicePage() {
               </div>
 
               <div>
-                <h3 className="font-semibold text-neutral-950">
-                  Accuracy of listings
-                </h3>
-                <p className="text-neutral-800 mt-1">
+                <h3>Accuracy of listings</h3>
+                <p className="mt-1">
                   You are solely responsible for listing content (descriptions,
                   prices, details, location, images, videos, and contact
                   information).
@@ -136,10 +124,8 @@ export default function TermsOfServicePage() {
               </div>
 
               <div>
-                <h3 className="font-semibold text-neutral-950">
-                  Licensing and legal compliance
-                </h3>
-                <p className="text-neutral-800 mt-1">
+                <h3>Licensing and legal compliance</h3>
+                <p className="mt-1">
                   You will comply with applicable Nigerian laws (federal and
                   state), including real-estate practice and advertising rules,
                   fair housing / non-discrimination obligations, tax rules, and
@@ -148,10 +134,8 @@ export default function TermsOfServicePage() {
               </div>
 
               <div>
-                <h3 className="font-semibold text-neutral-950">
-                  KYC and verification
-                </h3>
-                <p className="text-neutral-800 mt-1">
+                <h3>KYC and verification</h3>
+                <p className="mt-1">
                   You may be required to submit identity or professional documents
                   (e.g. government ID, certifications). False documents may result
                   in immediate suspension. Verification status is not a guarantee
@@ -160,8 +144,8 @@ export default function TermsOfServicePage() {
               </div>
 
               <div>
-                <h3 className="font-semibold text-neutral-950">Moderation</h3>
-                <p className="text-neutral-800 mt-1">
+                <h3>Moderation</h3>
+                <p className="mt-1">
                   Listings may require submission for review. We may approve,
                   reject, unpublish, expire, remove, or limit visibility of
                   listings (including featured placement) for quality, safety,
@@ -171,10 +155,8 @@ export default function TermsOfServicePage() {
               </div>
 
               <div>
-                <h3 className="font-semibold text-neutral-950">
-                  Ratings, reviews, complaints, and sanctions
-                </h3>
-                <p className="text-neutral-800 mt-1">
+                <h3>Ratings, reviews, complaints, and sanctions</h3>
+                <p className="mt-1">
                   In cases of fraud, misleading listings, or verified complaints, we
                   may investigate and issue warnings, restrict features, suspend,
                   or permanently deactivate your account, without financial
@@ -183,8 +165,8 @@ export default function TermsOfServicePage() {
               </div>
 
               <div>
-                <h3 className="font-semibold text-neutral-950">Cooperation</h3>
-                <p className="text-neutral-800 mt-1">
+                <h3>Cooperation</h3>
+                <p className="mt-1">
                   You agree to cooperate reasonably with Kaban and lawful
                   authorities during inquiries relating to your listings or
                   conduct, including providing relevant records when required by
@@ -193,20 +175,16 @@ export default function TermsOfServicePage() {
               </div>
 
               <div>
-                <h3 className="font-semibold text-neutral-950">
-                  No exclusive agency with Kaban
-                </h3>
-                <p className="text-neutral-700 mt-1">
+                <h3>No exclusive agency with Kaban</h3>
+                <p className="mt-1">
                   Unless agreed separately in writing, listing on Kaban does not
                   create employment or exclusive agency with Kaban.
                 </p>
               </div>
 
               <div>
-                <h3 className="font-semibold text-neutral-950">
-                  Non-broker liability
-                </h3>
-                <p className="text-neutral-700 mt-1">
+                <h3>Non-broker liability</h3>
+                <p className="mt-1">
                   Disputes about agency fees, deposits, or contractual performance
                   remain between the Realtor and the User.
                 </p>
@@ -216,10 +194,8 @@ export default function TermsOfServicePage() {
 
           {/* Section 4 */}
           <section>
-            <h2 className="text-xl font-bold text-neutral-950 mb-3">
-              4. Listings, media, and content
-            </h2>
-            <ul className="list-disc pl-5 space-y-2">
+            <h2>4. Listings, media, and content</h2>
+            <ul>
               <li>
                 You retain ownership of content you upload. By uploading, you grant
                 Kaban a worldwide, non-exclusive, royalty-free licence to host,
@@ -249,11 +225,9 @@ export default function TermsOfServicePage() {
 
           {/* Section 5 */}
           <section>
-            <h2 className="text-xl font-bold text-neutral-950 mb-3">
-              5. Prohibited activities
-            </h2>
+            <h2>5. Prohibited activities</h2>
             <p className="mb-3">Users and Realtors agree not to:</p>
-            <ul className="list-disc pl-5 space-y-2">
+            <ul>
               <li>
                 Post fraudulent, misleading, duplicate, or knowingly expired
                 listings
@@ -276,10 +250,8 @@ export default function TermsOfServicePage() {
 
           {/* Section 6 */}
           <section>
-            <h2 className="text-xl font-bold text-neutral-950 mb-3">
-              6. Transactions, payments, and third-party services
-            </h2>
-            <ul className="list-disc pl-5 space-y-2">
+            <h2>6. Transactions, payments, and third-party services</h2>
+            <ul>
               <li>
                 Kaban does not guarantee that any listing is available, accurate,
                 or will result in a completed deal.
@@ -298,9 +270,7 @@ export default function TermsOfServicePage() {
 
           {/* Section 7 */}
           <section>
-            <h2 className="text-xl font-bold text-neutral-950 mb-3">
-              7. Intellectual property
-            </h2>
+            <h2>7. Intellectual property</h2>
             <p>
               Platform branding, software, interface design, logos, and proprietary
               code are owned by Kaban or its licensors. You may not copy or exploit
@@ -311,10 +281,8 @@ export default function TermsOfServicePage() {
 
           {/* Section 8 */}
           <section>
-            <h2 className="text-xl font-bold text-neutral-950 mb-3">
-              8. Disclaimers
-            </h2>
-            <p className="font-semibold text-neutral-950 mb-2">
+            <h2>8. Disclaimers</h2>
+            <p className="font-semibold !text-neutral-950 mb-2">
               THE SERVICE IS PROVIDED ON AN “AS IS” AND “AS AVAILABLE” BASIS. TO
               THE MAXIMUM EXTENT PERMITTED BY LAW, KABAN DISCLAIMS ALL WARRANTIES,
               EXPRESS OR IMPLIED, INCLUDING MERCHANTABILITY, FITNESS FOR A
@@ -329,10 +297,8 @@ export default function TermsOfServicePage() {
 
           {/* Section 9 */}
           <section>
-            <h2 className="text-xl font-bold text-neutral-950 mb-3">
-              9. Limitation of liability
-            </h2>
-            <p className="font-semibold text-neutral-950 mb-2">
+            <h2>9. Limitation of liability</h2>
+            <p className="font-semibold !text-neutral-950 mb-2">
               TO THE MAXIMUM EXTENT PERMITTED BY LAW, KABAN AND ITS OFFICERS,
               EMPLOYEES, AND AGENTS SHALL NOT BE LIABLE FOR INDIRECT,
               INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR ANY LOSS
@@ -353,9 +319,7 @@ export default function TermsOfServicePage() {
 
           {/* Section 10 */}
           <section>
-            <h2 className="text-xl font-bold text-neutral-950 mb-3">
-              10. Indemnity
-            </h2>
+            <h2>10. Indemnity</h2>
             <p>
               You agree to indemnify and hold harmless Kaban from claims,
               damages, losses, and expenses (including reasonable legal fees)
@@ -366,9 +330,7 @@ export default function TermsOfServicePage() {
 
           {/* Section 11 */}
           <section>
-            <h2 className="text-xl font-bold text-neutral-950 mb-3">
-              11. Suspension and termination
-            </h2>
+            <h2>11. Suspension and termination</h2>
             <p>
               We may suspend or terminate your account and access immediately,
               without prior notice, if you violate these Terms, engage in fraud,
@@ -381,9 +343,7 @@ export default function TermsOfServicePage() {
 
           {/* Section 12 */}
           <section>
-            <h2 className="text-xl font-bold text-neutral-950 mb-3">
-              12. Changes to these Terms
-            </h2>
+            <h2>12. Changes to these Terms</h2>
             <p>
               We may modify these Terms at any time. For material changes, we will
               try to provide reasonable notice (for example, at least 14 days) via
@@ -394,9 +354,7 @@ export default function TermsOfServicePage() {
 
           {/* Section 13 */}
           <section>
-            <h2 className="text-xl font-bold text-neutral-950 mb-3">
-              13. Governing law and dispute resolution
-            </h2>
+            <h2>13. Governing law and dispute resolution</h2>
             <p className="mb-2">
               These Terms are governed by the laws of the Federal Republic of
               Nigeria. Disputes that cannot be resolved amicably shall be subject
@@ -404,39 +362,21 @@ export default function TermsOfServicePage() {
               mandatory consumer protections that cannot be waived.
             </p>
             <p>
-              Contact{' '}
-              <a
-                href="mailto:contact@kaban.ng"
-                className="text-emerald-700 hover:text-emerald-800 underline underline-offset-2 transition-colors"
-              >
-                contact@kaban.ng
-              </a>{' '}
-              to attempt informal resolution first.
+              Contact <a href="mailto:contact@kaban.ng">contact@kaban.ng</a> to
+              attempt informal resolution first.
             </p>
           </section>
 
           {/* Section 14 */}
           <section className="pt-4 border-t border-neutral-200">
-            <h2 className="text-xl font-bold text-neutral-950 mb-3">
-              14. Contact
-            </h2>
+            <h2>14. Contact</h2>
             <p className="mb-1">
               <strong>Email:</strong>{' '}
-              <a
-                href="mailto:contact@kaban.ng"
-                className="text-emerald-700 hover:text-emerald-800 underline underline-offset-2 transition-colors"
-              >
-                contact@kaban.ng
-              </a>
+              <a href="mailto:contact@kaban.ng">contact@kaban.ng</a>
             </p>
             <p>
               <strong>Website:</strong>{' '}
-              <Link
-                href="https://kaban.ng"
-                className="text-emerald-700 hover:text-emerald-800 underline underline-offset-2 transition-colors"
-              >
-                https://kaban.ng
-              </Link>
+              <Link href="https://kaban.ng">https://kaban.ng</Link>
             </p>
           </section>
         </div>
