@@ -12,6 +12,8 @@ interface SimilarPropertiesProps {
   currentListing: IListing;
 }
 
+const MAX_SIMILAR = 4; // 2 columns × 2 rows
+
 export default function SimilarProperties({
   currentListing,
 }: SimilarPropertiesProps) {
@@ -34,7 +36,7 @@ export default function SimilarProperties({
       gqlRequest<{ publicListings: IListingResponse }>(PUBLIC_LISTINGS_QUERY, {
         filter: {
           page: 1,
-          limit: 8,
+          limit: 10,
           ...(city ? { city } : {}),
           ...(state ? { state } : {}),
           ...(category ? { property_category: category } : {}),
@@ -52,7 +54,7 @@ export default function SimilarProperties({
         item.id !== currentListing?.id &&
         item.property_id !== currentListing?.property_id,
     )
-    .slice(0, 3);
+    .slice(0, MAX_SIMILAR);
 
   const searchParams = new URLSearchParams();
   if (city) searchParams.set("city", city);
@@ -78,9 +80,12 @@ export default function SimilarProperties({
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mt-8">
+      {/* 2 columns from sm up → max 2 rows with 4 cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-8">
         {isLoading &&
-          [1, 2, 3].map((_, index) => <ListingCardSkeleton key={index} />)}
+          Array.from({ length: MAX_SIMILAR }).map((_, index) => (
+            <ListingCardSkeleton key={index} />
+          ))}
 
         {!isLoading && similarListings.length > 0
           ? similarListings.map((listing) => (
