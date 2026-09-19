@@ -59,8 +59,8 @@ export default function Footer() {
         {
             title: "Contact",
             links: [
-                { name: "+234707 322 7880", href: "https://wa.me/+2347073227880" },
-                { name: "info@kaban.ng", href: "mailto:admin@kaban.ng" },
+                { name: "via WhatsApp", href: "https://wa.me/+2347073227880" },
+                { name: "via Email", href: "mailto:admin@kaban.ng" },
             ]
         },
     ];
