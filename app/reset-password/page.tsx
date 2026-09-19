@@ -17,10 +17,37 @@ type FormValues = {
   confirmPassword: string;
 };
 
+/** Normalize token if email/link accidentally put a full URL into ?token= */
+function extractResetToken(raw: string): string {
+  if (!raw) return "";
+  const value = raw.trim();
+
+  if (!value.includes("://") && !value.includes("token=")) {
+    return value;
+  }
+
+  try {
+    const url = value.startsWith("http")
+      ? new URL(value)
+      : new URL(value, "https://www.kaban.ng");
+    const fromQuery = url.searchParams.get("token");
+    if (fromQuery) return extractResetToken(fromQuery);
+  } catch {
+    // ignore
+  }
+
+  const match = value.match(/[?&]token=([^&]+)/i);
+  if (match?.[1]) {
+    return decodeURIComponent(match[1]);
+  }
+
+  return value;
+}
+
 function ResetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const token = searchParams.get("token") || "";
+  const token = extractResetToken(searchParams.get("token") || "");
 
   const {
     control,
@@ -48,11 +75,14 @@ function ResetPasswordForm() {
   if (!token) {
     return (
       <div className="mx-auto max-w-md space-y-4 p-6 text-center">
-        <h1 className="text-l font-semibold text-neutral-900">Invalid Link</h1>
+        <h1 className="text-lg font-semibold text-neutral-900">Invalid Link</h1>
         <p className="text-sm text-neutral-900">
           This reset link is missing a valid token. Please request a new link.
         </p>
-        <Link href="/forgot-password" className="text-primary font-semibold hover:underline">
+        <Link
+          href="/forgot-password"
+          className="text-primary font-semibold hover:underline"
+        >
           Request new reset link
         </Link>
       </div>
@@ -64,8 +94,10 @@ function ResetPasswordForm() {
   return (
     <div className="mx-auto max-w-md space-y-6 p-6">
       <div>
-        <h1 className="text-l font-semibold text-neutral-900">Reset Password</h1>
-        <p className="mt-2 text-sm text-neutral-900">Choose a new password for your account.</p>
+        <h1 className="text-lg font-semibold text-neutral-900">Reset Password</h1>
+        <p className="mt-2 text-sm text-neutral-900">
+          Choose a new password for your account.
+        </p>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -115,7 +147,11 @@ function ResetPasswordForm() {
 
 export default function ResetPasswordPage() {
   return (
-    <Suspense fallback={<div className="p-6 text-center text-sm">Loading reset form...</div>}>
+    <Suspense
+      fallback={
+        <div className="p-6 text-center text-sm">Loading reset form...</div>
+      }
+    >
       <ResetPasswordForm />
     </Suspense>
   );
