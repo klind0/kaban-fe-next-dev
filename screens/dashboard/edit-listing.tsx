@@ -280,71 +280,71 @@ export default function EditListingScreen() {
 
         // 1) Update first — replace gallery with remaining existing images + cover
         const updateInput = {
-            title: basic.title || "Untitled Listing",
-            description: basic.description || "",
-            property_category: basic.property_category,
-            property_type: basic.property_type,
-            status: basic.status,
-            price: {
+          title: basic.title || "Untitled Listing",
+          description: basic.description || "",
+          property_category: basic.property_category,
+          property_type: basic.property_type,
+          status: basic.status,
+          price: {
             amount: Number(
-                typeof basic.price === "object"
+              typeof basic.price === "object"
                 ? basic.price?.amount
                 : basic.price,
             ),
             per:
-                typeof basic.price === "object"
+              typeof basic.price === "object"
                 ? basic.price?.per || ""
                 : "",
-            },
-            details: basic.details || {},
-            images: existingImages, // remaining only (removals applied here)
-            cover_image,
-            cover_index: coverIndex,
-            video: media?.video_url || "",
-            location: {
+          },
+          details: basic.details || {},
+          images: existingImages, // remaining only (removals applied here)
+          cover_image,
+          cover_index: coverIndex,
+          video: media?.video_url || "",
+          location: {
             address: locObj?.address,
             state: locObj?.state,
             city: locObj?.city,
             landmark: locObj?.landmark,
             coordinates:
-                Array.isArray(locObj?.coordinates) &&
-                locObj.coordinates.length === 2
+              Array.isArray(locObj?.coordinates) &&
+              locObj.coordinates.length === 2
                 ? [
                     Number(locObj.coordinates[1]),
                     Number(locObj.coordinates[0]),
-                    ]
+                  ]
                 : undefined,
-            },
+          },
         };
 
         await gqlRequest(UPDATE_LISTING_MUTATION, {
-            id: listingId,
-            input: updateInput,
+          id: listingId,
+          input: updateInput,
         });
 
         // 2) Then append only new Files (addImagesToListing pushes — not wiped)
         if (newFiles.length > 0) {
-            await uploadImages(listingId, newFiles);
+          await uploadImages(listingId, newFiles);
         }
 
         // 3) Optional submit for review
         if (submit) {
-            await submitListing(listingId);
+          await submitListing(listingId);
         }
 
         toast.success(
-            submit
+          submit
             ? "Listing submitted successfully!"
             : "Edits saved successfully!",
         );
         router.push("/dashboard");
         router.refresh();
-        } catch (err: any) {
+      } catch (err: any) {
         toast.error(err?.message || "Failed to save updates.");
-        } finally {
+      } finally {
         setIsSaving(false);
         setIsSubmitting(false);
-        }
+      }
     },
     [
       listingId,
@@ -500,6 +500,21 @@ export default function EditListingScreen() {
           />
         </div>
       </DashboardPageContainer>
+
+      {/* Full-screen loading overlay — keeps forms mounted */}
+      {isBusy && (
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm">
+          <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+          <p className="mt-3 text-sm font-medium text-neutral-800">
+            {isSubmitting
+              ? "Submitting listing..."
+              : "Saving changes..."}
+          </p>
+          <p className="mt-1 text-xs text-neutral-500">
+            This may take a moment while we process your images and details.
+          </p>
+        </div>
+      )}
     </>
   );
 }
