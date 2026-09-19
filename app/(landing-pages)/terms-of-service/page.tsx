@@ -362,7 +362,7 @@ export default function TermsOfServicePage() {
               mandatory consumer protections that cannot be waived.
             </p>
             <p>
-              Contact <a href="mailto:contact@kaban.ng">contact@kaban.ng</a> to
+              Contact <a href="mailto:adminkaban.ng">contact@kaban.ng</a> to
               attempt informal resolution first.
             </p>
           </section>
@@ -372,7 +372,7 @@ export default function TermsOfServicePage() {
             <h2>14. Contact</h2>
             <p className="mb-1">
               <strong>Email:</strong>{' '}
-              <a href="mailto:contact@kaban.ng">contact@kaban.ng</a>
+              <a href="mailto:admin@kaban.ng">contact@kaban.ng</a>
             </p>
             <p>
               <strong>Website:</strong>{' '}

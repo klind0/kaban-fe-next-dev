@@ -51,7 +51,7 @@ export default function PrivacyPolicyPage() {
             <div className="p-4 bg-neutral-50 rounded-lg border border-neutral-200 space-y-1 font-mono text-xs sm:text-sm text-neutral-800">
               <p>
                 <strong>Email:</strong>{' '}
-                <a href="mailto:contact@kaban.ng">contact@kaban.ng</a>
+                <a href="mailto:admin@kaban.ng">contact@kaban.ng</a>
               </p>
               <p>
                 <strong>Website:</strong>{' '}
@@ -281,7 +281,7 @@ export default function PrivacyPolicyPage() {
             </ul>
             <p className="mt-4">
               To exercise these rights, contact{' '}
-              <a href="mailto:contact@kaban.ng">contact@kaban.ng</a> and include
+              <a href="mailto:admin@kaban.ng">contact@kaban.ng</a> and include
               the email on your account plus a clear description of your
               request. You may also lodge a complaint with the relevant
               data-protection authority in Nigeria (or in your country of
@@ -328,7 +328,7 @@ export default function PrivacyPolicyPage() {
             <p className="mb-1">For privacy questions or requests:</p>
             <p className="mb-1">
               <strong>Email:</strong>{' '}
-              <a href="mailto:contact@kaban.ng">contact@kaban.ng</a>
+              <a href="mailto:admin@kaban.ng">contact@kaban.ng</a>
             </p>
             <p>
               <strong>Website:</strong>{' '}
