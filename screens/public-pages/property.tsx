@@ -17,13 +17,13 @@ import Image from "next/image";
 import { Call } from "@/components/icons/call";
 import { Whatsapp } from "@/components/icons/whatsapp";
 import { Sms } from "@/components/icons/sms";
+import { buildWhatsAppLink, propertyInquiryMessage } from "@/lib/whatsapp";
 
 interface IndividualPropertyProps {
   slug: string;
   initialData?: IListing | null;
 }
 
-// Helper to format string into Title Case
 const toTitleCase = (str: string = ""): string => {
   return str
     .toLowerCase()
@@ -64,7 +64,6 @@ export default function IndividualProperty({
     .slice(0, 2)
     .toUpperCase();
 
-  // 🛠️ Construct Full Location string matching Listing Card (Address, City, State)
   const formattedLocation = [
     listing?.location?.address,
     listing?.location?.city,
@@ -75,6 +74,19 @@ export default function IndividualProperty({
     .join(", ");
 
   const formattedTitle = toTitleCase(listing?.title || "");
+
+  const whatsappPhone =
+    listing?.realtor?.whatsapp_number || listing?.realtor?.mobile_number || "";
+
+  const whatsappHref = whatsappPhone
+    ? buildWhatsAppLink(
+        whatsappPhone,
+        propertyInquiryMessage({
+          title: listing.title,
+          property_id: listing.property_id,
+        }),
+      )
+    : null;
 
   return (
     <div className="container mx-auto mt-18 pb-28 md:pb-12">
@@ -131,11 +143,9 @@ export default function IndividualProperty({
 
             <div className="mt-5 flex flex-col gap-4 lg:flex-row justify-between items-start lg:items-center">
               <div>
-                {/* 🛠️ Title Case Title */}
                 <h3 className="text-lg md:text-3xl font-semibold text-foreground capitalize">
                   {formattedTitle}
                 </h3>
-                {/* 🛠️ Title Case Location with Address, City, State */}
                 {formattedLocation && (
                   <div className="flex items-center gap-1.5 mt-1.5">
                     <Location className="text-primary shrink-0 size-5" />
@@ -156,7 +166,6 @@ export default function IndividualProperty({
           {listing && <PropertyDetails listing={listing} />}
 
           {listing && <PropertyMediaTabs listing={listing} />}
-
         </div>
 
         {/* Right Column - Realtor Card & Safety Info */}
@@ -166,7 +175,6 @@ export default function IndividualProperty({
             <SafetyTipCard />
             <DisclaimerCard />
 
-            {/* Placeholder Advert Space */}
             <div className="bg-neutral-200 border border-neutral-300 rounded-lg flex items-center justify-center h-80 font-bold text-neutral-500 text-lg">
               Advert Space
             </div>
@@ -179,7 +187,7 @@ export default function IndividualProperty({
         <SimilarProperties currentListing={listing} />
       </div>
 
-      {/* 🛠️ Mobile Quick-Contact Bar (Pinned to viewport bottom when no modal is open) */}
+      {/* Mobile Quick-Contact Bar */}
       <div className="md:hidden fixed inset-x-0 bottom-0 left-0 right-0 z-40 bg-white p-3 border-t border-neutral-200 shadow-[0_-4px_12px_rgba(0,0,0,0.08)]">
         <div className="container mx-auto flex justify-between items-center px-2">
           <div className="flex items-center gap-2.5 min-w-0">
@@ -214,12 +222,9 @@ export default function IndividualProperty({
                 </Button>
               </Link>
             )}
-            {listing?.realtor?.whatsapp_number && (
+            {whatsappHref && (
               <Link
-                href={`https://wa.me/${listing.realtor.whatsapp_number.replace(
-                  /\D/g,
-                  "",
-                )}`}
+                href={whatsappHref}
                 target="_blank"
                 rel="noopener noreferrer"
               >
