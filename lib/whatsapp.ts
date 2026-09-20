@@ -16,7 +16,7 @@ export function propertyInquiryMessage(listing: {
 }): string {
   const title = listing.title?.trim() || "your property";
   const kid = listing.property_id?.trim() || "";
-  const kidPart = kid ? ` (KID: ${kid})` : "";
+  const kidPart = kid ? ` ( ${kid})` : "";
 
   return `Hi, I found your property "${title}" on Kaban.ng${kidPart} and would like to inspect it.`;
 }
