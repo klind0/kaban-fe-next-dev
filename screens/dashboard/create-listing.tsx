@@ -30,6 +30,7 @@ export default function CreateListingScreen() {
         (searchParams.get('tab') as TabType) || 'basic'
     );
     const [isPending, setIsPending] = React.useState(false);
+    const [pendingMessage, setPendingMessage] = React.useState("Processing...");
 
     const { handleQueryParamsChange } = useQueryParams();
 
@@ -50,7 +51,6 @@ export default function CreateListingScreen() {
         };
 
         window.addEventListener("trigger-navbar-save", onNavbarSave);
-
         window.addEventListener("trigger-save-draft", onNavbarSave);
 
         return () => {
@@ -160,7 +160,6 @@ export default function CreateListingScreen() {
         
         setLiveLocationData(data);
 
-        // 🕵️‍♂️ CLIENT STATE MIRROR
         console.log("==========================================");
         console.log("🟢 [CLIENT] RAW FORM DATA STATES IN MEMORY:");
         console.log("1. BASIC INFORMATION:", JSON.stringify(basic, null, 2));
@@ -183,6 +182,9 @@ export default function CreateListingScreen() {
 
         console.log("==========================================");
 
+        setPendingMessage(
+            submit ? "Submitting listing..." : "Saving draft..."
+        );
         setIsPending(true);
         try {
             await createListing(
@@ -205,8 +207,10 @@ export default function CreateListingScreen() {
                 toast.error(firstError.message);
                 handleTabChange(firstError.tab);
             } else {
-                // Only trigger this if there are no specialized backend structure arrays
-                toast.error(err.message || err instanceof Error ? err.message : 'Failed to process operation.');
+                toast.error(
+                    err?.message ||
+                    (err instanceof Error ? err.message : 'Failed to process operation.')
+                );
             }
         } finally {
             setIsPending(false);
@@ -214,7 +218,6 @@ export default function CreateListingScreen() {
     };
 
     const resolveLocation = (): LocationListingData | null => {
-
         const fromForm = locationFormRef.current?.getValues?.() ?? null;
         if (fromForm?.location?.address || fromForm?.location?.state) {
             return fromForm;
@@ -238,6 +241,7 @@ export default function CreateListingScreen() {
             return;
         }
         
+        setPendingMessage("Saving draft...");
         setIsPending(true);
         try {
             await createListing(
@@ -294,6 +298,19 @@ export default function CreateListingScreen() {
                     />
                 </div>
             </DashboardPageContainer>
+
+            {/* Full-screen loading overlay — keeps forms mounted */}
+            {isPending && (
+                <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm">
+                    <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+                    <p className="mt-3 text-sm font-medium text-neutral-800">
+                        {pendingMessage}
+                    </p>
+                    <p className="mt-1 text-xs text-neutral-500">
+                        This may take a moment while we process your images and details.
+                    </p>
+                </div>
+            )}
         </>
     );
 }
