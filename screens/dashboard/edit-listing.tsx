@@ -510,7 +510,7 @@ export default function EditListingScreen() {
               ? "Submitting listing..."
               : "Saving changes..."}
           </p>
-          <p className="mt-1 text-xs text-neutral-500">
+          <p className="mt-1 text-xs text-neutral-900">
             This may take a moment while we process your images and details.
           </p>
         </div>
