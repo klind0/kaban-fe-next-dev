@@ -306,7 +306,7 @@ export default function CreateListingScreen() {
                     <p className="mt-3 text-sm font-medium text-neutral-800">
                         {pendingMessage}
                     </p>
-                    <p className="mt-1 text-xs text-neutral-500">
+                    <p className="mt-1 text-xs text-neutral-900">
                         This may take a moment while we process your images and details.
                     </p>
                 </div>
