@@ -9,21 +9,47 @@ import {
 import { serverGqlRequest } from "@/network/server-graphql-client";
 import { QUERY_KEY } from "@/enum/queryKeys";
 import { cookies } from "next/headers";
-// 🛠️ FIX: Import the redirect error checker from Next.js
 import { isRedirectError } from "next/dist/client/components/redirect-error";
+
+function logAction(scope: string, phase: string, extra?: Record<string, unknown>) {
+  const payload = {
+    scope,
+    phase,
+    ts: new Date().toISOString(),
+    ...extra,
+  };
+  if (phase === "fail") {
+    console.error(`[LISTING_ACTION] ${scope} ${phase}`, payload);
+  } else {
+    console.log(`[LISTING_ACTION] ${scope} ${phase}`, payload);
+  }
+}
 
 export async function createListingAction(
   input: Record<string, any>,
-): Promise<{ success: boolean; id?: string; error?: string }> { 
+): Promise<{ success: boolean; id?: string; error?: string }> {
+  const started = Date.now();
+  logAction("createListingAction", "start", {
+    hasTitle: !!input?.title,
+    hasLocation: !!input?.location,
+    hasDetails: !!input?.details,
+    imageCount: Array.isArray(input?.images) ? input.images.length : 0,
+  });
+
   try {
     const sanitizedInput = { ...input };
 
     if (sanitizedInput.location) {
       const { coordinates } = sanitizedInput.location;
-      if (coordinates && typeof coordinates === "object" && !Array.isArray(coordinates)) {
+      if (
+        coordinates &&
+        typeof coordinates === "object" &&
+        !Array.isArray(coordinates)
+      ) {
         const lng = Number(coordinates.lng);
         const lat = Number(coordinates.lat);
         if (!isNaN(lng) && !isNaN(lat)) {
+          // Backend expects [lng, lat] or [lat, lng]? Keep your existing convention.
           sanitizedInput.location.coordinates = [lng, lat];
         }
       }
@@ -31,135 +57,219 @@ export async function createListingAction(
 
     const data = await serverGqlRequest<{ createListing: { id: string } }>(
       CREATE_LISTING_MUTATION,
-      { input: sanitizedInput, submit: false }, 
+      { input: sanitizedInput, submit: false },
     );
-    
-    return { success: true, id: data.createListing.id }; 
-    
+
+    logAction("createListingAction", "ok", {
+      id: data?.createListing?.id,
+      ms: Date.now() - started,
+    });
+
+    return { success: true, id: data.createListing.id };
   } catch (error: any) {
-    // 🛠️ THE CRITICAL FIX: If it's a redirect, rethrow it so Next.js can change pages!
     if (isRedirectError(error)) {
       throw error;
     }
- 
-    let friendlyMessage = error?.message || "Failed to create listing due to a server error.";
-    
-    // Adjusted check to accommodate clean GraphQL error arrays from fetch
+
+    let friendlyMessage =
+      error?.message || "Failed to create listing due to a server error.";
+
     if (error?.errors && Array.isArray(error.errors)) {
       friendlyMessage = error.errors[0]?.message || friendlyMessage;
     } else if (error?.response?.errors) {
-      console.error("📋 NestJS Validation Error Details:", JSON.stringify(error.response.errors, null, 2));
-      friendlyMessage = error.response.errors[0]?.message || friendlyMessage;
-    } else {
-      console.error("💥 Error Context:", error);
+      console.error(
+        "📋 NestJS Validation Error Details:",
+        JSON.stringify(error.response.errors, null, 2),
+      );
+      friendlyMessage =
+        error.response.errors[0]?.message || friendlyMessage;
     }
-    console.log("==========================================");
-    
+
+    logAction("createListingAction", "fail", {
+      ms: Date.now() - started,
+      message: friendlyMessage,
+      name: error?.name,
+      statusCode: error?.statusCode ?? error?.response?.status,
+    });
+
     return { success: false, error: friendlyMessage };
   }
 }
 
 export async function submitListingAction(id: string): Promise<unknown> {
-  const data = await serverGqlRequest<{ submitListing: unknown }>(
-    SUBMIT_LISTING_MUTATION,
-    { id },
-  );
-  return data.submitListing;
+  const started = Date.now();
+  logAction("submitListingAction", "start", { id });
+
+  try {
+    const data = await serverGqlRequest<{ submitListing: unknown }>(
+      SUBMIT_LISTING_MUTATION,
+      { id },
+    );
+
+    logAction("submitListingAction", "ok", {
+      id,
+      ms: Date.now() - started,
+    });
+
+    return data.submitListing;
+  } catch (error: any) {
+    logAction("submitListingAction", "fail", {
+      id,
+      ms: Date.now() - started,
+      message: error?.message,
+      name: error?.name,
+    });
+    throw error;
+  }
 }
 
 export async function uploadListingImagesAction(
   listingId: string,
   formData: FormData,
 ): Promise<void> {
+  const started = Date.now();
   const baseUrl = process.env.API_URL;
-  
+
   if (!baseUrl) {
-    console.error("❌ [SERVER ACTION] CRITICAL ERROR: process.env.API_URL is undefined!");
+    logAction("uploadListingImagesAction", "fail", {
+      listingId,
+      message: "API_URL is undefined",
+    });
     throw new Error("Server configuration error: API base URL is missing.");
   }
 
   const cleanBaseUrl = baseUrl.endsWith("/api") ? baseUrl : `${baseUrl}/api`;
   const targetUrl = `${cleanBaseUrl}/listings/${listingId}/images`;
-  
-  console.log("==========================================");
-  console.log("🖥️ [SERVER ACTION] EXECUTING HANDSHAKE...");
-  console.log(`📡 Forwarding Target: POST ${targetUrl}`);
 
   const files = formData.getAll("images");
-  console.log(`📥 Received Stream Contains: ${files.length} files under key "images"`);
+  const fileMeta = files.map((file: any) => ({
+    name: file?.name || "unknown",
+    size: file?.size ?? 0,
+    type: file?.type || "unknown",
+  }));
+  const totalBytes = fileMeta.reduce((sum, f) => sum + (f.size || 0), 0);
+
+  logAction("uploadListingImagesAction", "start", {
+    listingId,
+    targetUrl,
+    fileCount: files.length,
+    totalBytes,
+    files: fileMeta,
+  });
 
   if (!files || files.length === 0) {
-    console.warn("⚠️ [SERVER ACTION]: Aborting. Zero files detected in the target payload stream.");
+    logAction("uploadListingImagesAction", "skip", {
+      listingId,
+      reason: "zero files",
+      ms: Date.now() - started,
+    });
     return;
   }
 
-  files.forEach((file: any) => {
-    console.log(`- File Name: ${file.name || "Unknown Name"}, Size: ${file.size || 0} bytes`);
-  });
-
   const cookieStore = await cookies();
   const accessToken = cookieStore.get(QUERY_KEY.ACCESS_TOKEN)?.value;
-  console.log(`🔑 Auth Token Attached: ${accessToken ? "YES (Bearer token found)" : "NO"}`);
-  console.log("==========================================");
+
+  logAction("uploadListingImagesAction", "auth", {
+    listingId,
+    hasToken: !!accessToken,
+  });
 
   try {
     const res = await fetch(targetUrl, {
       method: "POST",
       headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
-      body: formData, 
+      body: formData,
     });
 
-    console.log("==========================================");
-    console.log(`🏁 [BACKEND RESPONSE HANDSHAKE STATUS: ${res.status} ${res.statusText}]`);
-    console.log("📋 Content-Type Header Received:", res.headers.get("content-type"));
-
     const rawResponseText = await res.text();
-    console.log("📥 RAW BACKEND OUTPUT PAYLOAD:");
-    
     let parsedJson: any = null;
     let isJson = false;
 
     try {
       parsedJson = JSON.parse(rawResponseText);
       isJson = true;
-      console.log(JSON.stringify(parsedJson, null, 2));
     } catch {
-      console.log(rawResponseText || "[Empty Response Body]");
+      // non-JSON body
     }
-    console.log("==========================================");
+
+    logAction("uploadListingImagesAction", "response", {
+      listingId,
+      status: res.status,
+      statusText: res.statusText,
+      contentType: res.headers.get("content-type"),
+      bodyPreview: rawResponseText?.slice(0, 300) || "[empty]",
+      ms: Date.now() - started,
+    });
 
     if (!res.ok) {
-      const backendMessage = isJson ? (parsedJson?.message || parsedJson?.error) : null;
-      throw new Error(backendMessage ?? `Backend Rejected Request with status ${res.status}`);
+      const backendMessage = isJson
+        ? parsedJson?.message || parsedJson?.error
+        : null;
+      throw new Error(
+        backendMessage ?? `Backend Rejected Request with status ${res.status}`,
+      );
     }
 
+    logAction("uploadListingImagesAction", "ok", {
+      listingId,
+      ms: Date.now() - started,
+    });
   } catch (error: any) {
-    console.error("💥 [SERVER ACTION EXCEPTION] RUNTIME CRASH:");
-    console.error(`   Message: ${error?.message}`);
-    console.error(`   Stack: ${error?.stack}`);
-    console.log("==========================================");
+    logAction("uploadListingImagesAction", "fail", {
+      listingId,
+      targetUrl,
+      ms: Date.now() - started,
+      message: error?.message,
+      name: error?.name,
+      cause: error?.cause ? String(error.cause) : undefined,
+    });
     throw new Error(error?.message || "Image server handshake failed.");
   }
 }
 
-export async function deleteListingAction(id: string): Promise<{ success: boolean; error?: string }> {
+export async function deleteListingAction(
+  id: string,
+): Promise<{ success: boolean; error?: string }> {
+  const started = Date.now();
+  logAction("deleteListingAction", "start", { id });
+
   try {
-    const data = await serverGqlRequest<{ deleteListing: any }>(DELETE_LISTING_MUTATION, { id });
-    
-    // Check if the returned JSON object explicitly states a failure, or assume true if it returned cleanly
+    const data = await serverGqlRequest<{ deleteListing: any }>(
+      DELETE_LISTING_MUTATION,
+      { id },
+    );
+
     if (data?.deleteListing?.success === false) {
-      return { success: false, error: data.deleteListing.message || "Deletion rejected by server." };
+      logAction("deleteListingAction", "fail", {
+        id,
+        ms: Date.now() - started,
+        message: data.deleteListing.message,
+      });
+      return {
+        success: false,
+        error: data.deleteListing.message || "Deletion rejected by server.",
+      };
     }
 
+    logAction("deleteListingAction", "ok", {
+      id,
+      ms: Date.now() - started,
+    });
     return { success: true };
   } catch (error: any) {
-    console.error("❌ Failed to delete listing from server:", error);
-    const friendlyMessage = error?.errors?.[0]?.message || error?.message || "Failed to delete listing.";
+    const friendlyMessage =
+      error?.errors?.[0]?.message ||
+      error?.message ||
+      "Failed to delete listing.";
+    logAction("deleteListingAction", "fail", {
+      id,
+      ms: Date.now() - started,
+      message: friendlyMessage,
+    });
     return { success: false, error: friendlyMessage };
   }
 }
 
-/** Admin path today. Later you can add a realtor/token path that calls a different mutation. */
 export async function setFeaturedListingsAction(
   listingIds: string[],
 ): Promise<{ success: boolean; error?: string }> {
@@ -175,7 +285,7 @@ export async function setFeaturedListingsAction(
 
     return { success: true };
   } catch (error: any) {
-    console.error("❌ confFailed to set featured listings:", error);
+    console.error("❌ Failed to set featured listings:", error);
     const message =
       error?.errors?.[0]?.message ||
       error?.message ||
@@ -184,7 +294,6 @@ export async function setFeaturedListingsAction(
   }
 }
 
-/** Convenience wrapper for a single listing (still uses the same backend mutation). */
 export async function upgradeListingToFeaturedAction(
   id: string,
 ): Promise<{ success: boolean; error?: string }> {
