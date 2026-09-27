@@ -182,9 +182,17 @@ export async function createListing(
   submit: boolean,
 ): Promise<unknown> {
   const listingId = await createDraft(basic, media, location ?? undefined);
-  
-  await uploadImages(listingId, media.images);
-  
+
+  try {
+    await uploadImages(listingId, media.images);
+  } catch (err: any) {
+    // Listing exists; don't pretend the whole create failed silently
+    throw new Error(
+      err?.message ||
+        "Listing was created but photo upload failed. Open the listing and add photos.",
+    );
+  }
+
   if (submit) {
     return submitListing(listingId);
   }

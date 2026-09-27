@@ -155,10 +155,25 @@ export default function CreateListingScreen() {
     };
 
     const handleLocationSubmit = async (data: LocationListingData, submit: boolean) => {
-        const basic = draftRef.current.basic || basicFormRef.current?.getValues() || null;
-        const media = draftRef.current.media || mediaFormRef.current?.getValues() || null;
-        
+        // Prefer LIVE form values (same pattern as edit-listing)
+        const basic =
+            basicFormRef.current?.getValues?.() ||
+            draftRef.current.basic ||
+            null;
+
+        const media =
+            mediaFormRef.current?.getValues?.() ||
+            draftRef.current.media ||
+            null;
+
         setLiveLocationData(data);
+
+        if (basic) draftRef.current.basic = basic;
+        if (media) draftRef.current.media = media;
+
+        const imageFiles = (media?.images || []).filter(
+            (img): img is File => img instanceof File,
+        );
 
         console.log("==========================================");
         console.log("🟢 [CLIENT] RAW FORM DATA STATES IN MEMORY:");
@@ -167,8 +182,13 @@ export default function CreateListingScreen() {
         console.log("3. MEDIA METADATA:", {
             cover_index: media?.cover_index,
             video_url: media?.video_url,
-            total_images: media?.images?.length || 0
-        });                             
+            total_images: media?.images?.length || 0,
+            fileCount: imageFiles.length,
+            types: (media?.images || []).map((img) =>
+                img instanceof File ? `File:${img.name}:${img.size}` : typeof img,
+            ),
+        });
+        console.log("==========================================");
 
         if (!basic) {
             toast.error("Please fill out essential fields on the Basic tab.");
@@ -177,10 +197,14 @@ export default function CreateListingScreen() {
         }
 
         if (submit && !isTabValid('location', data)) {
-            return; 
+            return;
         }
 
-        console.log("==========================================");
+        if (submit && imageFiles.length === 0) {
+            toast.error("Please upload at least one image on the Media tab.");
+            handleTabChange('media');
+            return;
+        }
 
         setPendingMessage(
             submit ? "Submitting listing..." : "Saving draft..."
@@ -189,11 +213,15 @@ export default function CreateListingScreen() {
         try {
             await createListing(
                 basic,
-                media || { images: [], cover_index: 0, video_url: "" },
+                {
+                    images: imageFiles,
+                    cover_index: media?.cover_index ?? 0,
+                    video_url: media?.video_url || "",
+                },
                 data,
-                submit
+                submit,
             );
-            
+
             toast.success(
                 submit ? 'Listing submitted for review!' : 'Draft saved successfully!',
             );
@@ -201,7 +229,7 @@ export default function CreateListingScreen() {
         } catch (err: any) {
             console.error("🔴 [CLIENT] CAUGHT MUTATION ERROR:", err);
             const backendErrors = err?.response?.data?.errors;
-            
+
             if (Array.isArray(backendErrors) && backendErrors.length > 0) {
                 const firstError = backendErrors[0];
                 toast.error(firstError.message);
@@ -214,7 +242,7 @@ export default function CreateListingScreen() {
             }
         } finally {
             setIsPending(false);
-        };
+        }
     };
 
     const resolveLocation = (): LocationListingData | null => {
@@ -232,21 +260,37 @@ export default function CreateListingScreen() {
     };
 
     const handleSaveDraft = async () => {
-        const basic = draftRef.current.basic ?? basicFormRef.current?.getValues() ?? null;
-        const media = draftRef.current.media ?? mediaFormRef.current?.getValues() ?? null;
+        const basic =
+            basicFormRef.current?.getValues?.() ??
+            draftRef.current.basic ??
+            null;
+
+        const media =
+            mediaFormRef.current?.getValues?.() ??
+            draftRef.current.media ??
+            null;
+
         const location = resolveLocation();
+
+        const imageFiles = (media?.images || []).filter(
+            (img): img is File => img instanceof File,
+        );
 
         if (!basic) {
             toast.error('Please fill in the basic information first.');
             return;
         }
-        
+
         setPendingMessage("Saving draft...");
         setIsPending(true);
         try {
             await createListing(
                 basic,
-                media || { images: [], cover_index: 0, video_url: "" },
+                {
+                    images: imageFiles,
+                    cover_index: media?.cover_index ?? 0,
+                    video_url: media?.video_url || "",
+                },
                 location,
                 false,
             );
@@ -256,8 +300,8 @@ export default function CreateListingScreen() {
             toast.error(err instanceof Error ? err.message : 'Failed to save draft.');
         } finally {
             setIsPending(false);
-        };
-    }
+        }
+    };
 
     return (
         <>
