@@ -32,37 +32,33 @@ export async function POST(req: NextRequest) {
 
   if (!event_name || !event_id) {
     return NextResponse.json(
-      { error: "event_name and event_id required" },
+      { error: "event_name and event_id are required" },
       { status: 400 },
     );
   }
 
-  const user_data: Record<string, string | string[]> = {
-    client_ip_address:
-      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-      undefined,
-    client_user_agent: req.headers.get("user-agent") || undefined,
-  };
+  const user_data: Record<string, string | string[]> = {};
 
-  // fbp / fbc cookies improve match quality
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
+  if (ip) user_data.client_ip_address = ip;
+
+  const ua = req.headers.get("user-agent");
+  if (ua) user_data.client_user_agent = ua;
+
   const cookieHeader = req.headers.get("cookie") || "";
   const fbp = cookieHeader.match(/_fbp=([^;]+)/)?.[1];
   const fbc = cookieHeader.match(/_fbc=([^;]+)/)?.[1];
   if (fbp) user_data.fbp = fbp;
   if (fbc) user_data.fbc = fbc;
 
-  if (email) user_data.em = [sha256(email)];
+  if (email) user_data.em = [sha256(String(email))];
   if (phone) {
-    // Prefer E.164 digits only, e.g. 2348012345678
     const digits = String(phone).replace(/\D/g, "");
     if (digits) user_data.ph = [sha256(digits)];
   }
-  if (external_id) user_data.external_id = [sha256(String(external_id))];
-
-  // Remove undefined keys
-  Object.keys(user_data).forEach((k) => {
-    if (user_data[k] === undefined) delete user_data[k];
-  });
+  if (external_id) {
+    user_data.external_id = [sha256(String(external_id))];
+  }
 
   const payload: Record<string, unknown> = {
     data: [
@@ -70,10 +66,11 @@ export async function POST(req: NextRequest) {
         event_name,
         event_time: Math.floor(Date.now() / 1000),
         event_id,
-        event_source_url,
+        event_source_url:
+          event_source_url || req.headers.get("referer") || undefined,
         action_source: "website",
         user_data,
-        custom_data,
+        ...(custom_data ? { custom_data } : {}),
       },
     ],
   };
@@ -92,7 +89,7 @@ export async function POST(req: NextRequest) {
 
   const json = await res.json();
   if (!res.ok) {
-    console.error("[Meta CAPI]", json);
+    console.error("[Meta CAPI error]", json);
     return NextResponse.json({ error: json }, { status: 502 });
   }
 
