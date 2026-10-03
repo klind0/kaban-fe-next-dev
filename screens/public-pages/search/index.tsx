@@ -19,6 +19,7 @@ import useResponsiveNav from '@/hooks/useResponsiveNav';
 import { IQueryParamsType } from '@/types/queryParamsType';
 import { AMENITIES } from "@/lib/selectOptions";
 import { Button } from '@/components/ui/button';
+import { trackMetaEventWithCapi } from "@/lib/meta-pixel";
 
 type ResultsProps = {
     initialSearchTerm?: string;
@@ -195,6 +196,50 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
             setMaxPrice(rawPriceMax);
         }
     }, [searchParams, initialSearchTerm]);
+
+    // Meta Search event (Pixel + CAPI) — once per distinct criteria set
+    const lastSearchKey = useRef<string | null>(null);
+
+    useEffect(() => {
+        const parts = [
+            activeFilters.search,
+            activeFilters.status,
+            activeFilters.category,
+            activeFilters.property_type,
+            activeFilters.bedroom != null ? `bed:${activeFilters.bedroom}` : "",
+            bathroomValue ? `bath:${bathroomValue}` : "",
+            minPrice ? `min:${minPrice}` : "",
+            maxPrice ? `max:${maxPrice}` : "",
+            selectedAmenities.length
+                ? `amenities:${selectedAmenities.slice().sort().join(",")}`
+                : "",
+        ].filter(Boolean);
+
+        if (parts.length === 0) return;
+
+        const key = parts.join("|");
+        if (lastSearchKey.current === key) return;
+        lastSearchKey.current = key;
+
+        void trackMetaEventWithCapi({
+            eventName: "Search",
+            params: {
+                search_string: key.slice(0, 100),
+                content_category:
+                    activeFilters.status || activeFilters.category || undefined,
+            },
+        });
+    }, [
+        activeFilters.search,
+        activeFilters.status,
+        activeFilters.category,
+        activeFilters.property_type,
+        activeFilters.bedroom,
+        bathroomValue,
+        minPrice,
+        maxPrice,
+        selectedAmenities,
+    ]);
 
     // Shared filter payload (used by query + pagination resets)
     const filterPayload = useMemo(() => ({

@@ -13,6 +13,7 @@ import Cookies from "js-cookie";
 import { gqlRequest } from "@/network/graphql-client";
 import { useUserStore } from "@/app/stores/user-store";
 import { Checkbox } from "../ui/checkbox";
+import { trackMetaEventWithCapi } from "@/lib/meta-pixel";
 
 interface SignUpFormProps {
   onOpenChange: () => void;
@@ -79,6 +80,17 @@ export default function SignUpForm({ onOpenChange }: SignUpFormProps) {
           email: rawUser.email,
           fullName: rawUser.fullName || rawUser.full_name,
           role: rawUser.role,
+        });
+
+        // Meta CompleteRegistration (Pixel + CAPI)
+        void trackMetaEventWithCapi({
+          eventName: "CompleteRegistration",
+          email: rawUser.email,
+          external_id: rawUser.id,
+          params: {
+            status: "registered",
+            content_name: "realtor", // this form is "Sign Up as a Realtor"
+          },
         });
       }
 

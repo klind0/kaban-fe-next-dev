@@ -1,10 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { IListing } from "@/types/listingTypes";
 import Image from "next/image";
-import Link from "next/link";
 import { Call } from "@/components/icons/call";
 import { Whatsapp } from "@/components/icons/whatsapp";
 import { buildWhatsAppLink, propertyInquiryMessage } from "@/lib/whatsapp";
+import PropertyContactTrack from "@/components/public-pages/individual-property/property-contact-track";
 
 interface RealtorInformationCardProps {
   listing: IListing;
@@ -13,6 +13,10 @@ interface RealtorInformationCardProps {
 export default function RealtorInformationCard({
   listing,
 }: RealtorInformationCardProps) {
+  const listingId = String(
+    listing?.id || (listing as { _id?: string })?._id || "",
+  );
+
   const realtorName = listing?.realtor?.full_name || "Listing Agent";
   const avatarUrl = listing?.realtor?.realtor_pic || null;
 
@@ -72,8 +76,11 @@ export default function RealtorInformationCard({
         */}
 
         <div className="flex items-center gap-4">
-          {whatsappHref && (
-            <Link
+          {whatsappHref && listingId && (
+            <PropertyContactTrack
+              listingId={listingId}
+              listingTitle={listing?.title}
+              method="whatsapp"
               href={whatsappHref}
               target="_blank"
               rel="noopener noreferrer"
@@ -86,11 +93,14 @@ export default function RealtorInformationCard({
                 <Whatsapp className="size-5" />
                 WhatsApp
               </Button>
-            </Link>
+            </PropertyContactTrack>
           )}
 
-          {listing?.realtor?.mobile_number && (
-            <Link
+          {listing?.realtor?.mobile_number && listingId && (
+            <PropertyContactTrack
+              listingId={listingId}
+              listingTitle={listing?.title}
+              method="call"
               href={`tel:${listing.realtor.mobile_number}`}
               className="flex-1"
             >
@@ -101,7 +111,7 @@ export default function RealtorInformationCard({
                 <Call className="size-5" />
                 Call
               </Button>
-            </Link>
+            </PropertyContactTrack>
           )}
         </div>
       </div>

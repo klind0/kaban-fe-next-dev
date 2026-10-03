@@ -19,6 +19,7 @@ import { Whatsapp } from "@/components/icons/whatsapp";
 import { Sms } from "@/components/icons/sms";
 import { buildWhatsAppLink, propertyInquiryMessage } from "@/lib/whatsapp";
 import PropertyViewContentTracker from "@/components/public-pages/individual-property/property-view-content-tracker";
+import PropertyContactTrack from "@/components/public-pages/individual-property/property-contact-track";
 
 interface IndividualPropertyProps {
   slug: string;
@@ -57,6 +58,10 @@ export default function IndividualProperty({
     );
   }
 
+  const listingId = String(
+    listing.id || (listing as { _id?: string })._id || "",
+  );
+
   const realtorName = listing?.realtor?.full_name || "Listing Agent";
   const avatarUrl = listing?.realtor?.realtor_pic || null;
 
@@ -88,6 +93,9 @@ export default function IndividualProperty({
         }),
       )
     : null;
+
+  const contactBtnClass =
+    "text-primary border-primary size-9 p-0 flex items-center justify-center rounded-full hover:bg-primary/5";
 
   return (
     <div className="container mx-auto mt-18 pb-28 md:pb-12">
@@ -216,43 +224,45 @@ export default function IndividualProperty({
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            {listing?.realtor?.mobile_number && (
-              <Link href={`tel:${listing.realtor.mobile_number}`}>
-                <Button
-                  variant="outline"
-                  className="text-primary border-primary size-9 p-0 flex items-center justify-center rounded-full hover:bg-primary/5"
-                >
+            {listing?.realtor?.mobile_number && listingId && (
+              <PropertyContactTrack
+                listingId={listingId}
+                listingTitle={listing.title}
+                method="call"
+                href={`tel:${listing.realtor.mobile_number}`}
+              >
+                <Button variant="outline" className={contactBtnClass}>
                   <Call className="size-4" />
                 </Button>
-              </Link>
+              </PropertyContactTrack>
             )}
-            {whatsappHref && (
-              <Link
+            {whatsappHref && listingId && (
+              <PropertyContactTrack
+                listingId={listingId}
+                listingTitle={listing.title}
+                method="whatsapp"
                 href={whatsappHref}
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                <Button
-                  variant="outline"
-                  className="text-primary border-primary size-9 p-0 flex items-center justify-center rounded-full hover:bg-primary/5"
-                >
+                <Button variant="outline" className={contactBtnClass}>
                   <Whatsapp className="size-4" />
                 </Button>
-              </Link>
+              </PropertyContactTrack>
             )}
-            {listing?.realtor?.email && (
-              <Link
+            {listing?.realtor?.email && listingId && (
+              <PropertyContactTrack
+                listingId={listingId}
+                listingTitle={listing.title}
+                method="email"
                 href={`mailto:${listing.realtor.email}`}
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                <Button
-                  variant="outline"
-                  className="text-primary border-primary size-9 p-0 flex items-center justify-center rounded-full hover:bg-primary/5"
-                >
+                <Button variant="outline" className={contactBtnClass}>
                   <Sms className="size-4" />
                 </Button>
-              </Link>
+              </PropertyContactTrack>
             )}
           </div>
         </div>
