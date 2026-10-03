@@ -22,3 +22,41 @@ export function newMetaEventId() {
   }
   return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
+
+/**
+ * Fires the same event on Meta Pixel (browser) and Conversions API (server)
+ * with a shared event_id so Meta can deduplicate.
+ */
+export async function trackMetaEventWithCapi(options: {
+  eventName: string;
+  params?: Record<string, unknown>;
+  email?: string;
+  phone?: string;
+  external_id?: string;
+}) {
+  const eventId = newMetaEventId();
+
+  trackMetaEvent(options.eventName, options.params, eventId);
+
+  try {
+    await fetch("/api/meta/capi", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        event_name: options.eventName,
+        event_id: eventId,
+        event_source_url:
+          typeof window !== "undefined" ? window.location.href : undefined,
+        custom_data: options.params,
+        email: options.email,
+        phone: options.phone,
+        external_id: options.external_id,
+      }),
+    });
+  } catch (err) {
+    // Pixel still fired; don't break the page if CAPI fails
+    console.error("[Meta CAPI client]", err);
+  }
+
+  return eventId;
+}

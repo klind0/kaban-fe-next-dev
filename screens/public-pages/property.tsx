@@ -18,6 +18,7 @@ import { Call } from "@/components/icons/call";
 import { Whatsapp } from "@/components/icons/whatsapp";
 import { Sms } from "@/components/icons/sms";
 import { buildWhatsAppLink, propertyInquiryMessage } from "@/lib/whatsapp";
+import PropertyViewContentTracker from "@/components/public-pages/individual-property/property-view-content-tracker";
 
 interface IndividualPropertyProps {
   slug: string;
@@ -90,6 +91,9 @@ export default function IndividualProperty({
 
   return (
     <div className="container mx-auto mt-18 pb-28 md:pb-12">
+      {/* Meta ViewContent (Pixel + CAPI) — once listing is ready */}
+      <PropertyViewContentTracker listing={listing} />
+
       {/* Header Navigation Bar */}
       <div className="flex items-center justify-between px-4 py-3">
         <Button

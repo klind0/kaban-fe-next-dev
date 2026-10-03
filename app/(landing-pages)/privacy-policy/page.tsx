@@ -17,7 +17,7 @@ export default function PrivacyPolicyPage() {
             Privacy Policy
           </h1>
           <p className="mt-2 text-sm text-neutral-500 font-medium">
-            Kaban.ng &bull; Last updated: 13 September 2026
+            Kaban.ng &bull; Last updated: 3 October 2026
           </p>
           <p className="mt-4 text-base text-neutral-900 leading-relaxed">
             Kaban (“we”, “us”, or “our”) respects your privacy and is committed
@@ -166,6 +166,10 @@ export default function PrivacyPolicyPage() {
                 Realtors
               </li>
               <li>
+                Measure site usage and, where allowed, deliver and measure advertising
+                (including via Meta Pixel and related tools)
+              </li>
+              <li>
                 Review, moderate, approve, reject, feature, or expire listings
               </li>
               <li>Verify Realtor identity/professional status (KYC)</li>
@@ -202,6 +206,21 @@ export default function PrivacyPolicyPage() {
                 <strong>Service providers:</strong> Hosting, databases, email
                 delivery, image/media storage, analytics, and similar processors
                 acting on our behalf.
+              </li>
+              <li>
+                <strong>Advertising and analytics partners:</strong> e.g. Meta Platforms
+                (Facebook/Instagram) when you use our site with Meta Pixel or Conversions API
+                enabled. Meta may receive device/browser data, approximate location, page
+                activity, and event data (such as page views or content views) according to
+                their terms and your cookie/consent choices. See{' '}
+                <a
+                  href="https://www.facebook.com/privacy/policy/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Meta’s Privacy Policy
+                </a>
+                .
               </li>
               <li>
                 <strong>Authentication providers:</strong> If you use social login.
@@ -292,11 +311,65 @@ export default function PrivacyPolicyPage() {
           {/* Section 10 */}
           <section>
             <h2>10. Cookies and similar technologies</h2>
+            <p className="mb-3">
+              We use cookies and similar technologies (including pixels and local storage)
+              on the Service.
+            </p>
+
+            <h3 className="mt-4">Essential cookies</h3>
+            <p className="mt-1 mb-3">
+              Required for core functions such as authentication, session security, load
+              balancing, and remembering essential preferences. These do not depend on
+              marketing consent.
+            </p>
+
+            <h3 className="mt-4">Analytics and advertising cookies</h3>
+            <p className="mt-1 mb-3">
+              We may use optional tools to understand how the Service is used and to
+              measure and improve marketing. This includes the <strong>Meta Pixel</strong>{' '}
+              and related <strong>Conversions API</strong> features operated with Meta
+              Platforms. These technologies can collect or receive information such as:
+            </p>
+            <ul className="mb-3">
+              <li>Pages and content you view on Kaban.ng</li>
+              <li>Technical data (e.g. IP address, browser/device type)</li>
+              <li>
+                Events we configure (e.g. page view, view content, search, registration,
+                contact/lead)
+              </li>
+              <li>
+                Cookie identifiers (such as <code className="text-xs">_fbp</code> /{' '}
+                <code className="text-xs">_fbc</code>) used to help match activity for ads
+                measurement
+              </li>
+            </ul>
+            <p className="mb-3">
+              Meta may use this information to provide us with aggregated insights, to
+              measure ad performance, and—where applicable—to show you relevant ads on
+              Meta products, subject to your Meta ad settings and applicable law.
+            </p>
+
+            <h3 className="mt-4">Your choices</h3>
+            <p className="mt-1 mb-3">
+              Where we present a cookie banner or preference centre, we will only enable
+              non-essential analytics/advertising cookies (including Meta Pixel) after
+              you accept, unless a different lawful basis applies and is described here.
+              You can also control cookies through your browser settings; blocking some
+              cookies may limit parts of the Service. You may manage Meta ad preferences
+              via your Facebook/Instagram settings and{' '}
+              <a
+                href="https://www.facebook.com/adpreferences/ad_settings"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Meta ad settings
+              </a>
+              .
+            </p>
             <p>
-              We may use essential cookies for login/session security and
-              optional cookies for analytics or preferences. You can control
-              cookies in your browser; disabling some cookies may affect
-              Service functionality.
+              For more detail on Meta’s processing, see Meta’s privacy policy linked
+              above. For questions about our use of cookies or advertising measurement,
+              contact <a href="mailto:contact@kaban.ng">contact@kaban.ng</a>.
             </p>
           </section>
 
