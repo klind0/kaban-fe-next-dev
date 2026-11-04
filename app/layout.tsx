@@ -10,6 +10,7 @@ import ReactQueryProvider from "@/providers/ReactQueryProvider";
 import Script from "next/script";
 import GoogleAuthCallback from "@/components/auth/google-auth-callback";
 import MetaPixelPageview from "@/components/meta-pixel-pageview";
+import GoogleMapsScript from "@/components/universal/google-maps-script";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -40,11 +41,7 @@ export default function RootLayout({
         className={`${inter.variable} antialiased bg-neutral-25`}
         suppressHydrationWarning
       >
-        {/* 🌐 Google Maps Places API Script for Landmark Autocomplete */}
-        <Script
-          src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`}
-          strategy="beforeInteractive"
-        />
+        <GoogleMapsScript />
 
         {/* Meta Pixel */}
         {META_PIXEL_ID ? (
