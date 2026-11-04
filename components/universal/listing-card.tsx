@@ -97,7 +97,17 @@ export default function ListingCard({
     return (
         <Link href={`/property/${generateListingSlug(listingData)}`} className='group block w-full max-w-134.5 rounded-[10px] shadow overflow-hidden cursor-pointer duration-300'>
             <div className='h-74.75 overflow-hidden relative'>
-                <div className='h-full transition-transform duration-500 ease-in group-hover:scale-105' style={{ background: `url(${imageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }} />
+                {imageUrl && (
+                    <Image
+                        src={imageUrl}
+                        alt={title || "Property listing"}
+                        fill
+                        unoptimized
+                        loading="lazy"
+                        sizes="(min-width: 768px) 540px, 100vw"
+                        className="object-cover transition-transform duration-500 ease-in group-hover:scale-105"
+                    />
+                )}
                 <div className="absolute inset-0 bg-[#00000038] w-full h-full flex flex-col justify-between p-4">
                     <div className="flex justify-between items-center">
                         <div className="bg-[#00000066] p-2 rounded-lg text-white text-xs font-semibold" style={{ backdropFilter: 'blur(25px)' }}>

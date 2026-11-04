@@ -1,7 +1,8 @@
+import Image from "next/image";
 import SectionTitle from "./section-title";
-import CommercialBg from "@/app/assets/images/commercial.webp"
-import ResidentialBg from "@/app/assets/images/residential.webp"
-import IndustrialBg from "@/app/assets/images/industrial.webp"
+import CommercialBg from "@/app/assets/images/commercial.webp";
+import ResidentialBg from "@/app/assets/images/residential.webp";
+import IndustrialBg from "@/app/assets/images/industrial.webp";
 
 interface PropertyTypeCardProps {
   title: string;
@@ -35,9 +36,27 @@ export default function PropertyTypesSection() {
 }
 
 function PropertyTypeCard({ title, items }: PropertyTypeCardProps) {
+  const image =
+    title === "Commercial"
+      ? CommercialBg
+      : title === "Industrial"
+        ? IndustrialBg
+        : ResidentialBg;
+
   return (
-    <div className="w-full h-65 lg:h-125 rounded-3xl bg-neutral-600 overflow-hidden" style={{ backgroundImage: `url(${title === "Commercial" ? CommercialBg.src : title === "Industrial" ? IndustrialBg.src : ResidentialBg.src})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
-      <div className="bg-[#00000027] w-full h-full p-4 flex justify-center items-end md:justify-start">
+    <div className="relative w-full h-65 lg:h-125 rounded-3xl bg-neutral-600 overflow-hidden">
+      <Image
+        src={image}
+        alt=""
+        fill
+        sizes={
+          title === "Residential"
+            ? "100vw"
+            : "(min-width: 768px) 50vw, 100vw"
+        }
+        className="object-cover"
+      />
+      <div className="relative z-10 bg-[#00000027] w-full h-full p-4 flex justify-center items-end md:justify-start">
         <div className="bg-[#00000066] border border-[#FFFFFF33] p-4 rounded-xl" style={{ backdropFilter: 'blur(25px)' }}>
           <h4 className="uppercase text-white text-lg font-bold">{title}</h4>
           <ul className="flex flex-wrap text-white space-x-1 text-xs font-medium">

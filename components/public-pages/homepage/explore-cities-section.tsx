@@ -1,11 +1,11 @@
-"use client";
-import Carousel from "@/components/universal/carousel";
 import { cn } from "@/lib/utils";
+import ExploreCitiesCarousel from "@/components/public-pages/homepage/explore-cities-carousel";
+import Image from "next/image";
+import Link from "next/link";
 import PortharcourtImg from "@/app/assets/images/port-harcourt-city.webp";
 import AsabaImg from "@/app/assets/images/asaba-city.webp";
 import CalabarImg from "@/app/assets/images/calabar-city.webp";
 import UyoImg from "@/app/assets/images/uyo-city.webp";
-import { useRouter } from "next/navigation";
 
 interface CityCardProps {
     name: string;
@@ -43,44 +43,53 @@ export default function ExploreCitiesSection() {
                 <div className="mb-8">
                     <Title />
                 </div>
-                <Carousel>
+                <ExploreCitiesCarousel>
                     {cities.map((city) => (
                         <CityCard key={city.name} name={city.name} description={city.description} />
                     ))}
-                </Carousel>
+                </ExploreCitiesCarousel>
             </div>
         </section>
     );
-
-    function CityCard({ name, description, className }: CityCardProps) {
-        const router = useRouter();
-
-        return (
-            <div onClick={() => router.push(`/search?location=${name}`)}
-                className={cn(
-                    "w-full h-full min-h-65 bg-gray-50 rounded-3xl overflow-hidden",
-                    className
-                )}
-                style={{ backgroundImage: `url(${cities.find((c) => c.name === name)?.bgImg.src})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
-            >
-                <div className="bg-[#00000073] flex items-center justify-center size-full">
-                    <div className="flex flex-col items-center justify-center text-white">
-                        <h4 className="text-2xl md:text-[36px] text-center font-semibold">{name}</h4>
-                        <span className="text-center md:text-xl">{description}</span>
-                    </div>
-                </div>
-            </div>
-        );
-    }
-    function Title() {
-        return (
-            <div>
-                <h3 className="text-2xl text-center  lg:text-left md:text-[36px] text-primary font-bold">Explore Cities</h3>
-                <span className="md:text-xl block text-center lg:text-left">
-                    Have a look at listings located at some of the amazing cities in Nigeria.
-                </span>
-            </div>
-        )
-    }
 }
 
+function CityCard({ name, description, className }: CityCardProps) {
+    const city = cities.find((item) => item.name === name);
+
+    return (
+        <Link
+            href={`/search?location=${encodeURIComponent(name)}`}
+            className={cn(
+                "relative block w-full h-full min-h-65 bg-gray-50 rounded-3xl overflow-hidden",
+                className
+            )}
+        >
+            {city && (
+                <Image
+                    src={city.bgImg}
+                    alt=""
+                    fill
+                    sizes="(min-width: 1024px) 33vw, 100vw"
+                    className="object-cover"
+                />
+            )}
+            <div className="relative z-10 bg-[#00000073] flex items-center justify-center size-full">
+                <div className="flex flex-col items-center justify-center text-white">
+                    <h4 className="text-2xl md:text-[36px] text-center font-semibold">{name}</h4>
+                    <span className="text-center md:text-xl">{description}</span>
+                </div>
+            </div>
+        </Link>
+    );
+}
+
+function Title() {
+    return (
+        <div>
+            <h3 className="text-2xl text-center  lg:text-left md:text-[36px] text-primary font-bold">Explore Cities</h3>
+            <span className="md:text-xl block text-center lg:text-left">
+                Have a look at listings located at some of the amazing cities in Nigeria.
+            </span>
+        </div>
+    );
+}

@@ -20,6 +20,10 @@ interface PredictionItem {
   description: string;
 }
 
+function isGoogleMapsReady() {
+  return typeof google !== "undefined" && Boolean(google.maps?.places);
+}
+
 export default function LocationSearchAutocomplete({
   value = "",
   onChange,
@@ -31,6 +35,7 @@ export default function LocationSearchAutocomplete({
   const [inputValue, setInputValue] = useState(value);
   const [suggestions, setSuggestions] = useState<PredictionItem[]>([]);
   const [isFocused, setIsFocused] = useState(false);
+  const [mapsApiReady, setMapsApiReady] = useState(isGoogleMapsReady);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const ignoreNextQueryRef = useRef(false);
@@ -41,6 +46,14 @@ export default function LocationSearchAutocomplete({
   useEffect(() => {
     setInputValue(value);
   }, [value]);
+
+  useEffect(() => {
+    const handleGoogleMapsLoaded = () => setMapsApiReady(isGoogleMapsReady());
+
+    window.addEventListener("google-maps-loaded", handleGoogleMapsLoaded);
+    return () =>
+      window.removeEventListener("google-maps-loaded", handleGoogleMapsLoaded);
+  }, []);
 
   // Handle outside clicks to dismiss dropdown
   useEffect(() => {
@@ -55,7 +68,12 @@ export default function LocationSearchAutocomplete({
 
   // Google Places Autocomplete Predictions
   useEffect(() => {
-    if (!scriptLoaded || !inputValue || inputValue.length < 2) {
+    if (
+      !scriptLoaded ||
+      !mapsApiReady ||
+      !inputValue ||
+      inputValue.length < 2
+    ) {
       setSuggestions([]);
       return;
     }
@@ -97,7 +115,7 @@ export default function LocationSearchAutocomplete({
     }, 300);
 
     return () => clearTimeout(delayDebounceFn);
-  }, [inputValue, scriptLoaded]);
+  }, [inputValue, mapsApiReady, scriptLoaded]);
 
   const handleSelect = (s: PredictionItem) => {
     ignoreNextQueryRef.current = true;
