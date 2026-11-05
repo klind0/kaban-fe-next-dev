@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 const nav = [
   { href: "/admin/listings/pending", label: "Pending review" },
   { href: "/admin/featured", label: "Featured" },
+  { href: "/admin/realtors", label: "Realtors" },
 ];
 
 export default function AdminShell({ children }: { children: React.ReactNode }) {
