@@ -1,33 +1,34 @@
 "use client";
 
 import Image from "next/image";
-import { cn } from "@/lib/utils"; // or your cn helper
+import { cn } from "@/lib/utils"; // adjust if your cn helper is different
 
 interface RealtorAvatarProps {
   src?: string | null;
   alt?: string;
-  size?: number;          // px
+  size?: number;                 // diameter in px
   isFoundingRealtor?: boolean;
   className?: string;
-  badgeSize?: number;     // optional override
+  badgeSize?: number;            // optional override
 }
 
 export default function RealtorAvatar({
   src,
   alt = "Realtor",
-  size = 80,
+  size = 48,
   isFoundingRealtor = false,
   className,
   badgeSize,
 }: RealtorAvatarProps) {
-  const badgeDimension = badgeSize ?? Math.round(size * 0.42); // ~42% of avatar size works well
+  const badgeDimension = badgeSize ?? Math.round(size * 0.42);
 
   return (
     <div
       className={cn("relative inline-block shrink-0 rounded-full", className)}
       style={{ width: size, height: size }}
     >
-      <div className="relative w-full h-full overflow-hidden rounded-full bg-neutral-200">
+      {/* Profile photo */}
+      <div className="relative h-full w-full overflow-hidden rounded-full bg-neutral-200">
         {src ? (
           <Image
             src={src}
@@ -37,24 +38,24 @@ export default function RealtorAvatar({
             sizes={`${size}px`}
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-neutral-500 text-sm font-medium">
+          <div className="flex h-full w-full items-center justify-center text-sm font-medium text-neutral-500">
             {alt.charAt(0).toUpperCase()}
           </div>
         )}
       </div>
 
+      {/* Founding badge */}
       {isFoundingRealtor && (
         <div
-          className="absolute -bottom-1 -right-1 z-10 drop-shadow-md"
+          className="absolute -bottom-0.5 -right-0.5 z-10 drop-shadow-md"
           style={{ width: badgeDimension, height: badgeDimension }}
         >
           <Image
-            src="/badges/founding-realtor-20.png"   // ← put the badge here
+            src="/badges/founding-realtor-20.png"
             alt="Founding Realtor"
             width={badgeDimension}
             height={badgeDimension}
             className="object-contain"
-            priority={false}
           />
         </div>
       )}
