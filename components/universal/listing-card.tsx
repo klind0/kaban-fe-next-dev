@@ -14,6 +14,7 @@ import React from "react"
 import { generateListingSlug } from "@/lib/manageSlug"
 import { toTitleCase } from "@/utils/formatText"
 import { getListingCoverUrl } from "@/lib/listingCover";
+import RealtorAvatar from "@/components/shared/realtor-avatar"
 
 interface ListingCardProps {
     listingData: IListing;
@@ -71,14 +72,14 @@ export default function ListingCard({
     const baths = details?.bathroom ?? 0;
     const parkingSpots = details?.parking_space ?? 0;
 
-    // 🛠️ Dynamic Realtor Profile Resolution (Avatar & Initials)
+    // 🛠️ Dynamic Realtor Profile Resolution & Founding Realtor Flag
     const realtorName = realtor?.full_name || "Listing Agent";
     const avatarUrl = realtor?.realtor_pic || null;
-
     const initials = (realtorName.trim().match(/\b\w/g) || ["R"])
         .join("")
         .slice(0, 2)
         .toUpperCase();
+    const isFoundingRealtor = Boolean(realtor?.is_founding_realtor);
 
     // 🛠️ Construct a clean string checking if city/state properties are provided explicitly
     const buildFullLocationString = () => {
@@ -163,22 +164,15 @@ export default function ListingCard({
                 </div>
             </div>
 
-            {/* 🛠️ Footer: Realtor Profile Image or Initials */}
+            {/* 🛠️ Footer: Realtor Profile with Founding Realtor Avatar Component */}
             <div className="bg-neutral-50 p-4 border-t border-neutral-100">
-                <div className="flex items-center gap-2 min-w-0">
-                    <div className="size-8 rounded-full overflow-hidden shrink-0 bg-primary flex items-center justify-center text-white text-xs font-semibold">
-                        {avatarUrl ? (
-                            <Image 
-                                src={avatarUrl} 
-                                width={32} 
-                                height={32} 
-                                alt={realtorName} 
-                                className="object-cover w-full h-full"
-                            />
-                        ) : (
-                            <span>{initials}</span>
-                        )}
-                    </div>
+                <div className="flex items-center gap-3 min-w-0">
+                    <RealtorAvatar
+                        src={avatarUrl}
+                        alt={realtorName}
+                        size={32}
+                        isFoundingRealtor={isFoundingRealtor}
+                    />
                     <span className="text-sm font-medium text-neutral-900 truncate">
                         {realtorName}
                     </span>
