@@ -13,17 +13,17 @@ export default function RootLayout({
   const gaId = process.env.NEXT_PUBLIC_GA_ID;
 
   return (
-    <>
+    <div className="flex min-h-screen flex-col">
       <React.Suspense>
         <ErrorToastHandler />
       </React.Suspense>
       <Navbar />
-      <main className="mb-35">
+      <main className="mb-35 flex-1">
         {children}
         <AdvertSection />
       </main>
       <Footer />
       {gaId && <GoogleAnalytics gaId={gaId} />}
-    </>
+    </div>
   );
 }

@@ -73,7 +73,7 @@ export default function Footer() {
                         <div className="flex flex-col gap-4">
                             <Logo />
                             <div className="w-full">
-                                <p>Finding a house shouldn't feel so stressful. Let's take the stress off your shoulders—whether you’re hunting for a cozy apartment near campus or looking for a smart spot to invest. Welcome aboard, let's get you sorted!</p>
+                                <p>Finding a house shouldn&apos;t feel so stressful. Let&apos;s take the stress off your shoulders—whether you’re hunting for a cozy apartment near campus or looking for a smart spot to invest. Welcome aboard, let&apos;s get you sorted!</p>
                             </div>
                         </div>
                         <div className="flex space-x-6">
