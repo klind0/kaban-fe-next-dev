@@ -18,10 +18,10 @@ export default function RootLayout({
         <ErrorToastHandler />
       </React.Suspense>
       <Navbar />
-      <main className="mb-35 flex-1">
+      <main className="flex-1">
         {children}
-        <AdvertSection />
       </main>
+      <AdvertSection />
       <Footer />
       {gaId && <GoogleAnalytics gaId={gaId} />}
     </div>
