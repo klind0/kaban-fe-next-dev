@@ -15,7 +15,7 @@ export default function HomeScreen({
   latestSection,
 }: HomeScreenProps) {
   return (
-    <div className="relative isolate min-h-screen overflow-auto">
+    <div className="relative isolate min-h-screen">
       <div className="fixed inset-0 -z-10">
         <Image
           src={HeroBg}
