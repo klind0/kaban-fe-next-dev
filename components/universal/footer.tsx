@@ -66,7 +66,7 @@ export default function Footer() {
     ];
 
     return (
-        <footer className="bg-primary text-white">
+        <footer className="relative z-20 bg-primary text-white">
             <div className="container mx-auto px-4 2xl:px-0 py-8 md:py-16">
                 <div className="flex gap-16 flex-col lg:flex-row">
                     <div className="w-full max-w-78.75 space-y-8">
