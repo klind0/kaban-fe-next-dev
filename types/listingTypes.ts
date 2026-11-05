@@ -101,6 +101,7 @@ export interface IListing {
     mobile_number: string;
     whatsapp_number: string;
     realtor_pic?: string | null;
+    is_founding_realtor?: boolean;
   };
   rejectionReasons: RejectionReason[] | string[];
   approvalNotes: string | null;
