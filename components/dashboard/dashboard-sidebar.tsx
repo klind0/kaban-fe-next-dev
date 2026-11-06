@@ -18,7 +18,6 @@ import { usePathname, useRouter } from "next/navigation"
 import { Building2 } from "../icons/buildings"
 import { Logo } from "../icons/Logo"
 import { Popover, PopoverContent, PopoverDescription, PopoverHeader, PopoverTitle, PopoverTrigger } from "../ui/popover"
-import Image from "next/image"
 import { LogoutIcon } from "../icons/logout-icon"
 import { Profile } from "../icons/profile"
 import { useUserStore } from "@/app/stores/user-store"
@@ -28,6 +27,7 @@ import Cookies from "js-cookie"
 import X from "../icons/x"
 import { Menu } from "lucide-react" 
 import { Button } from "../ui/button"
+import RealtorAvatar from "@/components/shared/realtor-avatar"
 
 export const menuItems = [
     {
@@ -48,13 +48,9 @@ export function DashboardSidebar() {
     const avatarUrl = realtor?.realtor_pic || (user as any)?.realtor_pic || user?.avatar || (user as any)?.realtorPic || null;
     const fullName = user?.fullName || (user as any)?.full_name || "User";
     const email = user?.email || "";
+    const isFoundingRealtor = Boolean(realtor?.is_founding_realtor || (user as any)?.is_founding_realtor);
 
-    const nameInitials = (fullName.trim().match(/\b\w/g) || ["U"])
-        .join("")
-        .slice(0, 2)
-        .toUpperCase();
-
-    const userData = user ? { fullName, email, avatar: avatarUrl } : null;
+    const userData = user ? { fullName, email, avatar: avatarUrl, isFoundingRealtor } : null;
 
     const isActive = (url: string) => pathName === url;
 
@@ -164,19 +160,12 @@ export function DashboardSidebar() {
                             <Popover>
                                 <PopoverTrigger asChild>
                                     <button className="flex w-full items-center gap-2">
-                                        <div className="size-10 shrink-0 overflow-hidden rounded-full bg-primary flex items-center justify-center text-white text-sm font-semibold">
-                                            {userData.avatar ? (
-                                                <Image 
-                                                    src={userData.avatar} 
-                                                    alt="User Avatar" 
-                                                    width={40} 
-                                                    height={40} 
-                                                    className="rounded-full w-full h-full object-cover" 
-                                                />
-                                            ) : (
-                                                <span>{nameInitials}</span>
-                                            )}                                          
-                                        </div>
+                                        <RealtorAvatar 
+                                            src={userData.avatar} 
+                                            alt={userData.fullName} 
+                                            size={40} 
+                                            isFoundingRealtor={userData.isFoundingRealtor} 
+                                        />                                       
                                         <div className="flex-1 min-w-0 flex flex-col text-left">
                                             <span className="text-sm font-medium text-gray-700 truncate">{userData.fullName}</span>
                                             <span className="text-xs text-gray-500 truncate">{userData.email}</span>
