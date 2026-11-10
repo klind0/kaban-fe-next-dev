@@ -332,19 +332,21 @@ export default function CreateListingScreen() {
 
             {/* Full-screen loading overlay — keeps forms mounted */}
             {isPending && (
-                <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm">
+                <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white/80 px-4 text-center backdrop-blur-sm">
                     <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-                    <p className="mt-3 text-sm font-medium text-neutral-800">
-                        {pendingMessage}
-                    </p>
-                    <p className="mt-1 text-xs text-neutral-900">
-                        This may take a moment while we process your images and details.
-                    </p>
-                    {pendingMessage === "Submitting listing..." && (
-                        <p className="mt-2 text-sm font-medium text-neutral-800">
-                            Listings expire after 30 days.
+                    <div className="mt-3 w-full max-w-md">
+                        <p className="text-sm font-medium text-neutral-800">
+                            {pendingMessage}
                         </p>
-                    )}
+                        <p className="mt-1 text-xs text-neutral-900">
+                            This may take a moment while we process your images and details.
+                        </p>
+                        {pendingMessage === "Submitting listing..." && (
+                            <p className="mt-2 text-sm font-medium text-neutral-800">
+                                Listings expire after 30 days.
+                            </p>
+                        )}
+                    </div>
                 </div>
             )}
         </>
