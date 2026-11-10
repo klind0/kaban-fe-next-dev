@@ -40,6 +40,7 @@ export interface IUser {
   realtorId?: string;
   realtor_pic?: string | null;
   realtorPic?: string | null;
+  is_founding_realtor?: boolean;
   realtor?: IRealtor;
   mobileNumber?: string;  
   whatsappNumber?: string; 

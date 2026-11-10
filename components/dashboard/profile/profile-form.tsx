@@ -2,11 +2,11 @@
 
 import React, { useState, useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
-import Image from "next/image";
 import FormControl from "@/components/universal/form-control";
 import { getErrorMessage } from "@/lib/getErrorMessage";
 import { Button } from "@/components/ui/button";
 import FormCard from "@/components/dashboard/create-listing/form-card";
+import RealtorAvatar from "@/components/shared/realtor-avatar";
 
 export type ProfileFormValues = {
   full_name: string;
@@ -23,6 +23,7 @@ type Props = {
     mobile_number?: string;
     whatsapp_number?: string;
     realtor_pic?: string;
+    is_founding_realtor?: boolean;
   } | null;
   onFormSubmit: (data: ProfileFormValues) => void;
   isPending?: boolean;
@@ -89,20 +90,13 @@ export default function ProfileForm({ initialData, onFormSubmit, isPending }: Pr
       <FormCard title="">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="relative w-16 h-16 rounded-full overflow-hidden bg-slate-100 flex-shrink-0">
-              {previewPic ? (
-                <Image
-                  src={previewPic}
-                  alt="Profile"
-                  fill
-                  className="object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-slate-400 font-bold text-xl">
-                  {initialData?.full_name ? initialData.full_name[0].toUpperCase() : "P"}
-                </div>
-              )}
-            </div>
+            <RealtorAvatar
+              src={previewPic}
+              alt={initialData?.full_name || "Profile"}
+              size={64}
+              isFoundingRealtor={Boolean(initialData?.is_founding_realtor)}
+              fallbackClassName="bg-slate-100 text-slate-400 font-bold text-xl"
+            />
             <div className="min-w-0 flex-1">
               <h3 className="text-lg sm:text-xl font-bold text-slate-900 truncate">
                 {initialData?.full_name || "Precious Ekong"}

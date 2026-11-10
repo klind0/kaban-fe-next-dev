@@ -13,7 +13,7 @@ import RealtorInformationCard from "@/components/public-pages/individual-propert
 import SafetyTipCard from "@/components/public-pages/individual-property/safety-tip-card";
 import DisclaimerCard from "@/components/public-pages/individual-property/disclaimer-card";
 import SimilarProperties from "@/components/public-pages/individual-property/similar-properties";
-import Image from "next/image";
+import RealtorAvatar from "@/components/shared/realtor-avatar";
 import { Call } from "@/components/icons/call";
 import { Whatsapp } from "@/components/icons/whatsapp";
 import { Sms } from "@/components/icons/sms";
@@ -64,11 +64,6 @@ export default function IndividualProperty({
 
   const realtorName = listing?.realtor?.full_name || "Listing Agent";
   const avatarUrl = listing?.realtor?.realtor_pic || null;
-
-  const initials = (realtorName.trim().match(/\b\w/g) || ["R"])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
 
   const formattedLocation = [
     listing?.location?.address,
@@ -203,19 +198,17 @@ export default function IndividualProperty({
       <div className="md:hidden fixed inset-x-0 bottom-0 left-0 right-0 z-40 bg-white p-3 border-t border-neutral-200 shadow-[0_-4px_12px_rgba(0,0,0,0.08)]">
         <div className="container mx-auto flex justify-between items-center px-2">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="size-10 rounded-full overflow-hidden shrink-0 bg-primary flex items-center justify-center text-white text-xs font-bold">
-              {avatarUrl ? (
-                <Image
-                  src={avatarUrl}
-                  width={40}
-                  height={40}
-                  alt="Realtor avatar"
-                  className="object-cover w-full h-full"
-                />
-              ) : (
-                <span>{initials}</span>
-              )}
-            </div>
+            <RealtorAvatar
+              src={avatarUrl}
+              alt={realtorName}
+              size={40}
+              isFoundingRealtor={Boolean(listing?.realtor?.is_founding_realtor)}
+              fallbackText={(realtorName.trim().match(/\b\w/g) || ["R"])
+                .join("")
+                .slice(0, 2)
+                .toUpperCase()}
+              fallbackClassName="bg-primary text-white text-xs font-bold"
+            />
             <div className="min-w-0">
               <h4 className="text-foreground text-sm font-semibold truncate max-w-[120px] sm:max-w-[180px]">
                 {realtorName}

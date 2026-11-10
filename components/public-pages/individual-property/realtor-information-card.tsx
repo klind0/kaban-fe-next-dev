@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { IListing } from "@/types/listingTypes";
-import Image from "next/image";
+import RealtorAvatar from "@/components/shared/realtor-avatar";
 import { Call } from "@/components/icons/call";
 import { Whatsapp } from "@/components/icons/whatsapp";
 import { buildWhatsAppLink, propertyInquiryMessage } from "@/lib/whatsapp";
@@ -19,11 +19,6 @@ export default function RealtorInformationCard({
 
   const realtorName = listing?.realtor?.full_name || "Listing Agent";
   const avatarUrl = listing?.realtor?.realtor_pic || null;
-
-  const initials = (realtorName.trim().match(/\b\w/g) || ["R"])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
 
   const whatsappPhone =
     listing?.realtor?.whatsapp_number || listing?.realtor?.mobile_number || "";
@@ -46,19 +41,17 @@ export default function RealtorInformationCard({
 
       <div className="p-4 space-y-6">
         <div className="flex items-center gap-3">
-          <div className="size-12 rounded-full overflow-hidden shrink-0 bg-primary flex items-center justify-center text-white font-bold text-base">
-            {avatarUrl ? (
-              <Image
-                src={avatarUrl}
-                width={48}
-                height={48}
-                alt="Realtor avatar"
-                className="object-cover w-full h-full"
-              />
-            ) : (
-              <span>{initials}</span>
-            )}
-          </div>
+          <RealtorAvatar
+            src={avatarUrl}
+            alt={realtorName}
+            size={48}
+            isFoundingRealtor={Boolean(listing?.realtor?.is_founding_realtor)}
+            fallbackText={(realtorName.trim().match(/\b\w/g) || ["R"])
+              .join("")
+              .slice(0, 2)
+              .toUpperCase()}
+            fallbackClassName="bg-primary text-white font-bold text-base"
+          />
           <div className="min-w-0 flex-1">
             <h4 className="text-foreground font-bold truncate">{realtorName}</h4>
             {listing?.realtor?.email && (

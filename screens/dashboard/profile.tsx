@@ -88,6 +88,7 @@ export default function ProfileScreen() {
             mobile_number: realtor?.mobile_number || (user as any)?.mobileNumber || (user as any)?.realtor?.mobile_number || "",
             whatsapp_number: realtor?.whatsapp_number || (user as any)?.whatsappNumber || (user as any)?.realtor?.whatsapp_number || "",
             realtor_pic: realtor?.realtor_pic || (user as any)?.avatar || (user as any)?.realtor_pic || "",
+            is_founding_realtor: Boolean(realtor?.is_founding_realtor || user?.is_founding_realtor),
         };
     }, [user, realtor]);
 

@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { toast } from "sonner";
+import RealtorAvatar from "@/components/shared/realtor-avatar";
 import {
   AdminRealtor,
   fetchRealtors,
@@ -102,21 +102,13 @@ export default function AdminRealtorsPage() {
                   <tr key={r.id} className="hover:bg-slate-50/80">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
-                        <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full bg-slate-200">
-                          {r.realtor_pic ? (
-                            <Image
-                              src={r.realtor_pic}
-                              alt={name}
-                              fill
-                              className="object-cover"
-                              sizes="40px"
-                            />
-                          ) : (
-                            <div className="flex h-full w-full items-center justify-center text-xs font-medium text-slate-500">
-                              {name.charAt(0)}
-                            </div>
-                          )}
-                        </div>
+                        <RealtorAvatar
+                          src={r.realtor_pic}
+                          alt={name}
+                          size={40}
+                          isFoundingRealtor={isFounding}
+                          fallbackClassName="bg-slate-200 text-slate-500 text-xs font-medium"
+                        />
                         <div>
                           <div className="font-medium text-slate-900">{name}</div>
                           <div className="text-xs text-slate-500">

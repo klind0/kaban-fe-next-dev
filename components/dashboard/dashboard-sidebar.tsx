@@ -48,7 +48,7 @@ export function DashboardSidebar() {
     const avatarUrl = realtor?.realtor_pic || (user as any)?.realtor_pic || user?.avatar || (user as any)?.realtorPic || null;
     const fullName = user?.fullName || (user as any)?.full_name || "User";
     const email = user?.email || "";
-    const isFoundingRealtor = Boolean(realtor?.is_founding_realtor || (user as any)?.is_founding_realtor);
+    const isFoundingRealtor = Boolean(realtor?.is_founding_realtor || user?.is_founding_realtor);
 
     const userData = user ? { fullName, email, avatar: avatarUrl, isFoundingRealtor } : null;
 

@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import Image from "next/image";
 import Link from "next/link";
 import { toast } from "sonner";
 import { AdminRealtor, fetchRealtors, setFoundingRealtor } from "@/network/rest/realtors";
+import RealtorAvatar from "@/components/shared/realtor-avatar";
 
 export default function AdminRealtorDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -66,21 +66,13 @@ export default function AdminRealtorDetailPage() {
 
       <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
         <div className="flex items-start gap-5">
-          <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-full bg-slate-200">
-            {realtor.realtor_pic ? (
-              <Image
-                src={realtor.realtor_pic}
-                alt={name}
-                fill
-                className="object-cover"
-                sizes="80px"
-              />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center text-xl font-medium text-slate-500">
-                {name.charAt(0)}
-              </div>
-            )}
-          </div>
+          <RealtorAvatar
+            src={realtor.realtor_pic}
+            alt={name}
+            size={80}
+            isFoundingRealtor={Boolean(realtor.is_founding_realtor)}
+            fallbackClassName="bg-slate-200 text-slate-500 text-xl font-medium"
+          />
 
           <div className="flex-1">
             <h1 className="text-xl font-bold text-slate-900">{name}</h1>

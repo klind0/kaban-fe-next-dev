@@ -18,12 +18,12 @@ import React from "react";
 import { Hamburger } from "../icons/hamburger";
 import X from "../icons/x";
 import { House, House2 } from "../icons/house";
-import Image from "next/image";
 import { useUserStore } from "@/app/stores/user-store";
 import { QUERY_KEY } from "@/enum/queryKeys";
 import Cookies from "js-cookie";
 import { toast } from "sonner";
 import AuthModal from "../auth/auth-modal";
+import RealtorAvatar from "@/components/shared/realtor-avatar";
 
 type SubMenuItem = {
     name: string;
@@ -49,13 +49,14 @@ export default function Navbar() {
     const avatarUrl = realtor?.realtor_pic || (user as any)?.realtor_pic || user?.avatar || (user as any)?.realtorPic || null;
     const fullName = user?.fullName || (user as any)?.full_name || "";
     const email = user?.email || "";
+    const isFoundingRealtor = Boolean(realtor?.is_founding_realtor || user?.is_founding_realtor);
 
     const nameInitials = (fullName.trim().match(/\b\w/g) || ["U"])
         .join("")
         .slice(0, 2)
         .toUpperCase();
 
-    const userData = { fullName, email, avatar: avatarUrl };
+    const userData = { fullName, email, avatar: avatarUrl, isFoundingRealtor };
 
     const menuItems: MenuItem[] = [
         {
@@ -132,12 +133,15 @@ export default function Navbar() {
                             </Link>
                             <Popover>
                                 <PopoverTrigger asChild>
-                                    <button className="size-10 rounded-full flex items-center justify-center bg-primary text-white text-sm font-semibold overflow-hidden shrink-0">
-                                        {userData.avatar ? (
-                                            <Image src={userData.avatar} alt="User Avatar" width={40} height={40} className="w-full h-full object-cover" />
-                                        ) : (
-                                            nameInitials
-                                        )}
+                                    <button className="size-10 shrink-0">
+                                        <RealtorAvatar
+                                            src={userData.avatar}
+                                            alt={userData.fullName || "User"}
+                                            size={40}
+                                            isFoundingRealtor={userData.isFoundingRealtor}
+                                            fallbackText={nameInitials}
+                                            fallbackClassName="bg-primary text-white text-sm font-semibold"
+                                        />
                                     </button>
                                 </PopoverTrigger>
                                 <PopoverContent className="p-4">
@@ -147,13 +151,14 @@ export default function Navbar() {
                                     </PopoverHeader>
                                     <div className="space-y-3">
                                         <div className="p-4 flex gap-4 items-center">
-                                            <div className="size-10 bg-primary flex justify-center items-center text-sm text-white text-center font-semibold rounded-full overflow-hidden shrink-0">
-                                                {userData.avatar ? (
-                                                    <Image src={userData.avatar} alt="User Avatar" width={40} height={40} className="w-full h-full object-cover" />
-                                                ) : (
-                                                    nameInitials
-                                                )}
-                                            </div>
+                                            <RealtorAvatar
+                                                src={userData.avatar}
+                                                alt={userData.fullName || "User"}
+                                                size={40}
+                                                isFoundingRealtor={userData.isFoundingRealtor}
+                                                fallbackText={nameInitials}
+                                                fallbackClassName="bg-primary text-white text-sm font-semibold"
+                                            />
                                             <div className="flex flex-col w-full min-w-0">
                                                 <span className="font-medium text-gray-700 truncate">{userData.fullName}</span>
                                                 <span className="text-sm text-gray-500 truncate">{userData.email}</span>
@@ -265,13 +270,14 @@ export default function Navbar() {
                                 <Popover>
                                     <PopoverTrigger asChild>
                                         <button className="flex w-full items-center gap-2">
-                                            <div className="size-10 rounded-full flex items-center justify-center bg-primary text-white text-sm font-semibold shrink-0 overflow-hidden">
-                                                {userData.avatar ? (
-                                                    <Image src={userData.avatar} alt="User Avatar" width={40} height={40} className="w-full h-full object-cover" />
-                                                ) : (
-                                                    nameInitials
-                                                )}
-                                            </div>
+                                            <RealtorAvatar
+                                                src={userData.avatar}
+                                                alt={userData.fullName || "User"}
+                                                size={40}
+                                                isFoundingRealtor={userData.isFoundingRealtor}
+                                                fallbackText={nameInitials}
+                                                fallbackClassName="bg-primary text-white text-sm font-semibold"
+                                            />
                                             <div className="flex flex-col text-left">
                                                 <span className="font-medium text-gray-700">{userData.fullName}</span>
                                                 <span className="text-sm text-gray-500">{userData.email}</span>

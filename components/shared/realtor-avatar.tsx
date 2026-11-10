@@ -10,6 +10,8 @@ interface RealtorAvatarProps {
   isFoundingRealtor?: boolean;
   className?: string;
   badgeSize?: number;            // optional override
+  fallbackText?: string;
+  fallbackClassName?: string;
 }
 
 export default function RealtorAvatar({
@@ -19,6 +21,8 @@ export default function RealtorAvatar({
   isFoundingRealtor = false,
   className,
   badgeSize,
+  fallbackText,
+  fallbackClassName,
 }: RealtorAvatarProps) {
   const badgeDimension = badgeSize ?? Math.round(size * 0.42);
 
@@ -38,8 +42,13 @@ export default function RealtorAvatar({
             sizes={`${size}px`}
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-sm font-medium text-neutral-500">
-            {alt.charAt(0).toUpperCase()}
+          <div
+            className={cn(
+              "flex h-full w-full items-center justify-center text-sm font-medium text-neutral-500",
+              fallbackClassName,
+            )}
+          >
+            {fallbackText ?? alt.charAt(0).toUpperCase()}
           </div>
         )}
       </div>
