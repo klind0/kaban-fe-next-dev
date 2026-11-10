@@ -33,6 +33,7 @@ type Props = {
   isSubmitting?: boolean;
   /** @deprecated prefer isSaving / isSubmitting */
   isPending?: boolean;
+  isActive?: boolean;
   onBack: () => void;
   externalErrors?: any;
   initialData?: Partial<IListing["location"]>;
@@ -49,6 +50,7 @@ const LocationForm = React.forwardRef<LocationFormHandle, Props>(
             isSaving = false,
             isSubmitting = false,
             isPending = false,
+            isActive = true,
             onBack, 
             externalErrors, 
             initialData,
@@ -71,21 +73,28 @@ const LocationForm = React.forwardRef<LocationFormHandle, Props>(
         const busy = !!(isSaving || isSubmitting || isPending);
 
         useEffect(() => {
+            if (!isActive) return;
+
             setOptions({
                 key: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
             });
 
+            let cancelled = false;
             Promise.all([
                 importLibrary("maps"),
                 importLibrary("places")
             ])
             .then(() => {
-                setScriptLoaded(true);
+                if (!cancelled) setScriptLoaded(true);
             })
             .catch((err) => {
                 console.error("❌ Error loading Google Maps via functional wrapper:", err);
             });
-        }, []);
+
+            return () => {
+                cancelled = true;
+            };
+        }, [isActive]);
 
         const {
             handleSubmit,
@@ -154,7 +163,7 @@ const LocationForm = React.forwardRef<LocationFormHandle, Props>(
 
         // Sync state changes with native Google Map instances
         useEffect(() => {
-            if (!scriptLoaded || !mapContainerRef.current) return;
+            if (!isActive || !scriptLoaded || !mapContainerRef.current) return;
 
             const targetCenter = { lat: latitude, lng: longitude };
             const g = (window as any).google;
@@ -193,7 +202,7 @@ const LocationForm = React.forwardRef<LocationFormHandle, Props>(
                     fillOpacity: 0.12,
                 });
             }
-        }, [scriptLoaded, latitude, longitude, hasInitialData]);
+        }, [isActive, scriptLoaded, latitude, longitude, hasInitialData]);
 
         const onSubmit = (data: LocationFormValues) => {
             const normalizedData: LocationListingData = {

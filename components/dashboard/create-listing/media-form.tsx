@@ -83,26 +83,6 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm(
             .join(",");
     }, [watchedImages]);
 
-    // ----------------------------------------------------
-    // 🔍 HOOK DEPENDENCY MUTATION DIAGNOSTICS
-    // ----------------------------------------------------
-    const previousDeps = React.useRef({ imagesSignature, initialData });
-    React.useEffect(() => {
-        const changes: Record<string, any> = {};
-        if (imagesSignature !== previousDeps.current.imagesSignature) {
-            changes.imagesSignature = { before: previousDeps.current.imagesSignature, after: imagesSignature };
-        }
-        if (initialData !== previousDeps.current.initialData) {
-            changes.initialData = { before: previousDeps.current.initialData, after: initialData };
-        }
-        
-        if (Object.keys(changes).length > 0) {
-            console.warn("⚡ [DIAGNOSTIC] MediaForm dependency values mutated:", changes);
-        }
-        previousDeps.current = { imagesSignature, initialData };
-    }, [imagesSignature, initialData]);
-    // ----------------------------------------------------
-
     // Dynamic generation of client memory paths for local files or hosting server URLs
     React.useEffect(() => {
         const objectUrls = watchedImages.map((img) => {
@@ -170,11 +150,6 @@ const MediaForm = React.forwardRef<MediaFormHandle, Props>(function MediaForm(
             }
 
             const incomingFilesArray = Array.from(incoming);
-            console.log("📸 Frontend Files Selected:", incomingFilesArray.map(f => ({
-                name: f.name,
-                size: f.size,
-                type: f.type
-            })));
             const mergedAssets = [...currentAssets, ...incomingFilesArray];
 
             setValue("images", mergedAssets, { shouldValidate: true, shouldDirty: true });

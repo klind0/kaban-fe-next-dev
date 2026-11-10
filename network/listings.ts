@@ -4,7 +4,6 @@ import {
   submitListingAction,
   uploadListingImagesAction,
 } from "@/app/actions/listing-actions";
-import imageCompression from 'browser-image-compression';
 
 export type BasicListingData = Pick<
   IListing,
@@ -137,7 +136,6 @@ export async function uploadImages(
   const realFiles = files.filter((f): f is File => f instanceof File);
 
   if (realFiles.length === 0) {
-    console.log("🟡 [NETWORK] No new File objects to upload.");
     return;
   }
 
@@ -153,6 +151,9 @@ export async function uploadImages(
         return file;
       }
       try {
+        const { default: imageCompression } = await import(
+          "browser-image-compression"
+        );
         return await imageCompression(file, compressionOptions);
       } catch {
         return file;
@@ -161,12 +162,9 @@ export async function uploadImages(
   );
 
   // One file per request (Vercel payload limit)
-  for (const [index, file] of processedFiles.entries()) {
+  for (const file of processedFiles) {
     const formData = new FormData();
     formData.append("images", file);
-    console.log(
-      `👉 Upload #${index + 1} | "${file.name}" | ${file.size} bytes`,
-    );
     await uploadListingImagesAction(listingId, formData);
   }
 }

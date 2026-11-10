@@ -36,8 +36,54 @@ const tabOptions = [
 const TAB_ORDER = ["basic", "media", "location"] as const;
 type TabType = (typeof TAB_ORDER)[number];
 
+type ListingForEdit = {
+  title?: string | null;
+  description?: string | null;
+  property_category?: string | null;
+  property_type?: string | null;
+  status?: string | null;
+  price?:
+    | number
+    | { amount?: number | string | null; per?: string | null }
+    | null;
+  details?: {
+    bedroom?: number | null;
+    toilet?: number | null;
+    bathroom?: number | null;
+    living_room?: number | null;
+    land_area?: string | null;
+    parking_space?: number | null;
+    features?: string[] | null;
+  } | null;
+  location?: {
+    address?: string | null;
+    state?: string | null;
+    city?: string | null;
+    landmark?: string | null;
+    coordinates?: unknown;
+  } | null;
+  images?: unknown[] | null;
+  cover_image?: string | null;
+  cover_index?: number | null;
+  video?: string | null;
+  video_url?: string | null;
+};
+
 const toTitleCase = (str: string) =>
   str ? str.replace(/\b\w/g, (char) => char.toUpperCase()) : "";
+
+function getErrorMessage(error: unknown, fallback: string): string {
+  if (error instanceof Error) return error.message || fallback;
+  if (
+    error &&
+    typeof error === "object" &&
+    "message" in error &&
+    typeof error.message === "string"
+  ) {
+    return error.message || fallback;
+  }
+  return fallback;
+}
 
 const GET_LISTING_FOR_EDIT_QUERY = `
   query GetListingForEdit($id: String!) {
@@ -73,6 +119,19 @@ function resolveCoverUrl(
   return existingImages[0]?.url;
 }
 
+function getImageUrl(image: unknown): string | undefined {
+  if (typeof image === "string") return image;
+  if (
+    image &&
+    typeof image === "object" &&
+    "url" in image &&
+    typeof image.url === "string"
+  ) {
+    return image.url;
+  }
+  return undefined;
+}
+
 export default function EditListingScreen() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -96,7 +155,8 @@ export default function EditListingScreen() {
     React.useState<BasicListingData | null>(null);
   const [mediaInitial, setMediaInitial] =
     React.useState<MediaListingData | null>(null);
-  const [liveLocationData, setLiveLocationData] = React.useState<any>(null);
+  const [liveLocationData, setLiveLocationData] =
+    React.useState<LocationListingData | null>(null);
 
   const draftRef = React.useRef<{
     basic: BasicListingData | null;
@@ -112,7 +172,9 @@ export default function EditListingScreen() {
       try {
         setIsLoading(true);
 
-        const data = await gqlRequest<{ getListingForEdit: any }>(
+        const data = await gqlRequest<{
+          getListingForEdit: ListingForEdit | null;
+        }>(
           GET_LISTING_FOR_EDIT_QUERY,
           { id: listingId },
         );
@@ -131,21 +193,23 @@ export default function EditListingScreen() {
             ? [Number(rawCoords[1]), Number(rawCoords[0])]
             : [5.0377, 7.9128];
 
-        const listingLocation = rawListing.location
-          ? {
+        const listingLocation: LocationListingData = {
+          location: rawListing.location
+            ? {
               address: rawListing.location.address || "",
               state: toTitleCase(rawListing.location.state || ""),
               city: toTitleCase(rawListing.location.city || ""),
               landmark: rawListing.location.landmark || "",
               coordinates: safeCoordinates,
             }
-          : {
+            : {
               address: "",
               state: "",
               city: "",
               landmark: "",
               coordinates: [5.0377, 7.9128] as [number, number],
-            };
+            },
+        };
 
         const parsedBasic: BasicListingData = {
           title: rawListing.title || "",
@@ -175,9 +239,9 @@ export default function EditListingScreen() {
 
         // Keep URL strings for existing images (edit supports File | string | {url})
         const mappedImages: ListingImageItem[] = Array.isArray(rawListing.images)
-          ? rawListing.images.map((img: any) =>
-              typeof img === "string" ? img : img?.url || img,
-            )
+          ? rawListing.images
+              .map(getImageUrl)
+              .filter((url): url is string => Boolean(url))
           : [];
 
         const parsedMedia: MediaListingData = {
@@ -197,8 +261,8 @@ export default function EditListingScreen() {
 
         draftRef.current.basic = parsedBasic;
         draftRef.current.media = parsedMedia;
-      } catch (err: any) {
-        toast.error(err?.message || "Failed to load listing details.");
+      } catch (err: unknown) {
+        toast.error(getErrorMessage(err, "Failed to load listing details."));
       } finally {
         setIsLoading(false);
       }
@@ -209,7 +273,7 @@ export default function EditListingScreen() {
 
   const handleLocationSubmit = React.useCallback(
     async (
-      data?: LocationListingData | any,
+      data?: LocationListingData,
       submit: boolean = true,
     ) => {
       const liveBasic = basicFormRef.current?.getValues?.();
@@ -217,11 +281,10 @@ export default function EditListingScreen() {
 
       const basic = liveBasic || draftRef.current.basic || basicInitial;
       const media = liveMedia || draftRef.current.media || mediaInitial;
-      const effectiveLocation = data || liveLocationData;
+      const effectiveLocation = data ?? liveLocationData;
 
       if (submit) {
-        const targetLoc =
-          effectiveLocation?.location || effectiveLocation;
+        const targetLoc = effectiveLocation?.location;
         if (!targetLoc?.address || !targetLoc?.state) {
           toast.error("Please fill out all required location fields.");
           return;
@@ -245,6 +308,7 @@ export default function EditListingScreen() {
         allImages.unshift(coverItem);
         coverIndex = 0;
       }
+      const newFileIsCover = allImages[0] instanceof File;
 
       const newFiles = allImages.filter(
         (img): img is File => img instanceof File,
@@ -254,10 +318,12 @@ export default function EditListingScreen() {
         .filter((img) => !(img instanceof File))
         .map((img) => {
           if (typeof img === "string") return { url: img };
-          if (img && typeof img === "object" && typeof (img as any).url === "string") {
+          if (img && typeof img === "object" && "url" in img && typeof img.url === "string") {
             return {
-              url: (img as { url: string }).url,
-              publicId: (img as { publicId?: string }).publicId,
+              url: img.url,
+              ...("publicId" in img && typeof img.publicId === "string"
+                ? { publicId: img.publicId }
+                : {}),
             };
           }
           return null;
@@ -276,7 +342,7 @@ export default function EditListingScreen() {
       else setIsSaving(true);
 
       try {
-        const locObj = effectiveLocation?.location || effectiveLocation;
+        const locObj = effectiveLocation?.location;
 
         // 1) Update first — replace gallery with remaining existing images + cover
         const updateInput = {
@@ -327,6 +393,38 @@ export default function EditListingScreen() {
           await uploadImages(listingId, newFiles);
         }
 
+        if (newFileIsCover) {
+          const refreshed = await gqlRequest<{
+            getListingForEdit: {
+              images?: unknown[];
+              cover_image?: unknown;
+            } | null;
+          }>(GET_LISTING_FOR_EDIT_QUERY, { id: listingId });
+          const refreshedListing = refreshed.getListingForEdit;
+          const retainedImageUrls = new Set(
+            existingImages.map((image) => image.url),
+          );
+          const uploadedCoverUrl =
+            refreshedListing?.images
+              ?.map(getImageUrl)
+              .find((url) => url && !retainedImageUrls.has(url)) ??
+            (() => {
+              const url = getImageUrl(refreshedListing?.cover_image);
+              return url && !retainedImageUrls.has(url) ? url : undefined;
+            })();
+
+          if (!uploadedCoverUrl) {
+            throw new Error(
+              "Photos were uploaded, but the selected cover image could not be confirmed. Please try saving again.",
+            );
+          }
+
+          await gqlRequest(UPDATE_LISTING_MUTATION, {
+            id: listingId,
+            input: { cover_image: uploadedCoverUrl, cover_index: 0 },
+          });
+        }
+
         // 3) Optional submit for review
         if (submit) {
           await submitListing(listingId);
@@ -338,9 +436,8 @@ export default function EditListingScreen() {
             : "Edits saved successfully!",
         );
         router.push("/dashboard");
-        router.refresh();
-      } catch (err: any) {
-        toast.error(err?.message || "Failed to save updates.");
+      } catch (err: unknown) {
+        toast.error(getErrorMessage(err, "Failed to save updates."));
       } finally {
         setIsSaving(false);
         setIsSubmitting(false);
@@ -375,7 +472,7 @@ export default function EditListingScreen() {
 
   const isTabValid = (
     tabId: TabType,
-    submittedLocationData?: any,
+    submittedLocationData?: LocationListingData,
   ): boolean => {
     const liveBasicValues = basicFormRef.current?.getValues?.() || null;
     const liveMediaValues = mediaFormRef.current?.getValues?.() || null;
@@ -398,7 +495,7 @@ export default function EditListingScreen() {
       case "media":
         return !!(media?.images && media.images.length > 0);
       case "location": {
-        const targetLoc = location?.location || location;
+        const targetLoc = location?.location;
         return !!(targetLoc?.address && targetLoc?.state);
       }
       default:
@@ -495,8 +592,9 @@ export default function EditListingScreen() {
             onFormSubmit={handleLocationSubmit}
             isSaving={isSaving}
             isSubmitting={isSubmitting}
+            isActive={activeTab === "location"}
             onBack={() => handleTabChange("media")}
-            initialData={liveLocationData || undefined}
+            initialData={liveLocationData?.location || undefined}
           />
         </div>
       </DashboardPageContainer>

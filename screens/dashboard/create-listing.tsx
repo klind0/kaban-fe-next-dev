@@ -175,21 +175,6 @@ export default function CreateListingScreen() {
             (img): img is File => img instanceof File,
         );
 
-        console.log("==========================================");
-        console.log("🟢 [CLIENT] RAW FORM DATA STATES IN MEMORY:");
-        console.log("1. BASIC INFORMATION:", JSON.stringify(basic, null, 2));
-        console.log("2. LOCATION DATA:", JSON.stringify(data, null, 2));
-        console.log("3. MEDIA METADATA:", {
-            cover_index: media?.cover_index,
-            video_url: media?.video_url,
-            total_images: media?.images?.length || 0,
-            fileCount: imageFiles.length,
-            types: (media?.images || []).map((img) =>
-                img instanceof File ? `File:${img.name}:${img.size}` : typeof img,
-            ),
-        });
-        console.log("==========================================");
-
         if (!basic) {
             toast.error("Please fill out essential fields on the Basic tab.");
             handleTabChange('basic');
@@ -229,7 +214,6 @@ export default function CreateListingScreen() {
             );
             router.push('/dashboard');
         } catch (err: any) {
-            console.error("🔴 [CLIENT] CAUGHT MUTATION ERROR:", err);
             const backendErrors = err?.response?.data?.errors;
 
             if (Array.isArray(backendErrors) && backendErrors.length > 0) {
@@ -340,6 +324,7 @@ export default function CreateListingScreen() {
                         ref={locationFormRef}
                         onFormSubmit={handleLocationSubmit}
                         isPending={isPending}
+                        isActive={activeTab === 'location'}
                         onBack={() => handleTabChange('media')}
                     />
                 </div>
