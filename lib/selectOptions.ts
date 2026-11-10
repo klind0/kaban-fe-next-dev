@@ -103,8 +103,8 @@ export const AMENITY_VALUES = AMENITIES.map((a) => a.value);
 
 // Normalizing their raw arrays to use standard { name, value } matching yours
 export const bedroom = [{ name: "Bedroom", value: "" }, ...bedroomOptions];
-export const bathroom = [
-  { name: "Bathroom", value: "" },
+export const toilet = [
+  { name: "Toilet", value: "" },
   { name: "1", value: "1" },
   { name: "2", value: "2" },
   { name: "3", value: "3" },

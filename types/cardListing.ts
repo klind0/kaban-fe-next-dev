@@ -19,7 +19,8 @@ export interface IGeoLocation {
 
 export interface IPropertyDetails {
   bedroom: number;
-  bathroom: number;
+  toilet: number;
+  bathroom?: number;
   land_area: string;
   area_suffix?: string;
   parking_space: number;

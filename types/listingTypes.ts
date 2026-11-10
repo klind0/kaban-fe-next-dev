@@ -52,8 +52,8 @@ export enum RejectionReason {
 
 export type Detail = {
   bedroom: number;
-  bathroom: number;
   toilet: number;
+  bathroom?: number;
   living_room: number;
   land_area: string;
   parking_space: number;

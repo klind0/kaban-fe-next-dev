@@ -165,7 +165,7 @@ export default function EditListingScreen() {
           },
           details: {
             bedroom: rawListing.details?.bedroom ?? 0,
-            bathroom: rawListing.details?.bathroom ?? 0,
+            toilet: rawListing.details?.toilet || rawListing.details?.bathroom || 0,
             living_room: rawListing.details?.living_room ?? 0,
             land_area: rawListing.details?.land_area ?? "",
             parking_space: rawListing.details?.parking_space ?? 0,

@@ -20,7 +20,7 @@ export function useQueryParams() {
         search: searchParams.get('search') || undefined,
         location: searchParams.get('location') || undefined,
         bedroom: parseInt(searchParams.get('bedroom') || '0') || undefined,
-        bathrooms: parseInt(searchParams.get('bathrooms') || '0') || undefined,
+        toilets: parseInt(searchParams.get('toilets') || '0') || undefined,
         priceMin: parseInt(searchParams.get('priceMin') || '0') || undefined,
         priceMax: parseInt(searchParams.get('priceMax') || '0') || undefined,
         category: (searchParams.get('category') as PropertyCategory) || undefined, // 👈 Corrected domain type

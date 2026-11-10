@@ -65,11 +65,11 @@ const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function B
             description: initialData?.description || '',
             price: {
                 amount: initialData?.price?.amount ?? 0,
-                per: initialData?.price?.per || ''
+                per: initialData?.price?.per || (initialData?.status === 'sale' ? '' : 'annum')
             },
             details: {
                 bedroom: initialData?.details?.bedroom ?? 0,
-                bathroom: initialData?.details?.bathroom ?? 0,
+                toilet: initialData?.details?.toilet || initialData?.details?.bathroom || 0,
                 living_room: initialData?.details?.living_room ?? 0,
                 land_area: initialData?.details?.land_area || '',
                 parking_space: initialData?.details?.parking_space ?? 0,
@@ -90,11 +90,11 @@ const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function B
                 description: initialData.description || '',
                 price: {
                     amount: initialData.price?.amount ?? 0,
-                    per: initialData.price?.per || ''
+                    per: initialData.price?.per || (initialData.status === 'sale' ? '' : 'annum')
                 },
                 details: {
                     bedroom: initialData.details?.bedroom ?? 0,
-                    bathroom: initialData.details?.bathroom ?? 0,
+                    toilet: initialData.details?.toilet || initialData.details?.bathroom || 0,
                     living_room: initialData.details?.living_room ?? 0,
                     land_area: initialData.details?.land_area || '',
                     parking_space: initialData.details?.parking_space ?? 0,
@@ -142,6 +142,18 @@ const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function B
     }));
 
     const selectedCategory = useWatch({ control, name: 'property_category' });
+    const selectedStatus = useWatch({ control, name: 'status' });
+    useEffect(() => {
+        if (initialData) return;
+
+        const currentPriceSuffix = getValues('price.per');
+        if (selectedStatus === 'rent' && !currentPriceSuffix) {
+            setValue('price.per', 'annum');
+        } else if (selectedStatus === 'sale' && currentPriceSuffix === 'annum') {
+            setValue('price.per', '');
+        }
+    }, [getValues, initialData, selectedStatus, setValue]);
+
     const propertyTypeOptions = selectedCategory && propertyTypeByCategory[selectedCategory] 
         ? propertyTypeByCategory[selectedCategory] 
         : [];
@@ -350,20 +362,20 @@ const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function B
                             )}
                         />
                         <Controller
-                            name="details.bathroom"
+                            name="details.toilet"
                             control={control}
                             render={({ field }) => (
                                 <FormControl
                                     as='select'
-                                    labelText='Bathrooms'
+                                    labelText='Toilets'
                                     options={bedroomOptions}
-                                    placeholder='Select number of bathrooms'
+                                    placeholder='Select number of toilets'
                                     containerClass="w-full"
                                     {...field}
                                     value={String(field.value ?? '')}
                                     onChange={(val) => field.onChange(Number(val) || 0)}
                                     disabled={isPending}
-                                    error={getErrorMessage(externalErrors?.details?.bathroom || errors.details?.bathroom)}
+                                    error={getErrorMessage(externalErrors?.details?.toilet || errors.details?.toilet)}
                                 />
                             )}
                         />

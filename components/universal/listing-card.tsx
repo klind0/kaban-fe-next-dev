@@ -2,7 +2,7 @@ import { Heart } from "../icons/heart"
 import { Camera } from "../icons/camera"
 import { Location } from "../icons/location"
 import { Bed } from "../icons/bed"
-import { Shoerline } from "../icons/shoerline"
+import { Toilet } from "../icons/toilet"
 import { Car } from "../icons/car"
 import Image from "next/image"
 import Link from "next/link"
@@ -69,7 +69,7 @@ export default function ListingCard({
     const daysLabel = daysAgo <= 0 ? "Today" : daysAgo === 1 ? "1 day ago" : `${daysAgo} days ago`;
 
     const beds = details?.bedroom ?? 0;
-    const baths = details?.bathroom ?? 0;
+    const toilets = details?.toilet || details?.bathroom || 0;
     const parkingSpots = details?.parking_space ?? 0;
 
     // 🛠️ Dynamic Realtor Profile Resolution & Founding Realtor Flag
@@ -153,8 +153,8 @@ export default function ListingCard({
                             <span className="text-xs font-medium">{beds} Bed{beds !== 1 ? 's' : ''}</span>
                         </div>
                         <div className="flex items-center gap-1">
-                            <Shoerline className="text-primary" />
-                            <span className="text-xs font-medium">{baths} Bath{baths !== 1 ? 's' : ''}</span>
+                            <Toilet className="text-primary" />
+                            <span className="text-xs font-medium">{toilets} Toilet{toilets !== 1 ? 's' : ''}</span>
                         </div>
                         <div className="flex items-center gap-1">
                             <Car className="text-primary" />

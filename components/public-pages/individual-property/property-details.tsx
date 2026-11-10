@@ -1,7 +1,6 @@
 import { Bed } from "@/components/icons/bed";
 import { Car } from "@/components/icons/car";
 import { FormatSquare } from "@/components/icons/format-square";
-import { Shoerline } from "@/components/icons/shoerline";
 import { Toilet } from "@/components/icons/toilet";
 import { Checkbox } from "@/components/ui/checkbox";
 import { IListing } from "@/types/listingTypes";
@@ -12,6 +11,7 @@ interface PropertyDetailsProps {
 
 export default function PropertyDetails({ listing }: PropertyDetailsProps) {
     const details = listing?.details;
+    const toiletCount = details?.toilet || details?.bathroom || 0;
     const features = details?.features || [];
     const hasDescription = Boolean(listing?.description?.trim());
     const hasFeatures = features.length > 0;
@@ -19,8 +19,7 @@ export default function PropertyDetails({ listing }: PropertyDetailsProps) {
     // Check if at least one basic numeric detail metric exists
     const hasBasicDetails = Boolean(
         details?.bedroom ||
-        details?.bathroom ||
-        details?.toilet ||
+        toiletCount ||
         details?.parking_space ||
         details?.land_area
     );
@@ -46,20 +45,11 @@ export default function PropertyDetails({ listing }: PropertyDetailsProps) {
                             </div>
                         )}
 
-                        {Boolean(details?.bathroom) && (
-                            <div className="flex items-center gap-1.5">
-                                <Shoerline className="size-4 md:size-5 text-primary" />
-                                <span className="text-sm md:text-base font-medium">
-                                    {details.bathroom} Bathroom{details.bathroom! > 1 ? "s" : ""}
-                                </span>
-                            </div>
-                        )}
-
-                        {Boolean(details?.toilet) && (
+                        {Boolean(toiletCount) && (
                             <div className="flex items-center gap-1.5">
                                 <Toilet className="size-4 md:size-5 text-primary" />
                                 <span className="text-sm md:text-base font-medium">
-                                    {details.toilet} Toilet{details.toilet! > 1 ? "s" : ""}
+                                    {toiletCount} Toilet{toiletCount > 1 ? "s" : ""}
                                 </span>
                             </div>
                         )}

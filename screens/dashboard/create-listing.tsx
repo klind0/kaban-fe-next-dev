@@ -223,7 +223,9 @@ export default function CreateListingScreen() {
             );
 
             toast.success(
-                submit ? 'Listing submitted for review!' : 'Draft saved successfully!',
+                submit
+                    ? 'Listing submitted for review! Listings expire after 30 days.'
+                    : 'Draft saved successfully!',
             );
             router.push('/dashboard');
         } catch (err: any) {
@@ -353,6 +355,11 @@ export default function CreateListingScreen() {
                     <p className="mt-1 text-xs text-neutral-900">
                         This may take a moment while we process your images and details.
                     </p>
+                    {pendingMessage === "Submitting listing..." && (
+                        <p className="mt-2 text-sm font-medium text-neutral-800">
+                            Listings expire after 30 days.
+                        </p>
+                    )}
                 </div>
             )}
         </>

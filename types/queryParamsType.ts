@@ -13,7 +13,7 @@ export interface IQueryParamsType {
   search?: string;
   location?: string;
   bedroom?: number;
-  bathrooms?: number;
+  toilets?: number;
   priceMin?: number;
   priceMax?: number;
   tab?: string;

@@ -5,7 +5,7 @@ import { Control, Controller, UseFormWatch } from 'react-hook-form';
 import FormControl from '@/components/universal/form-control';
 import { Checkbox } from '@/components/ui/checkbox';
 import { IQueryParamsType } from '@/types/queryParamsType';
-import { property_type, bathroom, bedroom, propertyStatusOptions } from '@/lib/selectOptions';
+import { property_type, toilet, bedroom, propertyStatusOptions } from '@/lib/selectOptions';
 
 export default function SearchFormItem({
 	control,
@@ -96,14 +96,14 @@ export default function SearchFormItem({
 
 			{/* 💎 FIXED: Accepting the direct string value from FormControl's custom onChange handler */}
 		<Controller
-			name="bathrooms"
+			name="toilets"
 			control={control}
 			render={({ field }) => (
 				<FormControl
 					{...field}
 					as="select"
-					placeholder="Bathrooms"
-					options={bathroom}
+					placeholder="Toilets"
+					options={toilet}
 					value={field.value === 0 ? "" : String(field.value)}
 					onChange={(val: any) => field.onChange(Number(val) || 0)} // ✨ FIXED: Explicit parameter bypass
 				/>

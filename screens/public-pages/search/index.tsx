@@ -167,7 +167,7 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
         bedroom: undefined,
     });
 
-    const [bathroomValue, setBathroomValue] = useState("");
+    const [toiletValue, setToiletValue] = useState(() => searchParams.get('toilets') || "");
     const [minPrice, setMinPrice] = useState("");
     const [maxPrice, setMaxPrice] = useState("");
 
@@ -207,7 +207,7 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
             activeFilters.category,
             activeFilters.property_type,
             activeFilters.bedroom != null ? `bed:${activeFilters.bedroom}` : "",
-            bathroomValue ? `bath:${bathroomValue}` : "",
+            toiletValue ? `toilet:${toiletValue}` : "",
             minPrice ? `min:${minPrice}` : "",
             maxPrice ? `max:${maxPrice}` : "",
             selectedAmenities.length
@@ -235,7 +235,7 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
         activeFilters.category,
         activeFilters.property_type,
         activeFilters.bedroom,
-        bathroomValue,
+        toiletValue,
         minPrice,
         maxPrice,
         selectedAmenities,
@@ -250,7 +250,7 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
         ...(activeFilters.category && { category: activeFilters.category }),
         ...(activeFilters.property_type && { property_type: activeFilters.property_type }),
         ...(activeFilters.bedroom && { "details.bedroom": Number(activeFilters.bedroom) }),
-        ...(bathroomValue && { "details.bathroom": Number(bathroomValue) }),
+        ...(toiletValue && { "details.toilet": Number(toiletValue) }),
         ...(minPrice && { min_price: Number(minPrice) }),
         ...(maxPrice && { max_price: Number(maxPrice) }),
         ...(selectedAmenities.length > 0 && { amenities: selectedAmenities }),
@@ -259,7 +259,7 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
         page,
         limit,
         activeFilters,
-        bathroomValue,
+        toiletValue,
         minPrice,
         maxPrice,
         selectedAmenities,
@@ -573,15 +573,15 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
 
                                     <div className="col-span-1 md:col-span-1">
                                         <CustomSelect 
-                                            value={bathroomValue}
-                                            placeholder="Bathroom"
+                                            value={toiletValue}
+                                            placeholder="Toilet"
                                             options={[
-                                                { label: "Any Bathroom", value: "" },
-                                                { label: "1 Bathroom", value: "1" },
-                                                { label: "2 Bathrooms", value: "2" },
-                                                { label: "3+ Bathrooms", value: "3" }
+                                                { label: "Any Toilet", value: "" },
+                                                { label: "1 Toilet", value: "1" },
+                                                { label: "2 Toilets", value: "2" },
+                                                { label: "3+ Toilets", value: "3" }
                                             ]}
-                                            onChange={(val) => setBathroomValue(val)}
+                                            onChange={(val) => setToiletValue(val)}
                                         />
                                     </div>
 
@@ -664,7 +664,7 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
                                         type="button"
                                         onClick={() => {
                                             setActiveFilters({ search: "", status: undefined, category: undefined, property_type: undefined, bedroom: undefined });
-                                            setBathroomValue("");
+                                            setToiletValue("");
                                             setMinPrice("");
                                             setMaxPrice("");
                                             setIsRadiusActive(false);
