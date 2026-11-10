@@ -55,7 +55,9 @@ export default function FeaturedListingSection({
             ))}
           </div>
         ) : (
-          <Carousel className="mt-16">{...(slides ?? [])}</Carousel>
+          <Carousel className="mt-16" autoAdvanceMs={5000}>
+            {...(slides ?? [])}
+          </Carousel>
         )}
       </div>
     </section>

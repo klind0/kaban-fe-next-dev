@@ -7,23 +7,35 @@ interface CarouselProps {
     children: React.ReactNode[]
     /** Extra classes for the outer wrapper div */
     className?: string
+    /** Automatically advance slides at this interval, in milliseconds */
+    autoAdvanceMs?: number
 }
 
-export default function Carousel({ children, className = '' }: CarouselProps) {
+export default function Carousel({ children, className = '', autoAdvanceMs }: CarouselProps) {
     const trackRef = React.useRef<HTMLDivElement>(null)
     const [currentIndex, setCurrentIndex] = React.useState(0)
     const total = children.length
 
     const isScrollingRef = React.useRef(false)
 
-    const scrollTo = (index: number) => {
+    const scrollTo = React.useCallback((index: number) => {
         const clamped = Math.max(0, Math.min(index, total - 1))
         isScrollingRef.current = true
         setCurrentIndex(clamped)
         const card = trackRef.current?.children[clamped] as HTMLElement | undefined
         card?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
         setTimeout(() => { isScrollingRef.current = false }, 600)
-    }
+    }, [total])
+
+    React.useEffect(() => {
+        if (!autoAdvanceMs || autoAdvanceMs <= 0 || total < 2) return
+
+        const interval = window.setInterval(() => {
+            scrollTo((currentIndex + 1) % total)
+        }, autoAdvanceMs)
+
+        return () => window.clearInterval(interval)
+    }, [autoAdvanceMs, currentIndex, scrollTo, total])
 
     const handleScroll = React.useCallback(() => {
         if (isScrollingRef.current) return

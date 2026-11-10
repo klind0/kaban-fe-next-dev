@@ -22,6 +22,7 @@ import {
   uploadImages,
   submitListing,
 } from "@/network/listings";
+import { MY_LISTINGS_QUERY } from "@/network/gql/listings.ql";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import React from "react";
 import { toast } from "sonner";
@@ -85,11 +86,33 @@ function getErrorMessage(error: unknown, fallback: string): string {
   return fallback;
 }
 
-const GET_LISTING_FOR_EDIT_QUERY = `
-  query GetListingForEdit($id: String!) {
-    getListingForEdit(id: $id)
+const MY_LISTINGS_PAGE_SIZE = 10;
+
+async function fetchListingForEdit(id: string): Promise<ListingForEdit | null> {
+  let page = 1;
+
+  while (true) {
+    const result = await gqlRequest<{
+      myListings?: {
+        data?: (ListingForEdit & { id?: string; _id?: string })[];
+        meta?: { totalPages?: number };
+      };
+    }>(MY_LISTINGS_QUERY, { page, limit: MY_LISTINGS_PAGE_SIZE });
+
+    const listings = result?.myListings?.data ?? [];
+    const listing = listings.find(
+      (item) => String(item.id ?? item._id ?? "") === id,
+    );
+    if (listing) return listing;
+
+    const totalPages = Number(result?.myListings?.meta?.totalPages);
+    if (!Number.isFinite(totalPages)) {
+      throw new Error("Unable to determine listing pagination.");
+    }
+    if (page >= totalPages) return null;
+    page += 1;
   }
-`;
+}
 
 const UPDATE_LISTING_MUTATION = `
   mutation UpdateListing($id: String!, $input: JSONObject!) {
@@ -172,14 +195,7 @@ export default function EditListingScreen() {
       try {
         setIsLoading(true);
 
-        const data = await gqlRequest<{
-          getListingForEdit: ListingForEdit | null;
-        }>(
-          GET_LISTING_FOR_EDIT_QUERY,
-          { id: listingId },
-        );
-
-        const rawListing = data?.getListingForEdit;
+        const rawListing = await fetchListingForEdit(listingId);
         if (!rawListing) {
           throw new Error("Listing payload empty or access denied.");
         }
@@ -394,13 +410,7 @@ export default function EditListingScreen() {
         }
 
         if (newFileIsCover) {
-          const refreshed = await gqlRequest<{
-            getListingForEdit: {
-              images?: unknown[];
-              cover_image?: unknown;
-            } | null;
-          }>(GET_LISTING_FOR_EDIT_QUERY, { id: listingId });
-          const refreshedListing = refreshed.getListingForEdit;
+          const refreshedListing = await fetchListingForEdit(listingId);
           const retainedImageUrls = new Set(
             existingImages.map((image) => image.url),
           );
