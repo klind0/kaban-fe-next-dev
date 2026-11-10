@@ -22,12 +22,9 @@ export const MY_LISTINGS_QUERY = `
   }
 `;
 
-// 🏗️ RULE: This expects CreateListingDto! and must request subfields { id }
 export const CREATE_LISTING_MUTATION = `
-  mutation CreateListing($input: CreateListingDto!, $submit: Boolean) {
-    createListing(input: $input, submit: $submit) {
-      id
-    }
+  mutation CreateListing($input: JSONObject!, $submit: Boolean) {
+    createListing(input: $input, submit: $submit)
   }
 `;
 
