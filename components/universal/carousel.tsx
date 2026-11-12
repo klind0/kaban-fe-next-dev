@@ -22,8 +22,18 @@ export default function Carousel({ children, className = '', autoAdvanceMs }: Ca
         const clamped = Math.max(0, Math.min(index, total - 1))
         isScrollingRef.current = true
         setCurrentIndex(clamped)
-        const card = trackRef.current?.children[clamped] as HTMLElement | undefined
-        card?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
+        const track = trackRef.current
+        const card = track?.children[clamped] as HTMLElement | undefined
+        if (track && card) {
+            const trackRect = track.getBoundingClientRect()
+            const cardRect = card.getBoundingClientRect()
+            const left =
+                track.scrollLeft +
+                cardRect.left -
+                trackRect.left -
+                (track.clientWidth - cardRect.width) / 2
+            track.scrollTo({ left, behavior: 'smooth' })
+        }
         setTimeout(() => { isScrollingRef.current = false }, 600)
     }, [total])
 
