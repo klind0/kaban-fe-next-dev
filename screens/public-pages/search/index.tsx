@@ -249,7 +249,7 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
         ...(activeFilters.status && { status: activeFilters.status }),
         ...(activeFilters.category && { category: activeFilters.category }),
         ...(activeFilters.property_type && { property_type: activeFilters.property_type }),
-        ...(activeFilters.bedroom && { "details.bedroom": Number(activeFilters.bedroom) }),
+        ...(activeFilters.bedroom && { bedroom: Number(activeFilters.bedroom) }),
         ...(toiletValue && { "details.toilet": Number(toiletValue) }),
         ...(minPrice && { min_price: Number(minPrice) }),
         ...(maxPrice && { max_price: Number(maxPrice) }),
