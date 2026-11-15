@@ -35,14 +35,16 @@ export function generateListingSlug(listing: IListing): string {
 }
 
 /**
- * Extracts the identifier (property_id or MongoDB ObjectId) from a slug string.
- * Handles hyphens inside KID- prefixed IDs safely.
+ * Extracts the identifier (property_id or database ID) from a slug string.
+ * KID IDs may contain either a timestamp or a UUID after the prefix.
  */
 export function extractIdFromSlug(slug: string): string {
   if (!slug) return "";
 
-  // 1. Matches KID-xxxx property IDs at the end of the slug (case-insensitive)
-  const kidMatch = slug.match(/(KID-\d+)$/i);
+  // Match the complete KID property ID before trying its UUID-shaped suffix.
+  const kidMatch = slug.match(
+    /(KID-(?:\d+|[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}))$/i,
+  );
   if (kidMatch) return kidMatch[1];
 
   // 2. Matches 24-char MongoDB ObjectIds or 36-char UUIDs at the end
@@ -62,8 +64,11 @@ export function extractIdFromSlug(slug: string): string {
 export function slugToTitle(slug: string): string {
   if (!slug) return "";
 
-  // Remove trailing KID-xxxx, 24-char MongoDB ObjectId, or UUID
-  const cleanSlug = slug.replace(/-(KID-\d+|[a-f0-9]{24}|[a-f0-9-]{36})$/i, "");
+  // Remove a trailing KID ID, 24-char MongoDB ObjectId, or UUID.
+  const cleanSlug = slug.replace(
+    /-(KID-(?:\d+|[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12})|[a-f0-9]{24}|[a-f0-9-]{36})$/i,
+    "",
+  );
 
   return cleanSlug
     .replace(/-/g, " ")
