@@ -17,6 +17,7 @@ import { axiosInstance } from "@/network/axios-instance";
 import { toast } from "sonner";
 import Cookies from "js-cookie";
 import { IRealtor } from "@/types/userTypes";
+import { isProfileComplete } from "@/lib/profile-completion";
 
 const UPDATE_REALTOR_MUTATION = `
   mutation UpdateRealtor($id: String!, $input: JSONObject!, $realtor_pic: Upload) {
@@ -62,6 +63,7 @@ export default function ProfileScreen() {
 
     // 🛠️ FIX 1: Extract BOTH user AND realtor from Zustand store
     const { user, realtor, setUser, setRealtor } = useUserStore();
+    const profileComplete = isProfileComplete(user, realtor);
 
     const [activeTab, setActiveTab] = React.useState<TabType>(
         (searchParams.get('tab') as TabType) || 'profile'
@@ -198,6 +200,17 @@ export default function ProfileScreen() {
             </DashboardNavbar>
             
             <DashboardPageContainer>
+                {!profileComplete && (
+                    <div
+                        role="alert"
+                        className="mb-6 rounded-lg border border-primary/30 bg-primary/5 p-4 text-sm text-foreground"
+                    >
+                        <p className="font-semibold">Complete your profile to continue</p>
+                        <p className="mt-1">
+                            Your full name, account email, mobile number, and WhatsApp number are required before you can access other pages.
+                        </p>
+                    </div>
+                )}
                 <CustomTab
                     items={tabOptions}
                     activeTab={activeTab}

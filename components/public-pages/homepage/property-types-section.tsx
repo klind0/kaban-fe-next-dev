@@ -56,8 +56,8 @@ function PropertyTypeCard({ title, items }: PropertyTypeCardProps) {
         }
         className="object-cover"
       />
-      <div className="relative z-10 bg-[#00000027] w-full h-full p-4 flex justify-center items-end md:justify-start">
-        <div className="bg-[#00000066] border border-[#FFFFFF33] p-4 rounded-xl" style={{ backdropFilter: 'blur(25px)' }}>
+      <div className="relative z-10 bg-foreground/15 w-full h-full p-4 flex justify-center items-end md:justify-start">
+        <div className="bg-foreground/40 border border-white/20 p-4 rounded-xl" style={{ backdropFilter: 'blur(25px)' }}>
           <h4 className="uppercase text-white text-lg font-bold">{title}</h4>
           <ul className="flex flex-wrap text-white space-x-1 text-xs font-medium">
             {items.map((item, index) => (

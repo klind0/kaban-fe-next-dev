@@ -65,7 +65,7 @@ export default function RejectDialog({
         <label className="mt-4 block text-sm font-medium text-slate-700">
           Note (optional)
           <textarea
-            className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm outline-none focus:border-[#437EF7]"
+            className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm outline-none focus:border-[var(--primary)]"
             rows={3}
             value={note}
             onChange={(e) => setNote(e.target.value)}

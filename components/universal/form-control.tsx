@@ -86,7 +86,7 @@ export default function FormControl<T extends FieldValues>({
                 }}
                 options={options.map((o) => ({ value: o.value, name: o.name }))}
                 placeholder={placeholder || "Select..."}
-                className={`${error ? "border-[#B02817]" : ""} lg:max-w-full ${className || ""}`}
+                className={`${error ? "border-[var(--destructive)]" : ""} lg:max-w-full ${className || ""}`}
             />
         );
     } else if (isInput(as, props)) {
@@ -101,7 +101,7 @@ export default function FormControl<T extends FieldValues>({
                         required: props.required && "This field is required",
                         ...registerOptions,
                     })}
-                    className={`${error ? "border-[#B02817]" : "border-neutral-700"
+                    className={`${error ? "border-[var(--destructive)]" : "border-neutral-700"
                         } border rounded-sm h-11 outline-none p-3 text-base w-full font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary focus:outline-none"`}
                 />
                 {props.type === "password" && (
@@ -129,7 +129,7 @@ export default function FormControl<T extends FieldValues>({
                     required: props.required && "This field is required",
                     ...registerOptions,
                 })}
-                className={`border rounded-sm p-3 text-base outline-none placeholder:text-grey-alpha-100 focus:ring-2 focus-visible:border-ring focus-visible:ring-ring/50 ${error ? "border-[#B02817]" : "border-[#CBD5E1]"
+                className={`border rounded-sm p-3 text-base outline-none placeholder:text-grey-alpha-100 focus:ring-2 focus-visible:border-ring focus-visible:ring-ring/50 ${error ? "border-[var(--destructive)]" : "border-[var(--neutral-700)]"
                     } w-full`}
                 rows={props.rows ? props.rows : 6}
             />
@@ -151,7 +151,7 @@ export default function FormControl<T extends FieldValues>({
                     </div>
                 )}
                 {error && (
-                    <span className="text-[#B02817] text-xs sm:text-sm whitespace-nowrap">
+                    <span className="text-[var(--destructive)] text-xs sm:text-sm whitespace-nowrap">
                         {typeof error === "string" ? error : error?.message}
                     </span>
                 )}

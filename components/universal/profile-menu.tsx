@@ -38,9 +38,9 @@ export default function ProfileMenu({ openProfileMenu, setOpenProfileMenu, nameI
                         </div>
                     </div>
                     <div className="flex flex-col">
-                        <Link href={'/dashboard'} className="px-6 py-3 font-semibold flex items-center gap-3 text-[#495E6C] hover:bg-neutral-100 rounded-md"><Building2 />My listings</Link>
-                        <Link href={'/dashboard/#'} className="px-6 py-3 font-semibold flex items-center gap-3 text-[#495E6C] hover:bg-neutral-100 rounded-md"><Profile />Profile</Link>
-                        <button className="px-6 py-3 font-semibold flex items-center gap-3 text-[#495E6C] hover:bg-neutral-100 rounded-md" onClick={handleLogout}><LogoutIcon />Sign out</button>
+                        <Link href={'/dashboard'} className="px-6 py-3 font-semibold flex items-center gap-3 text-[var(--gray-50)] hover:bg-neutral-100 rounded-md"><Building2 />My listings</Link>
+                        <Link href={'/dashboard/#'} className="px-6 py-3 font-semibold flex items-center gap-3 text-[var(--gray-50)] hover:bg-neutral-100 rounded-md"><Profile />Profile</Link>
+                        <button className="px-6 py-3 font-semibold flex items-center gap-3 text-[var(--gray-50)] hover:bg-neutral-100 rounded-md" onClick={handleLogout}><LogoutIcon />Sign out</button>
                     </div>
                 </div>
             </PopoverContent>

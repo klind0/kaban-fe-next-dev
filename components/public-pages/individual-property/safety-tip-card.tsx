@@ -6,7 +6,7 @@ export default function SafetyTipCard() {
         "This listing realtor is NOT a representative from Kaban.ng neither does Kaban.ng control the affairs of this realtor as both parties are different entities.",
     ]
     return (
-        <div className="bg-[#F2DDDA] rounded-[10px] shadow">
+        <div className="bg-[var(--color-red-100)] rounded-[10px] shadow">
             <div className="p-4 flex items-center justify-between text-foreground flex-wrap font-semibold border-b border-neutral-800">
                 <h5>Kaban.ng Safety Tips</h5>
             </div>

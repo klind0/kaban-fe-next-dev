@@ -181,7 +181,7 @@ button {
   padding: 0;
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.14);
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--foreground) 14%, transparent);
 }
 
 h1,
@@ -219,7 +219,7 @@ a {
   border-radius: 8px !important;
   padding: 0px !important;
   overflow: hidden;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.14);
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--foreground) 14%, transparent);
 }
 
 .hide-scrollbar {

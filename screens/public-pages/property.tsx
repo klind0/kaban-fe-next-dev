@@ -136,12 +136,12 @@ export default function IndividualProperty({
               </h5>
               <div className="flex items-center gap-2">
                 {listing?.status && (
-                  <div className="bg-[#006AFF]/10 text-primary text-[10px] sm:text-xs font-semibold rounded-[5px] p-1.5 md:p-2 capitalize">
+                  <div className="bg-[var(--primary)]/10 text-primary text-[10px] sm:text-xs font-semibold rounded-[5px] p-1.5 md:p-2 capitalize">
                     ● For {listing.status}
                   </div>
                 )}
                 {listing?.isFeatured && (
-                  <div className="bg-[#41AE49]/10 text-[#41AE49] text-[10px] sm:text-xs font-semibold rounded-[5px] p-1.5 md:p-2">
+                  <div className="bg-[var(--color-green-600)]/10 text-[var(--color-green-600)] text-[10px] sm:text-xs font-semibold rounded-[5px] p-1.5 md:p-2">
                     ● Featured
                   </div>
                 )}
@@ -171,6 +171,9 @@ export default function IndividualProperty({
           </div>
 
           {listing && <PropertyDetails listing={listing} />}
+          <div className="lg:hidden mt-8 px-4 md:px-0">
+            <DisclaimerCard />
+          </div>
 
           {listing && <PropertyMediaTabs listing={listing} />}
         </div>
@@ -180,7 +183,9 @@ export default function IndividualProperty({
           <div className="space-y-8 sticky top-20">
             <RealtorInformationCard listing={listing} />
             <SafetyTipCard />
-            <DisclaimerCard />
+            <div className="hidden lg:block">
+              <DisclaimerCard />
+            </div>
 
             <div className="bg-neutral-200 border border-neutral-300 rounded-lg flex items-center justify-center h-80 font-bold text-neutral-500 text-lg">
               Advert Space
@@ -195,7 +200,7 @@ export default function IndividualProperty({
       </div>
 
       {/* Mobile Quick-Contact Bar */}
-      <div className="md:hidden fixed inset-x-0 bottom-0 left-0 right-0 z-40 bg-white p-3 border-t border-neutral-200 shadow-[0_-4px_12px_rgba(0,0,0,0.08)]">
+      <div className="md:hidden fixed inset-x-0 bottom-0 left-0 right-0 z-40 bg-white p-3 border-t border-neutral-200 shadow-lg">
         <div className="container mx-auto flex justify-between items-center px-2">
           <div className="flex items-center gap-2.5 min-w-0">
             <RealtorAvatar

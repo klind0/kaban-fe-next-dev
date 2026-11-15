@@ -5,7 +5,7 @@ export function Logo(props: React.SVGProps<SVGSVGElement>) {
         <svg width="100" id="img" height="40" viewBox="0 0 100 40" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
             <g clipPath="url(#clip0_197_4858)">
                 <mask id="mask0_197_4858" style={{ maskType: 'luminance' }} maskUnits="userSpaceOnUse" x="3" y="0" width="35" height="41">
-                    <path d="M3.29395 0.015625H37.0939V40.0156H3.29395V0.015625Z" fill="white" />
+                    <path d="M3.29395 0.015625H37.0939V40.0156H3.29395V0.015625Z" fill="var(--color-white)" />
                 </mask>
                 <g mask="url(#mask0_197_4858)">
                     <path fillRule="evenodd" clipRule="evenodd" d="M10.0721 21.2365V0.046875L3.29395 8.18542V39.9854L7.96374 34.3792L8.95749 33.1729L10.0721 31.8469L14.32 26.7531L15.9169 28.35L20.7367 33.1729L27.5148 39.9854H37.0939L30.3158 33.1729L18.6877 21.5385L29.8637 8.09479L20.4054 8.87812L13.8679 16.7156L10.0721 21.2365Z" fill="currentColor" />
@@ -37,7 +37,7 @@ export function Logo(props: React.SVGProps<SVGSVGElement>) {
             </g>
             <defs>
                 <clipPath id="clip0_197_4858">
-                    <rect width="100" height="40" fill="white" />
+                    <rect width="100" height="40" fill="var(--color-white)" />
                 </clipPath>
             </defs>
         </svg>

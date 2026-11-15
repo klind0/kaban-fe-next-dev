@@ -64,8 +64,11 @@ export default function ListingCard({
     const imageUrl = getListingCoverUrl(listingData);
     const photoCount = images?.length ?? 0;
 
-    const publishDate = listingData.publishedAt || listingData.createdAt;
-    const daysAgo = Math.floor((Date.now() - new Date(publishDate).getTime()) / (1000 * 60 * 60 * 24));
+    const publishDate = listingData.publishedAt;
+    const publishTimestamp = publishDate ? new Date(publishDate).getTime() : Date.now();
+    const daysAgo = Number.isNaN(publishTimestamp)
+        ? 0
+        : Math.floor((Date.now() - publishTimestamp) / (1000 * 60 * 60 * 24));
     const daysLabel = daysAgo <= 0 ? "Today" : daysAgo === 1 ? "1 day ago" : `${daysAgo} days ago`;
 
     const beds = details?.bedroom ?? 0;
@@ -109,9 +112,9 @@ export default function ListingCard({
                         className="object-cover transition-transform duration-500 ease-in group-hover:scale-105"
                     />
                 )}
-                <div className="absolute inset-0 bg-[#00000038] w-full h-full flex flex-col justify-between p-4">
+                <div className="absolute inset-0 bg-foreground/20 w-full h-full flex flex-col justify-between p-4">
                     <div className="flex justify-between items-center">
-                        <div className="bg-[#00000066] p-2 rounded-lg text-white text-xs font-semibold" style={{ backdropFilter: 'blur(25px)' }}>
+                        <div className="bg-foreground/40 p-2 rounded-lg text-white text-xs font-semibold" style={{ backdropFilter: 'blur(25px)' }}>
                             {daysLabel}
                         </div>
                         <button onClick={(e) => { e.preventDefault(); toggleFavorite(listingData.id); }} aria-label={favorites.has(listingData.id) ? 'Remove from favorites' : 'Add to favorites'}>
@@ -129,10 +132,10 @@ export default function ListingCard({
                     <div className="space-y-2">
                         <span className="text-xs font-semibold text-neutral-900 capitalize">{toTitleCase(property_type || '')}</span>
                         <div className="flex items-center justify-between">
-                            <h3 className="text-xl font-bold text-[#272D37] whitespace-nowrap">{formatPrice(price?.amount)}</h3>
+                            <h3 className="text-xl font-bold text-[var(--foreground)] whitespace-nowrap">{formatPrice(price?.amount)}</h3>
                             <div className="flex items-center gap-2">
-                                {listing && <div className="bg-[#006AFF]/10 text-primary text-[10px] sm:text-xs font-semibold rounded-[5px] p-1.5 md:p-2">● {listing.label}</div>}
-                                {isFeatured && <div className={`bg-[#41AE49]/10 text-[#41AE49] text-[10px] sm:text-xs font-semibold rounded-[5px] p-1.5 md:p-2`}>● Featured</div>}
+                                {listing && <div className="bg-[var(--primary)]/10 text-primary text-[10px] sm:text-xs font-semibold rounded-[5px] p-1.5 md:p-2">● {listing.label}</div>}
+                                {isFeatured && <div className={`bg-[var(--color-green-600)]/10 text-[var(--color-green-600)] text-[10px] sm:text-xs font-semibold rounded-[5px] p-1.5 md:p-2`}>● Featured</div>}
                             </div>
                         </div>
                     </div>

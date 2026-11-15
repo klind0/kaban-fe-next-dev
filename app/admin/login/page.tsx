@@ -104,7 +104,7 @@ export default function AdminLoginPage() {
           <input
             type="email"
             required
-            className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm outline-none focus:border-[#437EF7]"
+            className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm outline-none focus:border-[var(--primary)]"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             autoComplete="username"
@@ -117,7 +117,7 @@ export default function AdminLoginPage() {
             type="password"
             required
             minLength={8}
-            className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm outline-none focus:border-[#437EF7]"
+            className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm outline-none focus:border-[var(--primary)]"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             autoComplete="current-password"
@@ -127,7 +127,7 @@ export default function AdminLoginPage() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-md bg-[#437EF7] py-2.5 text-sm font-semibold text-white hover:bg-[#3366d6] disabled:opacity-60"
+          className="w-full rounded-md bg-[var(--primary)] py-2.5 text-sm font-semibold text-white hover:bg-[var(--primary)] disabled:opacity-60"
         >
           {loading ? "Signing in…" : "Sign in"}
         </button>

@@ -209,7 +209,7 @@ export default function CreateListingScreen() {
 
             toast.success(
                 submit
-                    ? 'Listing submitted for review! Listings expire after 30 days.'
+                    ? 'Listing submitted for review. It will expire 30 days after it is published.'
                     : 'Draft saved successfully!',
             );
             router.push('/dashboard');
@@ -302,6 +302,9 @@ export default function CreateListingScreen() {
                     activeTab={activeTab}
                     onTabChange={handleTabChange}
                 />
+                <div className="mt-6 rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-foreground">
+                    Listings expire 30 days after they are published following approval.
+                </div>
                 
                 <div className={activeTab !== 'basic' ? 'hidden' : ''}>
                     <BasicInformationForm 
@@ -343,7 +346,7 @@ export default function CreateListingScreen() {
                         </p>
                         {pendingMessage === "Submitting listing..." && (
                             <p className="mt-2 text-sm font-medium text-neutral-800">
-                                Listings expire after 30 days.
+                                Listings expire 30 days after they are published following approval.
                             </p>
                         )}
                     </div>

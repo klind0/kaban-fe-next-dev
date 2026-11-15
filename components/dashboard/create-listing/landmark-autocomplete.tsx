@@ -132,7 +132,7 @@ export default function LandmarkAutocomplete({ value, onChange, onSelect, error,
         <div ref={containerRef} className="flex flex-col gap-1 w-full relative">
             <div className="flex items-center justify-between">
                 <label className="text-foreground text-sm font-medium">Nearest Landmark *</label>
-                {error && <span className="text-[#B02817] text-xs sm:text-sm whitespace-nowrap">{error}</span>}
+                {error && <span className="text-[var(--destructive)] text-xs sm:text-sm whitespace-nowrap">{error}</span>}
             </div>
             <input
                 type="text"
@@ -144,7 +144,7 @@ export default function LandmarkAutocomplete({ value, onChange, onSelect, error,
                 onFocus={() => setIsFocused(true)}
                 disabled={!scriptLoaded}
                 placeholder="Search closest hotel, bank, fuel station, plaza..."
-                className={`${error ? 'border-[#B02817]' : 'border-neutral-700'} border rounded-sm h-11 outline-none p-3 text-base w-full font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary`}
+                className={`${error ? 'border-[var(--destructive)]' : 'border-neutral-700'} border rounded-sm h-11 outline-none p-3 text-base w-full font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary`}
             />
             {isFocused && suggestions.length > 0 && (
                 <ul className="absolute z-[60] top-full left-0 right-0 mt-1 bg-white border border-neutral-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">

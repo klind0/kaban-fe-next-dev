@@ -178,7 +178,7 @@ export default function AdminFeaturedPage() {
             type="button"
             onClick={save}
             disabled={loading || saving || selected.size === 0}
-            className="rounded-md bg-[#437EF7] px-4 py-2 text-sm font-semibold text-white hover:bg-[#3366d6] disabled:opacity-50"
+            className="rounded-md bg-[var(--primary)] px-4 py-2 text-sm font-semibold text-white hover:bg-[var(--primary)] disabled:opacity-50"
           >
             {saving ? "Saving…" : `Save featured (${selected.size})`}
           </button>
@@ -191,7 +191,7 @@ export default function AdminFeaturedPage() {
           placeholder="Search title, property id, city…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full max-w-md rounded-md border border-slate-200 px-3 py-2 text-sm outline-none focus:border-[#437EF7]"
+          className="w-full max-w-md rounded-md border border-slate-200 px-3 py-2 text-sm outline-none focus:border-[var(--primary)]"
         />
         <button
           type="button"

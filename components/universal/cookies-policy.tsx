@@ -109,7 +109,7 @@ export default function CookiesPolicy() {
         <AnimatePresence>
             {isVisible && (
                 <motion.div
-                    className='bg-[#E9F5FF] fixed bottom-0 left-0 w-full py-4 gap-4 z-10 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]'
+                    className='bg-[var(--color-blue-50)] fixed bottom-0 left-0 w-full py-4 gap-4 z-10 shadow-lg'
                     initial={{ y: 100, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     exit={{ y: 100, opacity: 0 }}

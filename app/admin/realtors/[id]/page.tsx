@@ -59,7 +59,7 @@ export default function AdminRealtorDetailPage() {
     <div className="mx-auto max-w-2xl space-y-6">
       <Link
         href="/admin/realtors"
-        className="text-sm font-medium text-[#437EF7] hover:underline"
+        className="text-sm font-medium text-[var(--primary)] hover:underline"
       >
         ← Back to realtors
       </Link>
@@ -86,7 +86,7 @@ export default function AdminRealtorDetailPage() {
             onClick={toggle}
             className={`rounded-full px-4 py-2 text-sm font-semibold ${
               realtor.is_founding_realtor
-                ? "bg-[#437EF7] text-white"
+                ? "bg-[var(--primary)] text-white"
                 : "border border-slate-200 bg-white text-slate-700"
             }`}
           >

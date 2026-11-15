@@ -23,7 +23,7 @@ export const Transparency = (props: React.SVGProps<SVGSVGElement>) => {
 					<rect
 						width="48"
 						height="48"
-						fill="white"
+						fill="var(--color-white)"
 						transform="translate(0.667969)"
 					/>
 				</clipPath>

@@ -22,7 +22,7 @@ const cities = [
 
 export default function ExploreCitiesSection() {
     return (
-        <section className="bg-[#F0F0F0]">
+        <section className="bg-[var(--neutral-400)]">
             {/* Desktop layout */}
             <div className="hidden lg:flex gap-8 container mx-auto py-8 px-4 2xl:px-0 md:py-16 items-stretch">
                 <div className="w-full grid gap-8">
@@ -73,7 +73,7 @@ function CityCard({ name, description, className }: CityCardProps) {
                     className="object-cover"
                 />
             )}
-            <div className="relative z-10 bg-[#00000073] flex items-center justify-center size-full">
+            <div className="relative z-10 bg-foreground/45 flex items-center justify-center size-full">
                 <div className="flex flex-col items-center justify-center text-white">
                     <h4 className="text-2xl md:text-[36px] text-center font-semibold">{name}</h4>
                     <span className="text-center md:text-xl">{description}</span>

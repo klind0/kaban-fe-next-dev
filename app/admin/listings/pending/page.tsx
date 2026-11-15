@@ -152,7 +152,7 @@ export default function PendingListingsPage() {
                     <td className="px-4 py-3 text-right">
                       <Link
                         href={`/admin/listings/${id}`}
-                        className="inline-flex rounded-md bg-[#437EF7] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#3366d6]"
+                        className="inline-flex rounded-md bg-[var(--primary)] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[var(--primary)]"
                       >
                         Review
                       </Link>

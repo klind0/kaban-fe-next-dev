@@ -2,10 +2,9 @@
 
 import { useEffect, useState, useRef, useMemo } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
-import { ChevronDown, ChevronUp, SlidersHorizontal, LayoutGrid, Rows, MapPin, Check } from "lucide-react";
+import { ChevronDown, SlidersHorizontal, LayoutGrid, Rows, MapPin, Check } from "lucide-react";
 
 // Core UI Components
 import Container from '@/components/universal/Container';
@@ -20,6 +19,8 @@ import { IQueryParamsType } from '@/types/queryParamsType';
 import { AMENITIES } from "@/lib/selectOptions";
 import { Button } from '@/components/ui/button';
 import { trackMetaEventWithCapi } from "@/lib/meta-pixel";
+import { toTitleCase } from "@/utils/formatText";
+import SearchResultsSkeleton from "./components/SearchResultsSkeleton";
 
 type ResultsProps = {
     initialSearchTerm?: string;
@@ -80,7 +81,7 @@ function CustomSelect({
     const selectedOption = options.find(o => o.value === value);
 
     return (
-        <div ref={containerRef} className="relative space-y-1 w-full min-w-[160px]">
+        <div ref={containerRef} className="relative space-y-1 w-full min-w-0 sm:min-w-[160px]">
             {label && (
                 <span className="text-xs font-bold text-gray-50 uppercase tracking-wider">
                     {label}
@@ -335,6 +336,14 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
     }, [rawListings, randomizedRawListings, sortOrder]);
 
     const { mediasize } = useResponsiveNav({});
+    const listingIntent =
+        activeFilters.status === 'rent'
+            ? 'Rental'
+            : activeFilters.status === 'sale'
+                ? 'Sales'
+                : 'Property';
+    const searchLocation = activeFilters.search?.trim();
+    const resultsHeading = `${listingIntent} listings${searchLocation ? ` in ${toTitleCase(searchLocation)}` : ''}`;
 
     useEffect(() => {
         mediasize === 'mobile'
@@ -409,20 +418,24 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
                         <span> / Search</span>
                     </div>
 
-                    <h3 className="text-2xl font-bold tracking-tight text-foreground mb-4">Available Properties</h3>
+                    <h3 className="text-2xl font-bold tracking-tight text-foreground mb-4">
+                        {resultsHeading}
+                    </h3>
                     
                     {/* Floating Controls Row */}
-                    <div className="flex items-center justify-between bg-card border border-border rounded-xl p-3.5 shadow-sm w-full mb-4">
-                        <span className="text-sm font-semibold text-gray-50">
-                            {totalResults} {totalResults === 1 ? 'Result' : 'Results'} Found
-                            {totalPages > 1 && (
-                                <span className="text-gray-25 font-normal ml-1">
+                    <div className="flex flex-col gap-3 bg-card border border-border rounded-xl p-3.5 shadow-sm w-full mb-4 sm:flex-row sm:items-center sm:justify-between">
+                        <span aria-live="polite" className="min-w-0 text-sm font-semibold text-gray-50">
+                            {isFetching
+                                ? 'Searching listings...'
+                                : `${totalResults} ${totalResults === 1 ? 'Result' : 'Results'} Found`}
+                            {!isFetching && totalPages > 1 && (
+                                <span className="text-gray-25 font-normal ml-1 whitespace-nowrap">
                                     · Page {currentPage} of {totalPages}
                                 </span>
                             )}
                         </span>
 
-                        <div className="flex items-center gap-3">
+                        <div className="flex w-full items-center gap-3 sm:w-auto">
                             <CustomSelect 
                                 value={sortOrder}
                                 options={SORT_OPTIONS}
@@ -690,10 +703,8 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
                     */}
                 </div>
 
-                {isLoading ? (
-                    <div className="py-16 text-center text-sm font-semibold text-gray-25 bg-card rounded-xl border border-border shadow-sm">
-                        Loading properties matching your search...
-                    </div>
+                {isLoading || isFetching ? (
+                    <SearchResultsSkeleton />
                 ) : listings.length === 0 ? (
                     <div className="py-16 text-center text-sm font-semibold text-gray-25 bg-card rounded-xl border border-border shadow-sm">
                         No properties found matching those search criteria.
@@ -708,24 +719,31 @@ export default function SearchResultsPage({ initialSearchTerm }: ResultsProps) {
 
                         {/* Pagination */}
                         {totalPages > 1 && (
-                            <div className="flex flex-wrap items-center justify-center gap-3 pt-6">
+                            <div className="grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 pt-6 sm:flex sm:justify-center sm:gap-3">
                                 <Button
                                     type="button"
                                     variant="outline"
+                                    className="px-3 sm:px-4"
                                     disabled={currentPage <= 1 || isFetching}
                                     onClick={() => goToPage(currentPage - 1)}
                                 >
-                                    Previous
+                                    <span className="sm:hidden">Prev</span>
+                                    <span className="hidden sm:inline">Previous</span>
                                 </Button>
 
-                                <span className="text-sm text-neutral-600 tabular-nums">
-                                    Page {currentPage} of {totalPages}
-                                    <span className="text-neutral-400"> · {totalResults} total</span>
-                                </span>
+                                <div className="min-w-0 text-center text-xs text-neutral-600 tabular-nums sm:text-sm">
+                                    <span className="block whitespace-nowrap">
+                                        Page {currentPage} of {totalPages}
+                                    </span>
+                                    <span className="block text-neutral-400 sm:inline">
+                                        {totalResults} total
+                                    </span>
+                                </div>
 
                                 <Button
                                     type="button"
                                     variant="outline"
+                                    className="px-3 sm:px-4"
                                     disabled={currentPage >= totalPages || isFetching}
                                     onClick={() => goToPage(currentPage + 1)}
                                 >

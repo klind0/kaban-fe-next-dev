@@ -106,7 +106,7 @@ export default function Carousel({ children, className = '', autoAdvanceMs }: Ca
                         className="size-8 rounded-full bg-white border border-gray-25 flex items-center justify-center disabled:opacity-30 hover:bg-gray-100 transition"
                         aria-label="Previous"
                     >
-                        <ArrowLeft color="#437EF7" size={16} />
+                        <ArrowLeft color="var(--primary)" size={16} />
                     </button>
                     <button
                         onClick={() => scrollTo(currentIndex + 1)}
@@ -114,7 +114,7 @@ export default function Carousel({ children, className = '', autoAdvanceMs }: Ca
                         className="size-8 rounded-full bg-white border border-gray-25 flex items-center justify-center disabled:opacity-30 hover:bg-gray-100 transition"
                         aria-label="Next"
                     >
-                        <ArrowRight color="#437EF7" size={16} />
+                        <ArrowRight color="var(--primary)" size={16} />
                     </button>
                 </div>
             </div>

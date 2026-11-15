@@ -11,6 +11,7 @@ import Script from "next/script";
 import GoogleAuthCallback from "@/components/auth/google-auth-callback";
 import MetaPixelPageview from "@/components/meta-pixel-pageview";
 import GoogleMapsScript from "@/components/universal/google-maps-script";
+import ProfileCompletionGuard from "@/components/auth/profile-completion-guard";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -77,20 +78,22 @@ export default function RootLayout({
           position="top-center"
           toastOptions={{
             classNames: {
-              error: "!bg-[#FFEDED] !border-[#FFB8B7] !text-[#1A1A1A]",
-              success: "!bg-[#E5FBEC] !border-[#66E78E] !text-[#1A1A1A]",
-              warning: "!bg-[#FFF7E5] !border-[#FFD266] !text-[#1A1A1A]",
-              info: "!bg-[#E9F5FF] !border-[#7AC5FF] !text-[#1A1A1A]",
+              error: "!bg-[var(--color-red-50)] !border-[var(--color-red-300)] !text-[var(--foreground)]",
+              success: "!bg-[var(--color-green-50)] !border-[var(--color-green-300)] !text-[var(--foreground)]",
+              warning: "!bg-[var(--color-amber-50)] !border-[var(--color-amber-300)] !text-[var(--foreground)]",
+              info: "!bg-[var(--color-blue-50)] !border-[var(--color-blue-300)] !text-[var(--foreground)]",
             },
           }}
           icons={{
-            error: <InformationCircle className="text-[#FF3B30]" />,
-            success: <TickCheck className="text-[#04912D] size-4" />,
-            warning: <Danger className="text-[#FFB400]" />,
-            info: <InformationCircle className="text-[#007AFF]" />,
+            error: <InformationCircle className="text-[var(--destructive)]" />,
+            success: <TickCheck className="text-[var(--color-green-700)] size-4" />,
+            warning: <Danger className="text-[var(--color-amber-500)]" />,
+            info: <InformationCircle className="text-[var(--primary)]" />,
           }}
         />
-        <ReactQueryProvider>{children}</ReactQueryProvider>
+        <ReactQueryProvider>
+          <ProfileCompletionGuard>{children}</ProfileCompletionGuard>
+        </ReactQueryProvider>
         <GoogleAuthCallback />
         <CookiesPolicy />
 

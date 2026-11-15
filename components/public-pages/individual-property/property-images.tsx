@@ -17,10 +17,11 @@ export default function PropertyImages({ listing }: { listing: IListing }) {
     const totalImages = images.length;
     const currentImage = images[currentImageIndex]?.url;
 
-    const referenceDate = listing?.publishedAt || listing?.createdAt;
-    const daysAgo = referenceDate 
-        ? Math.floor((Date.now() - new Date(referenceDate).getTime()) / (1000 * 60 * 60 * 24))
-        : 0;
+    const referenceDate = listing?.publishedAt;
+    const referenceTimestamp = referenceDate ? new Date(referenceDate).getTime() : Date.now();
+    const daysAgo = Number.isNaN(referenceTimestamp)
+        ? 0
+        : Math.floor((Date.now() - referenceTimestamp) / (1000 * 60 * 60 * 24));
     const daysLabel = daysAgo <= 0 ? "Today" : daysAgo === 1 ? "1 day ago" : `${daysAgo} days ago`;
 
     const changeImage = (newIndex: number) => {
@@ -71,10 +72,10 @@ export default function PropertyImages({ listing }: { listing: IListing }) {
                 {/* Navigation arrows */}
                 {totalImages > 1 && (
                     <>
-                        <button onClick={prevImage} className="absolute left-4 md:left-6 top-1/2 -translate-y-1/2 bg-[#00000080] text-white hover:bg-[#0000004f] rounded-full size-10 md:size-12 flex items-center justify-center shadow transition">
+                        <button onClick={prevImage} className="absolute left-4 md:left-6 top-1/2 -translate-y-1/2 bg-foreground/50 text-white hover:bg-foreground/30 rounded-full size-10 md:size-12 flex items-center justify-center shadow transition">
                             <ChevronLeft className="size-5" />
                         </button>
-                        <button onClick={nextImage} className="absolute right-4 md:right-6 top-1/2 -translate-y-1/2 bg-[#00000080] text-white hover:bg-[#0000004f] rounded-full size-10 md:size-12 flex items-center justify-center shadow transition">
+                        <button onClick={nextImage} className="absolute right-4 md:right-6 top-1/2 -translate-y-1/2 bg-foreground/50 text-white hover:bg-foreground/30 rounded-full size-10 md:size-12 flex items-center justify-center shadow transition">
                             <ChevronRight className="size-5" />
                         </button>
                     </>
@@ -110,7 +111,7 @@ export default function PropertyImages({ listing }: { listing: IListing }) {
                         {/* Close button */}
                         <button
                             onClick={() => setPreviewOpen(false)}
-                            className="absolute top-4 right-4 z-10 bg-[#00000080] hover:bg-[#0000004f] rounded-full size-10 flex items-center justify-center text-white outline-none"
+                            className="absolute top-4 right-4 z-10 bg-foreground/50 hover:bg-foreground/30 rounded-full size-10 flex items-center justify-center text-white outline-none"
                             autoFocus={false}
                         >
                             <X className="size-5" />
@@ -124,10 +125,10 @@ export default function PropertyImages({ listing }: { listing: IListing }) {
                         {/* Navigation */}
                         {totalImages > 1 && (
                             <>
-                                <button onClick={prevImage} className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-[#00000080] hover:bg-[#0000004f] rounded-full size-10 md:size-12 flex items-center justify-center text-white transition">
+                                <button onClick={prevImage} className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-foreground/50 hover:bg-foreground/30 rounded-full size-10 md:size-12 flex items-center justify-center text-white transition">
                                     <ChevronLeft className="size-6" />
                                 </button>
-                                <button onClick={nextImage} className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-[#00000080] hover:bg-[#0000004f] rounded-full size-10 md:size-12 flex items-center justify-center text-white transition">
+                                <button onClick={nextImage} className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-foreground/50 hover:bg-foreground/30 rounded-full size-10 md:size-12 flex items-center justify-center text-white transition">
                                     <ChevronRight className="size-6" />
                                 </button>
                             </>

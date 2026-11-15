@@ -7,7 +7,7 @@
 
 .blockG {
   position: absolute;
-  background-color: #0060d6;
+  background-color: var(--primary);
   width: 2px;
   height: 6px;
   border-radius: 2px 2px 0 0;
@@ -164,50 +164,50 @@
 
 @keyframes fadeG {
   0% {
-    background-color: rgb(0, 0, 0);
+    background-color: var(--foreground);
   }
 
   100% {
-    background-color: rgb(255, 255, 255);
+    background-color: var(--background);
   }
 }
 
 @-o-keyframes fadeG {
   0% {
-    background-color: rgb(0, 0, 0);
+    background-color: var(--foreground);
   }
 
   100% {
-    background-color: rgb(255, 255, 255);
+    background-color: var(--background);
   }
 }
 
 @-ms-keyframes fadeG {
   0% {
-    background-color: rgb(0, 0, 0);
+    background-color: var(--foreground);
   }
 
   100% {
-    background-color: rgb(255, 255, 255);
+    background-color: var(--background);
   }
 }
 
 @-webkit-keyframes fadeG {
   0% {
-    background-color: rgb(0, 0, 0);
+    background-color: var(--foreground);
   }
 
   100% {
-    background-color: rgb(255, 255, 255);
+    background-color: var(--background);
   }
 }
 
 @-moz-keyframes fadeG {
   0% {
-    background-color: rgb(0, 0, 0);
+    background-color: var(--foreground);
   }
 
   100% {
-    background-color: rgb(255, 255, 255);
+    background-color: var(--background);
   }
 }

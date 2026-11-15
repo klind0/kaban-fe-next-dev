@@ -17,6 +17,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { BasicListingData } from "@/network/listings";
+import { toTitleCase } from "@/utils/formatText";
 
 type Props = {
     onFormSubmit: (data: BasicListingData) => void;
@@ -106,7 +107,7 @@ const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function B
 
     const onSubmit = (data: IListing) => {
         onFormSubmit({
-            title: data.title,
+            title: toTitleCase(data.title?.trim()),
             status: data.status,
             property_category: data.property_category,
             property_type: data.property_type,
@@ -130,7 +131,7 @@ const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function B
         getValues: () => {
             const data = getValues();
             return {
-                title: data.title,
+                title: toTitleCase(data.title?.trim()),
                 status: data.status,
                 property_category: data.property_category,
                 property_type: data.property_type,
@@ -167,7 +168,7 @@ const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function B
                     <div className="flex items-center justify-between w-full">
                         <span>Basic Information</span>
                         {(externalErrors?.title || externalErrors?.status || externalErrors?.property_category || externalErrors?.property_type || errors.title || errors.status || errors.property_category || errors.property_type) && (
-                            <span className="text-[#B02817] text-xs sm:text-sm font-normal whitespace-nowrap bg-red-50/60 px-2 py-0.5 rounded">
+                            <span className="text-[var(--destructive)] text-xs sm:text-sm font-normal whitespace-nowrap bg-red-50/60 px-2 py-0.5 rounded">
                                 This section has missing required fields
                             </span>
                         )}
@@ -285,7 +286,7 @@ const BasicInformationForm = React.forwardRef<BasicFormHandle, Props>(function B
                     <div className="flex items-center justify-between w-full">
                         <span>Price</span>
                         {(externalErrors?.price?.amount || errors.price?.amount) && (
-                            <span className="text-[#B02817] text-xs sm:text-sm font-normal whitespace-nowrap bg-red-50/60 px-2 py-0.5 rounded">
+                            <span className="text-[var(--destructive)] text-xs sm:text-sm font-normal whitespace-nowrap bg-red-50/60 px-2 py-0.5 rounded">
                                 This section has missing required fields
                             </span>
                         )}

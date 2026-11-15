@@ -110,7 +110,7 @@ export default function Navbar() {
                                     </MenubarTrigger>
                                     <MenubarContent className="rounded-3xl min-w-65 p-4 border flex flex-col">
                                         {item.subMenu.map((sub) => (
-                                            <MenubarItem key={sub.name} asChild className="text-sm text-[#495E6C] font-medium p-4 hover:bg-neutral-100 cursor-pointer focus:bg-neutral-100">
+                                            <MenubarItem key={sub.name} asChild className="text-sm text-[var(--gray-50)] font-medium p-4 hover:bg-neutral-100 cursor-pointer focus:bg-neutral-100">
                                                 <Link href={sub.link} className="w-full h-full flex items-center gap-2 focus:outline-none">
                                                     {sub.icon && <sub.icon className="w-4 h-4 mr-2" />}
                                                     {sub.name}
@@ -165,13 +165,13 @@ export default function Navbar() {
                                             </div>
                                         </div>
                                         <div className="flex flex-col">
-                                            <Link href={'/dashboard'} className="px-6 py-3 font-semibold flex items-center gap-3 text-[#495E6C] hover:bg-neutral-100 rounded-md">
+                                            <Link href={'/dashboard'} className="px-6 py-3 font-semibold flex items-center gap-3 text-[var(--gray-50)] hover:bg-neutral-100 rounded-md">
                                                 <Building2 />My listings
                                             </Link>
-                                            <Link href={'/dashboard/profile'} className="px-6 py-3 font-semibold flex items-center gap-3 text-[#495E6C] hover:bg-neutral-100 rounded-md">
+                                            <Link href={'/dashboard/profile'} className="px-6 py-3 font-semibold flex items-center gap-3 text-[var(--gray-50)] hover:bg-neutral-100 rounded-md">
                                                 <Profile />Profile
                                             </Link>
-                                            <button className="px-6 py-3 font-semibold flex items-center gap-3 text-[#495E6C] hover:bg-neutral-100 rounded-md" onClick={handleLogout}>
+                                            <button className="px-6 py-3 font-semibold flex items-center gap-3 text-[var(--gray-50)] hover:bg-neutral-100 rounded-md" onClick={handleLogout}>
                                                 <LogoutIcon />Sign out
                                             </button>
                                         </div>
@@ -220,12 +220,12 @@ export default function Navbar() {
                             </button>
                         </div>
 
-                        <div className="flex flex-col space-y-1 divide-y divide-[#EAEBF0] border-b border-[#EAEBF0]">
+                        <div className="flex flex-col space-y-1 divide-y divide-[var(--neutral-600)] border-b border-[var(--neutral-600)]">
                             {menuItems.map((item) => (
                                 <div key={item.name}>
                                     {item.subMenu ? (
                                         <button
-                                            className="w-full flex items-center justify-between p-4 text-[#495E6C]"
+                                            className="w-full flex items-center justify-between p-4 text-[var(--gray-50)]"
                                             onClick={() => toggleSubmenu(item.name)}
                                         >
                                             <span className="font-medium">{item.name}</span>
@@ -234,17 +234,17 @@ export default function Navbar() {
                                             />
                                         </button>
                                     ) : (
-                                        <Link href={item.href} className="flex items-center justify-between p-4 text-[#495E6C]">
+                                        <Link href={item.href} className="flex items-center justify-between p-4 text-[var(--gray-50)]">
                                             <span className="font-medium">{item.name}</span>
                                         </Link>
                                     )}
                                     {item.subMenu && openSubmenu === item.name && (
-                                        <div className="flex flex-col bg-neutral-50 border-t border-[#EAEBF0] divide-y divide-[#EAEBF0]">
+                                        <div className="flex flex-col bg-neutral-50 border-t border-[var(--neutral-600)] divide-y divide-[var(--neutral-600)]">
                                             {item.subMenu.map((sub) => (
                                                 <Link
                                                     key={sub.name}
                                                     href={sub.link}
-                                                    className="flex items-center gap-2 px-8 py-3 text-sm text-[#495E6C] font-semibold hover:bg-neutral-100"
+                                                    className="flex items-center gap-2 px-8 py-3 text-sm text-[var(--gray-50)] font-semibold hover:bg-neutral-100"
                                                     onClick={() => setMobileOpen(false)}
                                                 >
                                                     {sub.icon && <sub.icon className="size-4" />}
@@ -265,7 +265,7 @@ export default function Navbar() {
 
                     </div>
                     {isUserLoggedIn && (
-                        <div className="w-full absolute flex justify-center bottom-0 left-0 p-4 border-t border-[#EAEBF0]">
+                        <div className="w-full absolute flex justify-center bottom-0 left-0 p-4 border-t border-[var(--neutral-600)]">
                             <div className="container flex w-full items-center gap-2">
                                 <Popover>
                                     <PopoverTrigger asChild>
@@ -290,13 +290,13 @@ export default function Navbar() {
                                             <PopoverDescription className="sr-only">Manage your account settings and preferences.</PopoverDescription>
                                         </PopoverHeader>
                                         <div className="flex flex-col">
-                                            <Link href={'/dashboard'} className="px-6 py-3 font-semibold flex items-center gap-3 text-[#495E6C] hover:bg-neutral-100 rounded-md" onClick={() => setMobileOpen(false)}>
+                                            <Link href={'/dashboard'} className="px-6 py-3 font-semibold flex items-center gap-3 text-[var(--gray-50)] hover:bg-neutral-100 rounded-md" onClick={() => setMobileOpen(false)}>
                                                 <Building2 />My listings
                                             </Link>
-                                            <Link href={'/dashboard/profile'} className="px-6 py-3 font-semibold flex items-center gap-3 text-[#495E6C] hover:bg-neutral-100 rounded-md" onClick={() => setMobileOpen(false)}>
+                                            <Link href={'/dashboard/profile'} className="px-6 py-3 font-semibold flex items-center gap-3 text-[var(--gray-50)] hover:bg-neutral-100 rounded-md" onClick={() => setMobileOpen(false)}>
                                                 <Profile />Profile
                                             </Link>
-                                            <button className="px-6 py-3 font-semibold flex items-center gap-3 text-[#495E6C] hover:bg-neutral-100 rounded-md" onClick={() => { handleLogout(); setMobileOpen(false); }}>
+                                            <button className="px-6 py-3 font-semibold flex items-center gap-3 text-[var(--gray-50)] hover:bg-neutral-100 rounded-md" onClick={() => { handleLogout(); setMobileOpen(false); }}>
                                                 <LogoutIcon />Sign out
                                             </button>
                                         </div>

@@ -8,7 +8,7 @@ export function SortIcon({ className, ...props }: React.SVGProps<SVGSVGElement>)
 			viewBox="0 0 18 18"
 			fill="none"
 			xmlns="http://www.w3.org/2000/svg"
-			className={`text-[#437EF7] ${className || ''}`} // Keeps your signature blue as default, but lets custom classes override it
+			className={`text-[var(--primary)] ${className || ''}`} // Keeps your signature blue as default, but lets custom classes override it
 			{...props}
 		>
 			<path

@@ -12,6 +12,7 @@ import CustomSelect, {
 } from '@/components/universal/custom-select';
 import { Arrow } from '@/components/icons/arrow';
 import { useCallback, useMemo, useRef, useState, useTransition } from 'react';
+import { getListingExpirationDate } from '@/lib/listing-expiration';
 import { Building2 } from '@/components/icons/buildings';
 import ListingCard from '@/components/dashboard/listing-card';
 import { useMutation } from '@tanstack/react-query';
@@ -126,8 +127,9 @@ export default function DashboardHome({ listings, meta }: DashboardHomeProps) {
     if (sortStatus === 'ALL') return listings;
 
     return listings.filter((item) => {
+      const expirationDate = getListingExpirationDate(item);
       const isPastExpiration =
-        item?.expiresAt && new Date(item.expiresAt).getTime() < Date.now();
+        expirationDate && expirationDate.getTime() < Date.now();
 
       const rawState = (
         (item as any).effectiveState || item?.listing_state
@@ -211,7 +213,7 @@ export default function DashboardHome({ listings, meta }: DashboardHomeProps) {
           <div className="border border-neutral-600 rounded-2xl mt-8">
             <div className="p-3 border-b border-neutral-600">
               <div className="flex justify-end">
-                <div className="bg-[#F5FAFF] p-1.5 rounded-lg">All</div>
+                <div className="bg-[var(--color-blue-50)] p-1.5 rounded-lg">All</div>
               </div>
             </div>
 

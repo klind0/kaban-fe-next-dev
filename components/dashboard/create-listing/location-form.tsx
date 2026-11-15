@@ -195,10 +195,10 @@ const LocationForm = React.forwardRef<LocationFormHandle, Props>(
                     map: mapInstanceRef.current,
                     center: targetCenter,
                     radius: 600, 
-                    strokeColor: "#006AFF",
+                    strokeColor: "var(--primary)",
                     strokeOpacity: 0.7,
                     weight: 1.5,
-                    fillColor: "#006AFF",
+                    fillColor: "var(--primary)",
                     fillOpacity: 0.12,
                 });
             }
@@ -356,9 +356,9 @@ const LocationForm = React.forwardRef<LocationFormHandle, Props>(
 
                     <div ref={agreementBlockRef} className="p-4 md:p-8 space-y-4 rounded-[10px] border border-neutral-600 scroll-mt-24">
                         <div className="flex items-center justify-between">
-                            <h3 className="text-black text-2xl font-semibold">Agreement <span className="text-[#B02817]">*</span></h3>
+                            <h3 className="text-black text-2xl font-semibold">Agreement <span className="text-[var(--destructive)]">*</span></h3>
                             {(externalErrors?.agreement || errors.agreement) && (
-                                <span className="text-[#B02817] text-xs sm:text-sm whitespace-nowrap bg-red-50 px-2 py-0.5 rounded">This field is required</span>
+                                <span className="text-[var(--destructive)] text-xs sm:text-sm whitespace-nowrap bg-red-50 px-2 py-0.5 rounded">This field is required</span>
                             )}
                         </div>
                         <Controller
@@ -370,7 +370,7 @@ const LocationForm = React.forwardRef<LocationFormHandle, Props>(
                                     <Checkbox
                                         checked={field.value}
                                         onCheckedChange={field.onChange}
-                                        className={`mt-0.5 ${errors.agreement ? 'border-[#B02817]' : ''}`}
+                                        className={`mt-0.5 ${errors.agreement ? 'border-[var(--destructive)]' : ''}`}
                                     />
                                     <span className="text-sm text-foreground">
                                         I consent that I am an authorized marketing representative of the above described real estate property.

@@ -14,6 +14,7 @@ import ListingStateBadge from '@/components/dashboard/listing-state-badge';
 import { IListing } from '@/types/listingTypes';
 import { generateListingSlug } from '@/lib/manageSlug';
 import { getListingCoverUrl } from "@/lib/listingCover";
+import { getListingExpirationDate } from "@/lib/listing-expiration";
 
 interface ListingCardProps {
   listing: IListing;
@@ -40,7 +41,9 @@ export default function ListingCard({
   onRelist,
   onUpgrade,
 }: ListingCardProps) {
-  const isPastExpiration = listing?.expiresAt && new Date(listing.expiresAt).getTime() < Date.now();
+  const expirationDate = getListingExpirationDate(listing);
+  const isPastExpiration =
+    expirationDate && expirationDate.getTime() < Date.now();
 
   const rawState = (
     (listing as any).effectiveState || listing?.listing_state
@@ -129,14 +132,14 @@ export default function ListingCard({
               </div>
               <div className="flex justify-end w-full gap-2">
                 {listing?.status && (
-                  <div className="w-fit flex h-fit bg-[#006AFF]/10 text-primary text-[10px] sm:text-xs font-semibold rounded-[5px] p-1.5 md:p-2">
+                  <div className="w-fit flex h-fit bg-[var(--primary)]/10 text-primary text-[10px] sm:text-xs font-semibold rounded-[5px] p-1.5 md:p-2">
                     ●{' '}
                     {listing.status.charAt(0).toUpperCase() +
                       listing.status.slice(1)}
                   </div>
                 )}
                 {isFeaturedAlready && (
-                  <div className="w-fit h-fit bg-[#41AE49]/10 text-[#41AE49] text-[10px] sm:text-xs font-semibold rounded-[5px] p-1.5 md:p-2">
+                  <div className="w-fit h-fit bg-[var(--color-green-600)]/10 text-[var(--color-green-600)] text-[10px] sm:text-xs font-semibold rounded-[5px] p-1.5 md:p-2">
                     ● Featured
                   </div>
                 )}
@@ -172,9 +175,9 @@ export default function ListingCard({
                     Published: {formatDateOnly(listing.publishedAt)}
                   </span>
                 )}
-                {listing?.expiresAt && (
+                {expirationDate && (
                   <span className="text-xs font-medium">
-                    Expiring: {formatDateOnly(listing.expiresAt)}
+                    Expiring: {formatDateOnly(expirationDate)}
                   </span>
                 )}
               </>
@@ -186,9 +189,9 @@ export default function ListingCard({
               </span>
             )}
 
-            {isExpired && listing?.expiresAt && (
+            {isExpired && expirationDate && (
               <span className="text-xs font-medium">
-                Expired: {formatDateOnly(listing.expiresAt)}
+                Expired: {formatDateOnly(expirationDate)}
               </span>
             )}
           </div>
@@ -270,7 +273,7 @@ export default function ListingCard({
                 className={`p-0.5 rounded transition-colors ${
                   isPending
                     ? 'opacity-40 cursor-not-allowed'
-                    : 'text-neutral-500 hover:text-[#41AE49] hover:bg-[#41AE49]/10'
+                    : 'text-neutral-500 hover:text-[var(--color-green-600)] hover:bg-[var(--color-green-600)]/10'
                 }`}
               >
                 <SendSqaure2 />

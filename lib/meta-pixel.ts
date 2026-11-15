@@ -39,8 +39,9 @@ export async function trackMetaEventWithCapi(options: {
   trackMetaEvent(options.eventName, options.params, eventId);
 
   try {
-    await fetch("/api/meta/capi", {
+    const response = await fetch("/api/meta/capi", {
       method: "POST",
+      keepalive: true,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         event_name: options.eventName,
@@ -53,6 +54,9 @@ export async function trackMetaEventWithCapi(options: {
         external_id: options.external_id,
       }),
     });
+    if (!response.ok) {
+      console.error(`[Meta CAPI client] Request failed with ${response.status}`);
+    }
   } catch (err) {
     // Pixel still fired; don't break the page if CAPI fails
     console.error("[Meta CAPI client]", err);

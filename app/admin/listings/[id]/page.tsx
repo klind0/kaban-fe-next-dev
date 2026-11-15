@@ -116,7 +116,7 @@ export default function AdminListingReviewPage() {
     return (
       <div className="space-y-3">
         <p className="text-slate-600">Listing not found.</p>
-        <Link href="/admin/listings/pending" className="font-medium text-[#437EF7]">
+        <Link href="/admin/listings/pending" className="font-medium text-[var(--primary)]">
           ← Back to pending
         </Link>
       </div>
@@ -138,7 +138,7 @@ export default function AdminListingReviewPage() {
         <div>
           <Link
             href="/admin/listings/pending"
-            className="text-sm font-medium text-[#437EF7] hover:underline"
+            className="text-sm font-medium text-[var(--primary)] hover:underline"
           >
             ← Pending queue
           </Link>

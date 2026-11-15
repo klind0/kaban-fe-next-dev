@@ -11,6 +11,7 @@ export enum VerificationStatus {
 
 export interface IRealtor {
   id: string;
+  full_name?: string;
   realtor_pic?: string;
   is_founding_realtor?: boolean;
   bio?: string;

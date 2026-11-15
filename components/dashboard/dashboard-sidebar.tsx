@@ -124,7 +124,7 @@ export function DashboardSidebar() {
                                             key={item.title} 
                                             className={`flex items-center justify-between gap-1 py-3 ${
                                                 active 
-                                                    ? 'bg-[#F3F9FE] border-l-[3px] border-primary text-primary font-semibold' 
+                                                    ? 'bg-[var(--color-blue-50)] border-l-[3px] border-primary text-primary font-semibold'
                                                     : 'text-sidebar-foreground/70 hover:text-foreground font-medium'
                                             }`}
                                         >
@@ -180,13 +180,13 @@ export function DashboardSidebar() {
                                     <div className="flex flex-col">
                                         <Link 
                                             href={'/dashboard/profile'} 
-                                            className="px-6 py-3 font-semibold flex items-center gap-3 text-[#495E6C] hover:bg-neutral-100 rounded-md" 
+                                            className="px-6 py-3 font-semibold flex items-center gap-3 text-[var(--gray-50)] hover:bg-neutral-100 rounded-md"
                                             onClick={() => setOpenMobile(false)}
                                         >
                                             <Profile />Profile
                                         </Link>
                                         <button 
-                                            className="px-6 py-3 font-semibold flex items-center gap-3 text-[#495E6C] hover:bg-neutral-100 rounded-md" 
+                                            className="px-6 py-3 font-semibold flex items-center gap-3 text-[var(--gray-50)] hover:bg-neutral-100 rounded-md"
                                             onClick={() => { handleLogout(); setOpenMobile(false); }}
                                         >
                                             <LogoutIcon />Sign out

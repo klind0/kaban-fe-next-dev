@@ -70,7 +70,7 @@ export default function AdminRealtorsPage() {
             Manage profiles and Founding Realtor badges
           </p>
         </div>
-        <div className="rounded-full bg-blue-50 px-4 py-1.5 text-sm font-medium text-[#437EF7]">
+        <div className="rounded-full bg-blue-50 px-4 py-1.5 text-sm font-medium text-[var(--primary)]">
           Founding: {foundingCount} / 20
         </div>
       </div>
@@ -146,7 +146,7 @@ export default function AdminRealtorsPage() {
                         onClick={() => toggleFounding(r)}
                         className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
                           isFounding
-                            ? "bg-[#437EF7] text-white hover:bg-[#3269d9]"
+                            ? "bg-[var(--primary)] text-white hover:bg-[var(--primary)]"
                             : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
                         } disabled:opacity-50`}
                       >
@@ -161,7 +161,7 @@ export default function AdminRealtorsPage() {
                     <td className="px-4 py-3">
                       <Link
                         href={`/admin/realtors/${r.id}`}
-                        className="text-sm font-medium text-[#437EF7] hover:underline"
+                        className="text-sm font-medium text-[var(--primary)] hover:underline"
                       >
                         View
                       </Link>

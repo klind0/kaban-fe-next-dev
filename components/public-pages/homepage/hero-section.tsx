@@ -65,7 +65,7 @@ export default function HeroSection() {
     };
 
     return (
-        <section className='min-h-screen flex items-center justify-center bg-[#00000051] mt-18'>
+        <section className='min-h-screen flex items-center justify-center bg-foreground/30 mt-18'>
             <div className='container mx-auto px-4 md:px-20 space-y-8 md:space-y-16'>
                 <div>
                     <p className='text-white text-center h2'>Discover your customized fit with ease</p>

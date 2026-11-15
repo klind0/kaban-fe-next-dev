@@ -4,7 +4,7 @@ const STATE_CONFIG: Record<ListingState, { label: string; className: string }> =
 {
     PUBLISHED: {
         label: "Published",
-        className: "bg-[#41AE49]/10 text-[#41AE49]",
+        className: "bg-[var(--color-green-600)]/10 text-[var(--color-green-600)]",
     },
     DRAFT: {
         label: "Draft",
@@ -12,7 +12,7 @@ const STATE_CONFIG: Record<ListingState, { label: string; className: string }> =
     },
     PENDING_APPROVAL: {
         label: "Pending",
-        className: "bg-[#FFF8EB] text-[#EEA23E]",
+        className: "bg-[var(--color-amber-50)] text-[var(--color-amber-600)]",
     },
     REJECTED: {
         label: "Rejected",

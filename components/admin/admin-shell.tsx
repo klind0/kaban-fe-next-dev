@@ -49,7 +49,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
           <div className="flex items-center gap-6">
-            <Link href="/admin/listings/pending" className="text-lg font-bold text-[#437EF7]">
+            <Link href="/admin/listings/pending" className="text-lg font-bold text-[var(--primary)]">
               Kaban Admin
             </Link>
             <nav className="flex gap-1">
@@ -61,7 +61,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
                     href={item.href}
                     className={`rounded-md px-3 py-1.5 text-sm font-medium ${
                       active
-                        ? "bg-[#437EF7]/10 text-[#437EF7]"
+                        ? "bg-[var(--primary)]/10 text-[var(--primary)]"
                         : "text-slate-600 hover:bg-slate-100"
                     }`}
                   >

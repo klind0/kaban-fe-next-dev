@@ -135,6 +135,7 @@ export default function ProfileForm({ initialData, onFormSubmit, isPending }: Pr
           <Controller
             name="full_name"
             control={control}
+            rules={{ required: "Full name is required" }}
             render={({ field }) => (
               <FormControl
                 as="input"

@@ -27,6 +27,7 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import React from "react";
 import { toast } from "sonner";
 import { gqlRequest } from "@/network/graphql-client";
+import { toTitleCase as formatTitleCase } from "@/utils/formatText";
 
 const tabOptions = [
   { name: "Basic", value: "basic" },
@@ -362,7 +363,7 @@ export default function EditListingScreen() {
 
         // 1) Update first — replace gallery with remaining existing images + cover
         const updateInput = {
-          title: basic.title || "Untitled Listing",
+          title: formatTitleCase(basic.title?.trim()) || "Untitled Listing",
           description: basic.description || "",
           property_category: basic.property_category,
           property_type: basic.property_type,
@@ -442,7 +443,7 @@ export default function EditListingScreen() {
 
         toast.success(
           submit
-            ? "Listing submitted successfully!"
+            ? "Listing submitted for review. It will expire 30 days after it is published."
             : "Edits saved successfully!",
         );
         router.push("/dashboard");
