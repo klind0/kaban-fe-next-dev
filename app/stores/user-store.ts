@@ -24,7 +24,8 @@ export const useUserStore = create<UserStore>()(
       hasHydrated: false,
       setUser: (user: IUser) => set({ user, isAuthenticated: true }),
       setRealtor: (realtor: IRealtor | null) => set({ realtor }),
-      logout: () => set({ user: null, realtor: null }),
+      logout: () =>
+        set({ user: null, realtor: null, isAuthenticated: false }),
       clearUser: () =>
         set({ user: null, realtor: null, isAuthenticated: false }),
       updateUser: (updates: Partial<IUser>) =>

@@ -99,7 +99,7 @@ async function refreshAccessToken(): Promise<string> {
   const cookieStore = await cookies();
   const refreshToken = cookieStore.get(QUERY_KEY.REFRESH_TOKEN)?.value;
 
-  if (!refreshToken) redirect("/");
+  if (!refreshToken) redirect("/?error=session_expired");
 
   const refreshPath = String(
     ENDPOINTS.AUTH?.REFRESH_TOKEN || "auth/refresh",
@@ -110,7 +110,7 @@ async function refreshAccessToken(): Promise<string> {
     headers: { Authorization: `Bearer ${refreshToken}` },
   });
 
-  if (!res.ok) redirect("/");
+  if (!res.ok) redirect("/?error=session_expired");
 
   const body = await res.json();
   // Support both wrapped and unwrapped token shapes
@@ -123,7 +123,7 @@ async function refreshAccessToken(): Promise<string> {
     body?.data?.refreshToken ??
     body?.refreshToken;
 
-  if (!newAccessToken) redirect("/");
+  if (!newAccessToken) redirect("/?error=session_expired");
 
   cookieStore.set(QUERY_KEY.ACCESS_TOKEN, newAccessToken, {
     secure: true,

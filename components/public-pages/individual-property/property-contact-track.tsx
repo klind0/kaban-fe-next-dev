@@ -1,6 +1,7 @@
 "use client";
 
 import { trackMetaEventWithCapi } from "@/lib/meta-pixel";
+import { axiosInstance } from "@/network/axios-instance";
 
 type Props = {
   listingId: string;
@@ -24,6 +25,29 @@ export default function PropertyContactTrack({
   rel,
 }: Props) {
   const onClick = () => {
+    const apiBaseUrl = axiosInstance.defaults.baseURL?.replace(/\/+$/, "");
+    if (!apiBaseUrl) {
+      console.error("Unable to log realtor contact: API base URL is missing.");
+    } else {
+      void fetch(
+        `${apiBaseUrl}/listings/${encodeURIComponent(listingId)}/contact-log`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ contactType: method }),
+          keepalive: true,
+        },
+      ).then((response) => {
+        if (!response.ok) {
+          console.error(
+            `Unable to log realtor contact (request failed with status ${response.status}).`,
+          );
+        }
+      }).catch((error: unknown) => {
+        console.error("Unable to log realtor contact.", error);
+      });
+    }
+
     void trackMetaEventWithCapi({
       eventName: "Contact",
       params: {

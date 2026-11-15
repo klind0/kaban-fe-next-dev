@@ -108,7 +108,7 @@ axiosInstance.interceptors.response.use(
         Cookies.remove(QUERY_KEY.REFRESH_TOKEN);
 
         if (typeof window !== "undefined") {
-          window.location.href = "/";
+          window.location.href = "/?error=session_expired";
         }
 
         if (axios.isAxiosError(refreshError) && refreshError.response?.data) {

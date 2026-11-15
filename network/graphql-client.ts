@@ -89,6 +89,6 @@ function handleSessionExpiration() {
       window.location.href = "/admin/login";
     }
   } else if (currentPath.startsWith("/dashboard")) {
-    window.location.href = "/";
+    window.location.href = "/?error=session_expired";
   }
 }
