@@ -150,28 +150,26 @@ export default function ListingCard({
                             </span>
                         </div>
                     </div>
-                    {(beds > 0 || toilets > 0 || parkingSpots > 0) && (
-                        <div className="flex items-center gap-4 pt-1">
-                            {beds > 0 && (
-                                <div className="flex items-center gap-1">
-                                    <Bed className="text-primary" />
-                                    <span className="text-xs font-medium">{beds} Bed{beds !== 1 ? 's' : ''}</span>
-                                </div>
-                            )}
-                            {toilets > 0 && (
-                                <div className="flex items-center gap-1">
-                                    <Toilet className="text-primary" />
-                                    <span className="text-xs font-medium">{toilets} Toilet{toilets !== 1 ? 's' : ''}</span>
-                                </div>
-                            )}
-                            {parkingSpots > 0 && (
-                                <div className="flex items-center gap-1">
-                                    <Car className="text-primary" />
-                                    <span className="text-xs font-medium">{parkingSpots} Parking spot{parkingSpots !== 1 ? 's' : ''}</span>
-                                </div>
-                            )}
-                        </div>
-                    )}
+                    <div className="flex min-h-6 items-center gap-4 pt-1">
+                        {beds > 0 && (
+                            <div className="flex items-center gap-1">
+                                <Bed className="text-primary" />
+                                <span className="text-xs font-medium">{beds} Bed{beds !== 1 ? 's' : ''}</span>
+                            </div>
+                        )}
+                        {toilets > 0 && (
+                            <div className="flex items-center gap-1">
+                                <Toilet className="text-primary" />
+                                <span className="text-xs font-medium">{toilets} Toilet{toilets !== 1 ? 's' : ''}</span>
+                            </div>
+                        )}
+                        {parkingSpots > 0 && (
+                            <div className="flex items-center gap-1">
+                                <Car className="text-primary" />
+                                <span className="text-xs font-medium">{parkingSpots} Parking spot{parkingSpots !== 1 ? 's' : ''}</span>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
 

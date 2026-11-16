@@ -41,7 +41,7 @@ export default function IndividualProperty({
   const listing = initialData ?? null;
 
   const priceLabel =
-    listing?.price?.per === "one-time"
+    listing?.status === "sale" || listing?.price?.per === "one-time"
       ? formatPrice(listing?.price?.amount ?? 0)
       : `${formatPrice(listing?.price?.amount ?? 0)}/${
           listing?.price?.per ?? "annum"
