@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome to Kaban Nigeria</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', Arial, sans-serif; margin: 0; padding: 0; background: #f8f9fa; color: #7A7A7A; }
+    .container { max-width: 600px; margin: 30px auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+    .header { background: #437EF7; color: white; padding: 40px 20px; text-align: center; }
+    .tagline { font-size: 18px; margin: 8px 0 0; opacity: 0.9; }
+    .content { padding: 40px 30px; line-height: 1.7; }
+    .button { display: inline-block; background: #28a745; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 24px 0; }
+    .footer { background: #f8f9fa; padding: 30px; text-align: center; font-size: 13px; color: #54595F; border-top: 1px solid #e9ecef; }
+    .footer a { color: #437EF7; text-decoration: none; }
+    h1, h2 { color: #54595F; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <img 
+        src="https://res.cloudinary.com/di6b1s0gf/image/upload/c_trim,g_auto/v1771643747/6_bskxw1.png"
+        alt="Kaban Logo" 
+        style="max-width: 360px; height: auto; margin: 0 auto; display: block;"
+      />
+    </div>
+    <div class="content">
+      <h2>Hello {{name}},</h2>
+      <p>Welcome to the <strong>Kaban Family</strong> – where finding or listing real estate becomes stress-free, transparent, and convenient.</p>
+      
+      <p>Whether you're looking to list properties, find your next home, or connect with serious buyers/tenants, you're in the right place.</p>
+      <p style="text-align: center;">
+        <a href="{{loginUrl}}" class="button">Log In & Explore</a>
+      </p>
+
+      <p>Quick next steps:</p>
+      <ul>
+        <li>Complete your profile for better visibility and trust</li>
+        <li>Upload high-quality photos of your listings</li>
+        <li>Respond quickly to inquiries to close deals faster</li>
+        <li>Reach out to our support if you need any help</li>
+      </ul>
+
+      <p>We’re excited to help you achieve your real estate goals.</p>
+      <p>Warm regards,<br>The Kaban Team</p>
+    </div>
+    <div class="footer">
+      Kaban.ng | …real estate at your convenience!<br>
+      <a href="https://kaban.ng/privacy-policy">Privacy Policy</a> • 
+      <a href="https://kaban.ng/terms-of-service">Terms of Service</a>
+    </div>
+  </div>
+</body>
+</html>

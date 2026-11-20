@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Listing Review Feedback – Kaban</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', Arial, sans-serif; margin: 0; padding: 0; background: #f8f9fa; color: #7A7A7A; }
+    .container { max-width: 600px; margin: 30px auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+    .header { background: #dc3545; color: white; padding: 40px 20px; text-align: center; }
+    .content { padding: 40px 30px; line-height: 1.7; }
+    .button { display: inline-block; background: #dc3545; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 24px 0; }
+    .footer { background: #f8f9fa; padding: 30px; text-align: center; font-size: 13px; color: #54595F; border-top: 1px solid #e9ecef; }
+    .footer a { color: #437EF7; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Listing Needs Attention</h1>
+    </div>
+    <div class="content">
+      <p>Hello,</p>
+      <p>Thank you for submitting <strong>"{{listingTitle}}"</strong>.</p>
+      <p>After review, we couldn’t approve it yet. Here’s why:</p>
+      <p><strong>Reason:</strong> {{reason}}</p>
+
+      <p style="text-align: center;">
+        <a href="{{editUrl}}" class="button">Edit & Resubmit</a>
+      </p>
+
+      <p>We’re committed to keeping Kaban transparent and high-quality — your updates will help get it approved quickly.</p>
+      <p>Questions? Reach us at <a href="mailto:admin@kaban.ng">support@kaban.ng</a>.</p>
+
+      <p>Best regards,<br>The Kaban Team</p>
+    </div>
+    <div class="footer">
+      Kaban.ng | …real estate at your convenience!<br>
+      <a href="https://kaban.ng/privacy-policy">Privacy Policy</a> • 
+      <a href="https://kaban.ng/terms-of-service">Terms of Service</a>
+    </div>
+  </div>
+</body>
+</html>
